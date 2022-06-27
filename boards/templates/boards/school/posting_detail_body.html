@@ -1,0 +1,56 @@
+<div class="container my-3">
+    <h2 class="border-bottom py-2">{{ posting.subject }}</h2>
+
+    <div class="card my-3">
+        <div class="card-body">
+            <div class="card-text" style="white-space: pre-line;">{{ posting.content| safe  }}</div>
+
+
+            <div class="d-flex justify-content-end">
+                <div class="badge badge-light p-2">
+                    <div>작성자:{{ posting.author.nickname }}</div>
+                    <div>작성일:{{ posting.create_date }}</div>
+                    수정일:{{posting.modify_date}}
+                </div>
+            </div>
+            <h6>출처 : <a href="{{posting.source}}">{{posting.source}}</a></h6>
+        </div>
+
+
+
+
+                    <!---태그 추가 부분-->
+            <labe for = "tags">태그</labe>
+            {% for tag in posting.tag.all %}
+        <span>
+            <a href="{% url 'boards:tag_info' tag.name %}">
+                    #{{ tag.name }}</a>
+            {% endfor %}
+        </span>
+    </div>
+
+
+{% include "boards/base/like_on_posting.html" %}
+
+{% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+<a href="{% url base_url|add:'posting_modify' posting.id%}" class="btn btn-primary">수정</a>
+<a href="#" data-uri="{% url 'boards:delete' posting.id  %}" class="delete btn btn-primary">삭제</a>
+
+<!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".delete").on('click', function() {
+        if(confirm("님, 정말로 지움??")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+{% endif %}
+
+
+
+<!------------------------------------------------------------댓글을 보기 위한 것----------------->
+{% include "boards/base/answer_on_posting.html" %}
+
+</div>

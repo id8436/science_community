@@ -1,0 +1,10 @@
+{%extends "main/section.html"%}
+
+{% block content %}
+
+{{user.is_social}}
+{{ user }}
+{% for con in user.conneted_user_set.all %}
+    {{con}}
+{%endfor%}
+{% endblock content %}

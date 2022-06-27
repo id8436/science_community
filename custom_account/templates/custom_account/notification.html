@@ -1,0 +1,31 @@
+<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+      <li class="nav-item ">
+            <a class="nav-link" href="{% url 'custom_account:profile' %}">프로필 보기</a>
+            <a class="nav-link" href="{% url 'custom_account:logout' %}">(로그아웃)</a>
+      </li>
+      <li><hr class="dropdown-divider"></li>
+
+      {% for notification in notifications %}
+      <li><a class="dropdown-item" href="{{notification.url}}">{{notification.from_user.nickname}}님이
+            {{ notification.message|truncatechars:10 }}에
+      {% if notification.type == 12 %}
+            게시글을 올렸습니다.
+      {% elif notification.type == 21 %}
+            '좋아요'를 눌렀습니다.
+      {% elif notification.type == 22 %}
+            댓글을 추가했습니다.
+      {% elif notification.type == 31 %}
+            '좋아요'를 눌렀습니다.
+      {% elif notification.type == 32 %}
+            대댓글을 추가했습니다.
+      {% elif notification.type == 41 %}
+            '좋아요'를 눌렀습니다.
+
+      {% endif %}
+      </a></li>
+
+      {% endfor %}
+
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" href="{% url 'custom_account:notification_show' %}">전체알림 보기</a></li>
+</ul>

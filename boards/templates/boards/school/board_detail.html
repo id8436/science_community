@@ -1,0 +1,53 @@
+{% extends base_template|add:'section.html' %}
+
+{% block content %}
+<div class="container my-3">
+    <h2 class="border-bottom py-2">{{ board.board_name }} {{ board.enter_year }}</h2>
+
+
+    <div class="card my-3">
+        <div class="card-body">
+        <table class="table">
+        <thead>
+        <tr class="thead-dark">
+            <th>제목</th>
+            <th>작성자</th>
+            <th>작성일시</th>
+            <th>추천수</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% load posting_filter %}
+        {% if posting_list %}
+        {% for posting in posting_list %}
+        <tr>
+            <td>
+                <a href="{% url base_url|add:'posting_detail' posting.id %}" class="to_detail">{{ posting.subject }}</a>
+                <a>{{posting.comment_sum}}</a>
+            </td>
+            <td>{{ posting.author.nickname }}</td>
+            <td>{{ posting.create_date|timesince }}</td>
+            <td><a href="{% url 'boards:posting_like' posting.id %}">{{ posting.like_count|sub:posting.dislike_count }} </a></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+        </tbody>
+        </table>
+    <a href="{% url base_url|add:'posting_create' board.id %}" class="btn btn-primary" data-toggle="modal" data-target="#loginModal">학교 관련글 등록</a>
+            <div>첫번째 질문</div>
+            {% for comment in board.first_question.all %}
+            <div>{{ comment.content }}</div>
+            {% endfor %}
+
+            <div>두번째 질문</div>
+            {% for comment in board.second_question.all %}
+            <div>{{ comment.content }}</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% include base_template|add:"board_list.html" %}
+{% endblock content %}
+</div>

@@ -1,0 +1,29 @@
+from django import forms
+from .models import Posting, Answer, Comment, Board
+
+class BoardForm(forms.ModelForm):
+    class Meta:
+        model = Board
+        fields = ['enter_year']
+
+class PostingForm(forms.ModelForm):
+    class Meta:
+        model = Posting
+        fields = ['subject', 'content', 'source']
+
+class AnswerForm(forms.ModelForm):
+    class Meta:
+        model = Answer
+        fields = ['content']
+        labels = {
+            'content': '댓글내용',
+        }
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        labels = {
+            'content': '댓글내용',
+        }
+

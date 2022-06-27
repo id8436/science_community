@@ -1,0 +1,33 @@
+<!--소셜로그인 기능 불러오기.-->
+{% load static %}
+{% load i18n %}
+{% load account socialaccount %}
+{% get_providers as socialaccount_providers %}
+
+
+{% static 'custom_account/social_login/naver_login.PNG' as naver_button %}
+{% static 'custom_account/social_login/naver_login_hover.PNG' as naver_button_hover %}
+<form method="post" action="/accounts/naver/login/">
+    {% csrf_token %}
+    <center>
+    <button type="submit" class="btn btn-light">
+              <img src="{{ naver_button }}"
+                 onmouseover="this.src='{{ naver_button_hover }}'"
+                 onmouseleave="this.src='{{ naver_button }}'"height="34">
+    </button></center>
+</form>
+
+{% static 'custom_account/social_login/kakao_login.png' as kakao_button %}
+{% static 'custom_account/social_login/kakao_login_hover.png' as kakao_button_hover %}
+<form method="post" action="/accounts/kakao/login/">
+    {% csrf_token %}
+    <center>
+    <button type="submit" class="btn btn-light">
+              <img src="{{ kakao_button }}"
+                 onmouseover="this.src='{{ kakao_button_hover }}'"
+                 onmouseleave="this.src='{{ kakao_button }}'"height="34">
+          </a>
+    </button></center>
+</form>
+
+<!--  프로바이더의 순서는 settings에 지정한 순서인 듯하다.  -->

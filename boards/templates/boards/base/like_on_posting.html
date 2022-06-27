@@ -1,0 +1,93 @@
+<div>
+    <button
+    {% if user in posting.like_users.all %}
+    class="btn btn-primary"
+    {% else %}
+    class="btn btn-dark"
+    {% endif %}
+    onclick="like_click({{posting.id}})" id="like_check">추천({{ posting.like_count }})</button>
+
+    <button
+    {% if user in posting.dislike_users.all %}
+    class="btn btn-warning"
+    {% else %}
+    class="btn btn-dark"
+    {% endif %}
+    onclick="dislike_click({{posting.id}})" id="dislike_check">비추천({{ posting.dislike_count }})</button>
+</div>
+
+<script>
+let like_count = {{ posting.like_count }}  // 좋아요 숫자 지정.
+
+function like_click(id) {
+    console.log(id);
+    var like_object = document.getElementById('like_check');  // 버튼 요소객체 지정.
+    $.ajax({
+        type:'POST',
+        url: "{% url 'boards:posting_like' posting.id %}",     // data를 전송할 url.
+        data:{'posting_id': id,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+
+        },                                      // posting_id 라는 이름으로 id 값 전송
+        dataType: "json",
+        success: function (response){                      // ajax 통신이 정상적으로 완료되었을 때
+            console.log("응답성공");
+            if (response.like_check == true) {  // 추천에 성공했다면.
+                console.log(response.like_check);
+                like_object.className = "btn btn-primary";
+                like_count += 1
+                like_object.innerHTML = "추천(" + like_count + ")"
+            } else {
+                console.log(response.like_check);
+                like_object.className = "btn btn-dark";
+                like_count -= 1
+                like_object.innerHTML = "추천(" + like_count + ")"
+            }
+        },
+        error: function (response){
+            console.log('실패');
+        }
+    });
+}
+
+let dislike_count = {{ posting.dislike_count }}  // 싫어요 숫자 지정.
+
+function dislike_click(id) {
+    console.log(id);
+    var like_object = document.getElementById('dislike_check');  // 버튼 요소객체 지정.
+    $.ajax({
+        type:'POST',
+        url: "{% url 'boards:posting_dislike' posting.id %}",     // data를 전송할 url.
+        data:{'posting_id': id,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+
+        },                                      // posting_id 라는 이름으로 id 값 전송
+        dataType: "json",
+        success: function (response){                      // ajax 통신이 정상적으로 완료되었을 때
+            console.log("응답성공");
+            if (response.like_check == true) {  // 추천에 성공했다면.
+                console.log(response.like_check);
+                like_object.className = "btn btn-warning";
+                dislike_count += 1
+                like_object.innerHTML = "비추천(" + dislike_count + ")"
+            } else {
+                console.log(response.like_check);
+                like_object.className = "btn btn-dark";
+                dislike_count -= 1
+                like_object.innerHTML = "비추천(" + dislike_count + ")"
+            }
+        },
+        error: function (response){
+            console.log('실패');
+        }
+    });
+}
+            /*
+            $('.toast').fadeIn(400).delay(100).fadeOut(400) //class가 toast인 것을 서서히 나타나게 하는 메서드입니다.
+            }
+            else {console.log("hi")};
+            }
+            })
+            }
+            */
+</script>

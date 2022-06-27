@@ -1,0 +1,12 @@
+{% extends "boards/section.html" %}
+
+{% block content %}
+
+{{tag.name}}
+
+총 {{ postings.count }}개의 포스팅이 있습니다.
+{% for posting in postings%}
+{{posting}}
+{% endfor %}
+
+{% endblock content%}

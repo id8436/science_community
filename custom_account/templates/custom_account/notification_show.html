@@ -1,0 +1,26 @@
+{% extends 'custom_account/section.html' %}
+
+
+{% block content %}
+
+{% for notification in notifications %}
+<li><a class="dropdown-item" href="{{notification.url}}">{{notification.from_user.nickname}}님이
+      {% if notification.type == 12 %}
+            {{notification.message}}에 게시글을 올렸습니다.
+      {% elif notification.type == 21 %}
+            {{notification.message}}에 '좋아요'를 눌렀습니다.
+      {% elif notification.type == 22 %}
+            {{notification.message}}에 댓글을 추가했습니다.
+      {% elif notification.type == 31 %}
+            {{notification.message}}에 '좋아요'를 눌렀습니다.
+      {% elif notification.type == 32 %}
+            {{notification.message}}에 대댓글을 추가했습니다.
+      {% elif notification.type == 41 %}
+            {{notification.message}}코멘트에 '좋아요'를 눌렀습니다.
+
+      {% endif %}
+      </a></li>
+
+      {% endfor %}
+
+{% endblock content %}
