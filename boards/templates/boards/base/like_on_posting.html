@@ -5,7 +5,7 @@
     {% else %}
     class="btn btn-dark"
     {% endif %}
-    onclick="like_click({{posting.id}})" id="like_check">추천({{ posting.like_count }})</button>
+    onclick="like_click({{posting.id}})" id="like_check" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>추천({{ posting.like_count }})</button>
 
     <button
     {% if user in posting.dislike_users.all %}
@@ -13,7 +13,7 @@
     {% else %}
     class="btn btn-dark"
     {% endif %}
-    onclick="dislike_click({{posting.id}})" id="dislike_check">비추천({{ posting.dislike_count }})</button>
+    onclick="dislike_click({{posting.id}})" id="dislike_check" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>비추천({{ posting.dislike_count }})</button>
 </div>
 
 <script>

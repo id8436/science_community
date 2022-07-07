@@ -3,35 +3,38 @@
     {% for answer in posting.answer_set.all %}
     <div class="card my-3" id="answer_{{answer.id}}"> <!-- 댓글_1등록 후 해당 댓글_1으로 오게 하기 위한 앵커 -->
         <div class="card-body">
-            <div class="card-text" style="white-space: pre-line;">{{ answer.content }}</div>
-
-            <div class="d-flex justify-content-end">
-                <div class="badge badge-light p-2">
-                    <div>{{ answer.author.nickname }}</div>
+            <div class="badge badge-light">
+                    {{ answer.author.nickname }}
                     {{ answer.create_date }}
-                </div>
+                {% if user == answer.author %}<!--댓글_1 작성자에게만 보이게끔.-->
+                <a href="#" class="delete btn btn-sm btn-outline-secondary "
+                data-uri="{% url 'boards:answer_delete' answer.id  %}">삭제</a>
+                {% endif %}
+            </div>
+            <div class=".bg-info.bg-gradient" style="--bs-bg-opacity: .2;">
+                {{ answer.content }}
+
+
+            </div>
+
+            <div>
+
         </div>
     </div>
-        <!--댓글_1수정, 삭제-->
-            {% if user == answer.author %}<!--댓글_1 작성자에게만 보이게끔.-->
-            <div class="my-3">
-                <a href="{% url 'boards:answer_update' answer.id  %}"
-                   class="btn btn-sm btn-outline-secondary">수정</a>
-                        <a href="#" class="delete btn btn-sm btn-outline-secondary "
-                   data-uri="{% url 'boards:answer_delete' answer.id  %}">삭제</a>
-            </div>{% endif %}
-</div>
 
-        <!--대댓글 기능!-->
-            {% if answer.comment_set.count > 0 %}
-                <div id="comment_area_{{ answer.id }}">
-                {% for comment in answer.comment_set.all %}<!--댓글객체에서 대댓글 객체를 뽑아낸다.-->
-                    {% include "boards/base/comment_shape.html" %}
-                {% endfor %}
-            {% endif %}
+            <!--대댓글 기능!-->
+        {% if answer.comment_set.count > 0 %}
+            <div id="comment_area_{{ answer.id }}">
+            {% for comment in answer.comment_set.all %}<!--댓글객체에서 대댓글 객체를 뽑아낸다.-->
+                {% include "boards/base/comment_shape.html" %}
+            {% endfor %}
+            </div>
+        {% endif %}
         <div>
             {% include "boards/base/comment_create.html" %}
         </div>
+</div>
+
     {% endfor %}
 
 
@@ -71,7 +74,7 @@ function comment_create(id,url) {
     </div>
     {% endif %}
     <!--댓글_1등록을 위한 칸---->
-        <div class="form-group">
+        <div class="form-group" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>
             <textarea class="form-control" name="content" placeholder="300자까지. 넘으면 무시함."
             id="content" rows="2">{{ form.content.value|default_if_none:'' }}</textarea>
             <input type="submit" class="btn btn-primary" value="댓글등록">

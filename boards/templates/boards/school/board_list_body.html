@@ -53,5 +53,11 @@
 
 {% endif %}
 </ui>
-<a href="{% url 'boards:school_board_create' %}" class="btn btn-primary" data-toggle="modal" data-target="#loginModal">학교 등록</a>
+
+
+
+    <a href="{% url 'boards:school_board_create' %}" class="btn btn-primary"
+       {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}
+    >학교 등록</a>
+
 </div>
