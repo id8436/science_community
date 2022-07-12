@@ -1,5 +1,6 @@
 <div class="mt-0">
-    <div class="badge badge-light">
+    <span>{{ comment.content }}</span>
+    <div class="badge text-bg-light">
         {{ comment.author.nickname }}, {{ comment.create_date }}
             {% if comment.modify_date %}
             (수정:{{ comment.modify_date }})
@@ -9,7 +10,5 @@
         data-uri="{% url 'boards:comment_delete' comment.id  %}">삭제</a>
         {% endif %}
     </div>
-        <div style="white-space: pre-line;">{{ comment.content }}
 
-        </div>
 </div>

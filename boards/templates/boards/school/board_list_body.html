@@ -1,9 +1,9 @@
 <div class="container">
     {% include "boards/base/search_on_board.html" %}
 
-    <table class="table">
+    <table class="table table-hover" id="board_table">
         <thead>
-        <tr class="thead-dark">
+        <tr class="table-info">
             <th>제목</th>
             <th>작성자</th>
         </tr>
@@ -25,39 +25,12 @@
     </table>
 
 
-<ui class="pagination justify-content-center">
-{% if board_list.has_previous %}
-<li class="page-item">
-<a class="page-link" data-page="1" href="#">처음</a></li>
-<li class="page-item">
-<a class="page-link" data-page="{{ board_list.previous_page_number }}" href="#">이전</a></li>
-{% endif %}
-
-{% for page_number in page_list %} <!--뷰에서 해당 번호 앞뒤로 페이지리스트를 보냄-->
-    {% if page_number == board_list.number %}
-        <li class="page-item active" aria-current="page">
-            <a class="page-link" data-page="{{ page_number }}" href="#">{{ page_number }}</a>
-        </li>
-    {% else %}
-        <li class="page-item">
-            <a class="page-link" data-page="{{ page_number }}" href="#">{{ page_number }}</a>
-        </li>
-    {% endif %}
-{% endfor %}
-
-{% if board_list.has_next %}
-<li class="page-item">
-<a class="page-link" data-page="{{ board_list.next_page_number }}" href="#">다음</a></li>
-<li class="page-item">
-<a class="page-link" data-page="{{ board_list.paginator.num_pages }}" href="#">끝</a></li>
-
-{% endif %}
-</ui>
+{%include "boards/base/pagenation_of_board.html"%}
 
 
 
-    <a href="{% url 'boards:school_board_create' %}" class="btn btn-primary"
-       {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}
-    >학교 등록</a>
+    <a {% include "custom_account/login_modal_in_html.html" %}
+    href="{% url 'boards:school_board_create' %}" class="btn btn-outline-info">
+        학교 등록</a>
 
 </div>

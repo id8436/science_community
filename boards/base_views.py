@@ -36,15 +36,15 @@ def board_list_hidden(request, category_id):
 
     ################## 페이징처리#########
     from django.core.paginator import Paginator  # 장고엔 다 있다!!
-    page = request.GET.get('page', '1')  #어떤 페이지를 보고 있을지 전달받는다. 추후 탬플릿에서 구현.
+    page = request.GET.get('board_page', '1')  #어떤 페이지를 보고 있을지 전달받는다. 추후 탬플릿에서 구현.
     paginator = Paginator(board_list, 10)  # 페이지당 10개씩 보여주겠다는 의미.
     board_list = paginator.get_page(page)  # 페이징 된 리스트.
 
-    current_page_num=int(page)  #현재 페이지는 몇인가?
-    first_page=1#첫 페이지 넘버
-    last_page = int(paginator.num_pages)  #마지막페이지는 몇인가?
-    left_show =current_page_num - 5  #왼쪽으로 5개까지 나타낸다.
-    right_show =current_page_num + 5  #우측으로 5개까지 나타낸다.
+    current_page_num=int(page)  # 현재 페이지는 몇인가?
+    first_page=1  # 첫 페이지 넘버
+    last_page = int(paginator.num_pages)  # 마지막페이지는 몇인가?
+    left_show =current_page_num - 5  # 왼쪽으로 5개까지 나타낸다.
+    right_show =current_page_num + 5  # 우측으로 5개까지 나타낸다.
 
     if current_page_num < 6:
         left_show=first_page
@@ -85,7 +85,7 @@ def posting_list_hidden(request, board_id):
 
     ################## 페이징처리#########
     from django.core.paginator import Paginator  # 장고엔 다 있다!!
-    page = request.GET.get('page', '1')  #어떤 페이지를 보고 있을지 전달받는다. 추후 탬플릿에서 구현.
+    page = request.GET.get('posting_page', '1')  #어떤 페이지를 보고 있을지 전달받는다. 추후 탬플릿에서 구현.
     paginator = Paginator(posting_list, 10)  # 페이지당 10개씩 보여주겠다는 의미.
     posting_list = paginator.get_page(page)  # 페이징 된 리스트.
 

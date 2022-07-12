@@ -4,6 +4,8 @@ db.sqlite3
 __pycache__
 logs
 sc_venv/
+venv_samsung/
+venv_sc/
 config/secret.py
 media/
 migrations/

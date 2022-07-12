@@ -1,11 +1,14 @@
 <span onclick="show_comment_input_area_({{answer.id}})" class="btn btn-outline-info btn-sm" id="commet_add_{{answer.id}}"
-{% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}
->대댓글 추가하기</span>
+{% if user.is_authenticated %}
+      {% else %}
+      {%include "custom_account/login_modal_in_html.html"%}
+{% endif %}>
+대댓글 추가하기</span>
 
 <div style="display:none" id="comment_input_area_{{answer.id}}">
     <form action="{% url 'boards:comment_create' answer.id  %}" method="post">
     {% csrf_token %}
-    <textarea id="comment_input_area{{answer.id}}" class="form-control" name="content" placeholder="150자까지. 대댓글은 수정 안되니 신중히~"></textarea>
+    <textarea id="comment_input_area{{answer.id}}" class="form-control" name="content" placeholder="1~150자까지. 글자수 안맞으면 에러남. 대댓글은 수정 안되니 신중히~"></textarea>
     <input type="submit" class="btn btn-outline-info btn-sm" value="대댓글등록" onclick="comment_create({{answer.id}} {% url 'boards:comment_create' answer.id  %})">
     </form>
 </div>

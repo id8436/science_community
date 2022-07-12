@@ -1,0 +1,36 @@
+<ui class="pagination justify-content-center">
+{% if board_list.has_previous %}
+<li class="page-item">
+<a class="page-link board_page" data-page="1" href="#">처음</a></li>
+<li class="page-item">
+<a class="page-link board_page" data-page="{{ board_list.previous_page_number }}" href="#">이전</a></li>
+{% endif %}
+
+{% for page_number in board_page_list %} <!--뷰에서 해당 번호 앞뒤로 페이지리스트를 보냄-->
+    {% if page_number == board_list.number %}
+        <li class="page-item active" aria-current="page">
+            <a class="page-link board_page" data-page="{{ page_number }}" href="#">{{ page_number }}</a>
+        </li>
+    {% else %}
+        <li class="page-item">
+            <a class="page-link board_page" data-page="{{ page_number }}" href="#">{{ page_number }}</a>
+        </li>
+    {% endif %}
+{% endfor %}
+
+{% if board_list.has_next %}
+<li class="page-item">
+<a class="page-link board_page" data-page="{{ board_list.next_page_number }}" href="#">다음</a></li>
+<li class="page-item">
+<a class="page-link board_page" data-page="{{ board_list.paginator.num_pages }}" href="#">끝</a></li>
+
+{% endif %}
+</ui>
+<script type='text/javascript'>
+$(".board_page").on('click', function() {    // page-link 클래스를 가진 버튼이 클릭되면
+    var form = document.getElementById('searchForm')
+    $("#board_page").val($(this).data("page"));   // 해당 값을 page에 담고.
+    form.setAttribute('action', '#board_table');
+    form.submit();              // searchForm 안의 페이지에 담아 제출한다.
+});
+</script>

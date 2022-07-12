@@ -3,16 +3,18 @@
     {% if user in posting.like_users.all %}
     class="btn btn-primary"
     {% else %}
-    class="btn btn-dark"
+    class="btn btn-outline-dark"
     {% endif %}
+    {% include "custom_account/login_modal_in_html.html" %}
     onclick="like_click({{posting.id}})" id="like_check" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>추천({{ posting.like_count }})</button>
 
     <button
     {% if user in posting.dislike_users.all %}
     class="btn btn-warning"
     {% else %}
-    class="btn btn-dark"
+    class="btn btn-outline-dark"
     {% endif %}
+    {% include "custom_account/login_modal_in_html.html" %}
     onclick="dislike_click({{posting.id}})" id="dislike_check" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>비추천({{ posting.dislike_count }})</button>
 </div>
 

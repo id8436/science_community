@@ -20,7 +20,7 @@
 
 
                     <!---태그 추가 부분-->
-            <labe for = "tags">태그</labe>
+            <label for = "tags">태그</label>
             {% for tag in posting.tag.all %}
         <span>
             <a href="{% url 'boards:tag_info' tag.name %}">

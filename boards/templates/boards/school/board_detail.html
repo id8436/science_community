@@ -7,13 +7,13 @@
 
     <div class="card my-3">
         <div class="card-body">
-        <table class="table">
+        <table class="table table-hover">
         <thead>
         <tr class="thead-dark">
             <th>제목</th>
             <th>작성자</th>
-            <th>작성일시</th>
             <th>추천수</th>
+            <th>작성일시</th>
         </tr>
         </thead>
         <tbody>
@@ -26,14 +26,19 @@
                 <a>{{posting.comment_sum}}</a>
             </td>
             <td>{{ posting.author.nickname }}</td>
+            <td>{{ posting.like_count|sub:posting.dislike_count }}</td>
             <td>{{ posting.create_date|timesince }}</td>
-            <td><a href="{% url 'boards:posting_like' posting.id %}">{{ posting.like_count|sub:posting.dislike_count }} </a></td>
         </tr>
         {% endfor %}
         {% endif %}
         </tbody>
         </table>
-    <a href="{% url base_url|add:'posting_create' board.id %}" class="btn btn-primary" data-toggle="modal" data-target="#loginModal">학교 관련글 등록</a>
+
+{%include "boards/base/pagenation_of_posting.html"%}
+
+
+    <a href="{% url base_url|add:'posting_create' board.id %}" {%include "custom_account/login_modal_in_html.html"%}
+       class="btn btn-outline-info">학교 관련글 등록</a>
             <div>첫번째 질문</div>
             {% for comment in board.first_question.all %}
             <div>{{ comment.content }}</div>

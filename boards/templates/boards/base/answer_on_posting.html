@@ -3,19 +3,18 @@
     {% for answer in posting.answer_set.all %}
     <div class="card my-3" id="answer_{{answer.id}}"> <!-- 댓글_1등록 후 해당 댓글_1으로 오게 하기 위한 앵커 -->
         <div class="card-body">
-            <div class="badge badge-light">
+            <span class=".bg-info.bg-gradient" style="--bs-bg-opacity: .2;">
+                {{ answer.content }}
+            </span>
+            <span class="badge text-bg-light">
                     {{ answer.author.nickname }}
                     {{ answer.create_date }}
                 {% if user == answer.author %}<!--댓글_1 작성자에게만 보이게끔.-->
                 <a href="#" class="delete btn btn-sm btn-outline-secondary "
                 data-uri="{% url 'boards:answer_delete' answer.id  %}">삭제</a>
                 {% endif %}
-            </div>
-            <div class=".bg-info.bg-gradient" style="--bs-bg-opacity: .2;">
-                {{ answer.content }}
+            </span>
 
-
-            </div>
 
             <div>
 
@@ -24,7 +23,7 @@
 
             <!--대댓글 기능!-->
         {% if answer.comment_set.count > 0 %}
-            <div id="comment_area_{{ answer.id }}">
+            <div id="comment_area_{{ answer.id }}" class="px-5">
             {% for comment in answer.comment_set.all %}<!--댓글객체에서 대댓글 객체를 뽑아낸다.-->
                 {% include "boards/base/comment_shape.html" %}
             {% endfor %}
@@ -60,7 +59,8 @@ function comment_create(id,url) {
 
 <!--댓글_1등록을 위한 것---------------------------------------------------------------->
     댓글 추가하기
-<form action="{% url 'boards:answer_create' posting.id %}?next={{request.path}}" method="post">
+<form action="{% url 'boards:answer_create' posting.id %}?next={{request.path}}"
+      method="post" {% include "custom_account/login_modal_in_html.html" %}>
 {% csrf_token %}
 <!--폼에러를 나타내기 위한 것-->
     {% if form.errors %}
@@ -75,8 +75,8 @@ function comment_create(id,url) {
     {% endif %}
     <!--댓글_1등록을 위한 칸---->
         <div class="form-group" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>
-            <textarea class="form-control" name="content" placeholder="300자까지. 넘으면 무시함."
+            <textarea class="form-control" name="content" placeholder="1~300자까지. 안맞으면 에러남."
             id="content" rows="2">{{ form.content.value|default_if_none:'' }}</textarea>
-            <input type="submit" class="btn btn-primary" value="댓글등록">
+            <input type="submit" class="btn btn-outline-info" value="댓글등록">
         </div>
 </form>
