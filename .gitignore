@@ -3,9 +3,11 @@ db.sqlite3
 *.pyc
 __pycache__
 logs
-sc_venv/
-venv_samsung/
-venv_sc/
+sc_venv
+sc_venv_10
+venv_samsung
+venv_hp
+venv_sc
 config/secret.py
 media/
 migrations/
