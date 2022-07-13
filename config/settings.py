@@ -25,7 +25,7 @@ SECRET_KEY = secret.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['id8436.iptime.org', '172.17.0.3']
+ALLOWED_HOSTS = ['id8436.iptime.org', '127.0.0.1']
 
 
 # Application definition
@@ -147,7 +147,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [ BASE_DIR / 'static', ]
+STATICFILES_DIRS = [BASE_DIR / 'static', ]
 STATICFILES_FINDERS = ['django.contrib.staticfiles.finders.FileSystemFinder',
                        'django.contrib.staticfiles.finders.AppDirectoriesFinder',]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
