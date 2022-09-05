@@ -1,11 +1,12 @@
-<form id="searchForm" method="get" action="#"> <!--주소는 #으로 해주어야 디테일화면이나 다른 곳에서도 리스트를 유지할 수 있다. 링크를 줘버리면.. 리스트에서밖에 못써먹어.-->
+<form id="searchForm" method="get" action="{% url 'boards:board_list' category.id %}"> <!--주소는 #으로 해주어야 디테일화면이나 다른 곳에서도 리스트를 유지할 수 있다. 링크를 줘버리면.. 리스트에서밖에 못써먹어.-->
         <div class="input-group mb-3">
-            <input type="text" class="form-control" name="keyword" placeholder="여따 검색하쇼" id="search_keyword"
+            <input type="text" class="form-control" name="keyword" placeholder="여따 검색하쇼(게시판 검색)" id="search_keyword"
                    value="{{ keyword|default_if_none:'' }}">
             <input class="btn btn-outline-secondary" type="submit" id="btn_search" value="검색">
         </div>
             <input type="hidden" id="posting_page" name="posting_page" value="{{ posting_page }}">
             <input type="hidden" id="board_page" name="board_page" value="{{ board_page }}">
+            <input type="hidden" id="answer_page" name="answer_page" value="{{ answer_page }}">
 </form>
 
 <!--페이지 버튼을 누르면 페이지 정보와 함께 검색폼의 내용도 제출되게끔.-->

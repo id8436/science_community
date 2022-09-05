@@ -1,0 +1,44 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+{{ school }}의 교사 명단을 등록합니다.
+<div>여기다 폼으로 한 명 분 등록하게 해보자.</div>
+
+<div>여러 교사 한번에 등록하기.</div>
+<a href="{% url 'school_report:school_download_excel_form' %}">양식 다운 받기</a>
+
+<a>서식 올리기.</a>
+<form action="{% url 'school_report:school_upload_excel_form' school.id %}" method="POST" enctype="multipart/form-data">
+        <input type="file" name="uploadedFile">
+        {% csrf_token %}
+        <input type="submit" value="Upload">
+</form>
+
+미등록 명단
+<table class="table table-hover" id="board_table">
+    <thead>
+    <tr class="table-info">
+        <th>성함</th>
+        <th>담임</th>
+        <th>담임반</th>
+        <th>가입코드</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if teacher_list %}
+    {% for teacher in teacher_list %}
+    <tr>
+        <td>{{teacher.name}}</td>
+        <th>{{teacher.grade}}</th>
+        <th>{{teacher.cl_num}}</th>
+        <td>{{ teacher.code }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+
+
+{% endblock content%}

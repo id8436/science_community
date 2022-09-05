@@ -1,0 +1,36 @@
+{% extends "school_report/section.html" %}
+{% block content %}
+
+{% include "form_errors.html" %}
+<div class="container">
+<h5 class="my-3 border-bottom pb-2">교과 교실 생성</h5>
+
+<!-- 폼 처리-->
+<form method="post" enctype="multipart/form-data" class="post-form my-3" >
+    {% csrf_token %}
+    <div class="form-group">
+        <label>학교</label>
+    <div type="text" class="form-control" name="school" id="school">{{school}}</div>
+        <label>학교 코드</label>
+    <input type="password" class="form-control" name="code" id="code"
+                       value="{{ form.code.value|default_if_none:'' }}" placeholder="학교 비밀코드를 입력하세요.">
+
+    <label>과목명</label>
+    <input type="text" class="form-control" name="subject" id="subject"
+           value="{{ form.subject.value|default_if_none:'' }}" placeholder="과목명이 교실이름으로 쓰입니다~">
+
+    {% for homeroom in homeroom_list %}
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="{{homeroom.id}}" id="{{homeroom.id}}" name="homeroom_list">
+        <label class="form-check-label" for="{{homeroom.id}}">
+        {{homeroom}}
+        </label>
+    </div>
+    {%endfor%}
+<input type="submit" class="btn btn-primary" value='등록'>
+</form>
+
+
+</div>
+
+{% endblock %}

@@ -7,5 +7,6 @@ register = template.Library()
 def show_notifications(context):
     to_user = context['request'].user
     notifications = Notification.objects.filter(to_user=to_user)
-    notifications = notifications.order_by('-created_date')
+    notifications = notifications.order_by('-created_date')[:7]
     return {'notifications':notifications}
+

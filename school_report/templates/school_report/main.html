@@ -1,0 +1,55 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+test학교 메인
+{{ teacher.name }}
+<br>
+--내가 주 관리자인 학교
+{% if maintain_school_list %}
+{% for school in maintain_school_list %}
+<a href="{% url 'school_report:school_main' school.id %}">{{ school }}</a>
+{%endfor%}{%endif%}
+<br>
+##내가 교사로 속한 학교
+{{ joint_school }}
+
+<br><br>
+- 내가 주 관리자인 학급
+{% if maintain_homeroom_list %}
+{% for homeroom in maintain_homeroom_list %}
+<a href="{% url 'school_report:homeroom_main' homeroom.id %}">{{ homeroom }}</a>
+{%endfor%}{%endif%}
+<br>
+##내가 공동 관리자 학급
+{% if joint_homeroom_list %}
+{% for homeroom in joint_homeroom_list %}
+{{ homeroom }}
+{%endfor%}{%endif%}
+<br><br>
+- 내가 주 관리자인 교과교실
+{% if maintain_classroom_list %}
+{% for classroom in maintain_classroom_list %}
+{{ classroom }}
+{%endfor%}{%endif%}
+<br><br>
+
+##내가 공동 관리자 교과교실
+{% if joint_classroom_list %}
+{% for classroom in joint_classroom_list %}
+{{ classroom }}
+{%endfor%}{%endif%}
+<br>
+<br>
+
+# 학생으로서 속한 학급.
+<a href="{% url 'school_report:homeroom_main' joint_homeroom.id %}">{{ joint_homeroom }}</a>
+<br>
+
+# 학생으로서 속한 교과교실.
+{% if joint_classroom_list %}
+{% for classroom in joint_classroom_list %}
+{{ classroom }}
+{%endfor%}{%endif%}
+<br>
+
+{% endblock content%}

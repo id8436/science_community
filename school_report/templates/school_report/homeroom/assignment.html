@@ -1,0 +1,61 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+{{ homeroom }}의 학생 명단을 등록합니다.
+
+<div>한번에 등록하기.</div>
+<a href="{% url 'school_report:homeroom_download_excel_form' %}">양식 다운 받기</a>
+
+<a>서식 올리기.</a>
+<form action="{% url 'school_report:homeroom_upload_excel_form' homeroom.id %}" method="POST" enctype="multipart/form-data">
+        <input type="file" name="uploadedFile">
+        {% csrf_token %}
+        <input type="submit" value="Upload">
+</form>
+
+등록 마친 명단
+<table class="table table-hover" id="student_list">
+    <thead>
+    <tr class="table-info">
+        <th>번호</th>
+        <th>이름</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if resistered %}
+    {% for student in resistered %}
+    <tr>
+        <td>{{student.number}}</td>
+        <td>{{student.name}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+미등록 명단
+<table class="table table-hover" id="board_table">
+    <thead>
+    <tr class="table-info">
+        <th>번호</th>
+        <th>이름</th>
+        <th>가입코드</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if unresistered %}
+    {% for student in unresistered %}
+    <tr>
+        <td>{{student.number}}</td>
+        <td>{{student.name}}</td>
+        <td>{{ student.code }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+
+
+{% endblock content%}

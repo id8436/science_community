@@ -1,0 +1,70 @@
+<h5 class="my-3 border-bottom pb-2">학교 관련글 등록</h5>
+
+<!-- 폼 처리-->
+<form method="post" enctype="multipart/form-data" class="post-form my-3" >
+    {% csrf_token %}
+    <div class="form-group">
+        <label>제목</label>
+    <input type="text" class="form-control" name="subject" id="subject"
+                       value="{{ form.subject.value|default_if_none:'' }}" placeholder="제목을 입력해주세요~">
+
+        <label>내용</label>
+    <textarea class="form-control" name="content" id="summernote">
+        {{ form.content.value|default_if_none:'이거 지우고 여기에 기입하쇼' |safe }}</textarea>
+
+    <label>출처</label>
+    <input type="text" class="form-control" name="source" id="source"
+    value = "{{ form.source.value|default_if_none:'' }}" placeholder="출처를 기입해주세요~">
+
+    <label>태그 추가</label>
+    <input type="text" class="form-control" name="tag" id="tag" placeholder="구분은 ','로 합니다."
+    value = "{{ tags_str }}">
+    </div>
+    <input type="submit" class="btn btn-primary" value='등록'>
+</form>
+
+<script>
+  $('#summernote').summernote({
+    placeholder: '여기에 내용 입력하세요~ 그림파일 용량은 2MB까지입니다~',
+    tabsize: 2,
+    height: 300, // 에디터 높이
+    toolbar: [
+      ['style', ['style']],
+      ['fontname', ['fontname']],
+      ['fontsize', ['fontsize']],
+      ['font style', ['bold', 'italic', 'underline','strikethrough', 'clear','superscript', 'subscript',]],
+      ['color', ['forecolor','color']],
+      ['para', ['ul', 'ol', 'paragraph']],
+      ['table', ['table']],
+      ['insert', ['link', 'picture', 'video']],
+      ['view', ['fullscreen', 'codeview', 'help']],
+    ],
+    defaultFontName:'바탕',
+    fontNames: ['Arial', 'Comic Sans MS','맑은 고딕','궁서','굴림','돋음체','바탕'],
+    fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
+    maximumImageFileSize:2097152,
+
+  popover: {
+                  image: [
+                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                    ['remove', ['removeMedia']]
+                  ],
+                  link: [
+                    ['link', ['linkDialogShow', 'unlink']]
+                  ],
+                  table: [
+                    ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+                    ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+                  ],
+                  air: [
+                    ['color', ['color']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['para', ['ul', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']]
+                  ]
+                }
+      });
+</script>
+

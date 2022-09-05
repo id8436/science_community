@@ -1,0 +1,17 @@
+{% extends 'common.html' %}
+
+{% block content %}
+
+프로필 생성하기
+<div class="card my-3">
+<div class="card-body">
+<form action="{% url 'pool:profile_create' %}" method="post">
+    {% csrf_token %}
+    {{form}}
+    <input type="submit" value="전송하기">
+</form>
+</div></div>
+
+
+
+{% endblock content%}

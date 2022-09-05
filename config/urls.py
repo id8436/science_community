@@ -18,8 +18,17 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('main.urls')),
+    path('', include('main.urls'), name=""),
     path('accounts/', include('allauth.urls')), # allauth의 기능을 accounts라는 주소 아래 담는다.
     path('custom_account/', include('custom_account.urls')),
     path('boards/', include('boards.urls')),
+    path('item_pool/', include('item_pool.urls')),
+    path('school_report/', include('school_report.urls')),
 ]
+
+# 미디어 파일을 위한 url
+from django.conf.urls.static import static
+from django.conf import settings
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# static을 연결하는데, 경로는 settings에서 설정한 MEDIA_URL로,
+# 실제경로는 settings에서 설정한 MEDIA_ROOT로  지정한다.

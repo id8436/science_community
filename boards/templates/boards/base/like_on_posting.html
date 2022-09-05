@@ -1,4 +1,3 @@
-<div>
     <button
     {% if user in posting.like_users.all %}
     class="btn btn-primary"
@@ -16,7 +15,6 @@
     {% endif %}
     {% include "custom_account/login_modal_in_html.html" %}
     onclick="dislike_click({{posting.id}})" id="dislike_check" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>비추천({{ posting.dislike_count }})</button>
-</div>
 
 <script>
 let like_count = {{ posting.like_count }}  // 좋아요 숫자 지정.

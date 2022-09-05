@@ -1,0 +1,31 @@
+<form id="searchForm" method="get" action="{% url 'boards:posting_list' board.id %}"> <!--주소는 #으로 해주어야 디테일화면이나 다른 곳에서도 리스트를 유지할 수 있다. 링크를 줘버리면.. 리스트에서밖에 못써먹어.-->
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" name="keyword" placeholder="여따 검색하쇼(게시글 검색)" id="search_keyword"
+                   value="{{ keyword|default_if_none:'' }}">
+            <input class="btn btn-outline-secondary" type="submit" id="btn_search" value="검색">
+        </div>
+            <input type="hidden" id="posting_page" name="posting_page" value="{{ posting_page }}">
+            <input type="hidden" id="board_page" name="board_page" value="{{ board_page }}">
+            <input type="hidden" id="answer_page" name="answer_page" value="{{ answer_page }}">
+
+</form>
+
+<!--페이지 버튼을 누르면 페이지 정보와 함께 검색폼의 내용도 제출되게끔.-->
+<!--searchForm 안의 hidden으로 page를 넣는다. -->
+<script type='text/javascript'>
+$(document).ready(function(){
+// 검색버튼 클릭할 경우, 페이지번호를 받지 못하므로, 값을 넣어주어야 한다.
+    $("#btn_search").on('click', function() {
+    var search_keyword = document.getElementById('search_keyword');
+        if ( search_keyword.value.length < 2) {
+            alert('검색어는 2글자 이상부터 해주면 좋고.' );
+            }
+        $("#page").val(1);  // 검색버튼을 클릭할 경우 1페이지부터 조회한다.
+        $("#searchForm").submit();
+    });
+// 게시글을 클릭할 경우, 페이지번호를 받지 못하므로, 값을 넣어주어야 한다.
+    $(".to_detail").on('click', function() {
+        $("#searchForm").submit();
+    });
+});
+</script>

@@ -1,14 +1,15 @@
-<div class="mt-0">
+<div class="mt-0" id="comment_{{ comment.id }}">
     <span>{{ comment.content }}</span>
     <div class="badge text-bg-light">
         {{ comment.author.nickname }}, {{ comment.create_date }}
             {% if comment.modify_date %}
             (수정:{{ comment.modify_date }})
             {% endif %}
+        <!--
         {% if request.user == comment.author %}
         <a href="#" class="small delete"
         data-uri="{% url 'boards:comment_delete' comment.id  %}">삭제</a>
-        {% endif %}
+        {% endif %}-->
     </div>
 
 </div>

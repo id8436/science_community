@@ -1,0 +1,34 @@
+
+<h2 class="border-bottom py-2">{{ posting.subject }}</h2>
+
+<div class="card my-3">
+        {% if posting.report_user %}
+        신고대상자 : {{ posting.report_user }}
+        {%endif%}
+    <div class="card-body">
+
+        <div class="card-text" style="white-space: pre-line;">{{ posting.content| safe  }}</div>
+    </div>
+    {% if posting.source %}
+<h6>관련링크 : <a href="{{posting.source}}">{{posting.source}}</a></h6>
+    {%endif%}
+        <div class="d-flex justify-content-end">
+            <div class="badge text-bg-light p-2">
+                {% if posting.boolean_1 %}
+                <div>작성자:{{ posting.author.nickname }}</div>
+                {% else %}
+                <div>작성자:비공개) {% if posting.author == user %}{{ posting.author.nickname }}{%endif%}</div>
+                {%endif%}
+
+                <div>작성일:{{ posting.create_date }}</div>
+                수정일:{{posting.modify_date}}
+            </div>
+        </div>
+
+</div>
+
+
+
+
+
+

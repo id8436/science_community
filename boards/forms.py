@@ -4,12 +4,14 @@ from .models import Posting, Answer, Comment, Board
 class BoardForm(forms.ModelForm):
     class Meta:
         model = Board
-        fields = ['enter_year']
+        fields = ['board_name', 'enter_year']
 
 class PostingForm(forms.ModelForm):
     class Meta:
         model = Posting
-        fields = ['subject', 'content', 'source']
+        fields = ['subject', 'content', 'source',  # 요건 일반 게시판에서 사용됨.
+                  'boolean_1', 'boolean_2',  # 건의에서 사용.
+                  ]
 
 class AnswerForm(forms.ModelForm):
     class Meta:

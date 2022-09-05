@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <!-- 반응형 웹을 위한 뷰포트 사용 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+
+
+가입 축하한다요. {{user}}! 다음 버튼을 누루라요~{{to_url}}
+<form action="{{to_url}}" method="get">
+    <input type="hidden" name="email_verification_code" value="{{email_verification_code}}">
+    <input type="submit" value="이메일 검증하기">
+    <!-- 이메일에선 헤드 태그를 사용하지 못하는듯;;;? -->
+</form>

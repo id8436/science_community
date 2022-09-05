@@ -1,0 +1,46 @@
+<button
+    {% if user in board.interest_users.all %}
+        class="btn btn-info"
+    {% else %}
+        class="btn btn-outline-dark"
+    {% endif %}
+{% include "custom_account/login_modal_in_html.html" %}
+onclick="board_interest_click({{board.id}})" id="board_interest_check"
+{% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>
+관심({{ board.interest_count }})</button>
+
+<script>
+let board_interest_count = {{ board.interest_count }}  // 좋아요 숫자 지정.
+
+function board_interest_click(id) {
+    console.log(id);
+    var board_interest_object = document.getElementById('board_interest_check');  // 버튼 요소객체 지정.
+    $.ajax({
+        type:'POST',
+        url: "{% url 'boards:board_interest' board.id %}",     // data를 전송할 url.
+        data:{'board_id': id,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+
+        },                                      // board_id 라는 이름으로 id 값 전송
+        dataType: "json",
+        success: function (response){                      // ajax 통신이 정상적으로 완료되었을 때
+            console.log("응답성공");
+            if (response.board_interest_check == true) {  // 추천에 성공했다면.
+                console.log(response.board_interest_check);
+                board_interest_object.className = "btn btn-info";
+                board_interest_count += 1
+                board_interest_object.innerHTML = "관심(" + board_interest_count + ")"
+            } else {
+                console.log(response.board_interest_check);
+                board_interest_object.className = "btn btn-dark";
+                board_interest_count -= 1
+                board_interest_object.innerHTML = "관심(" + board_interest_count + ")"
+            }
+        },
+        error: function (response){
+            console.log('실패');
+        }
+    });
+}
+
+</script>

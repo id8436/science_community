@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required #로그인이 있어야 가능함
-
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 import json
 from django.utils import timezone  # 시간입력을 위해.
@@ -12,102 +11,6 @@ from django.db.models import Q, Count  # 검색을 위함. filter에서 OR조건
 
 from custom_account.models import Notification
 from custom_account.views import notification_add
-
-def list_hidden(request):
-    posting_list = Posting.objects.all()  # 일단 객체 목록을 받아온다.(전부 다~)
-    #posting_list = Posting.objects.filter(board=board)
-
-    # 정렬 기능.
-    ordering = request.GET.get('ordering', 'recent')  # 정렬기준
-    if ordering == 'recent':  # 시간순 정렬
-        posting_list = posting_list.order_by('-create_date')
-    elif ordering == 'popular':  # 댓글순 정렬
-        posting_list = posting_list.annotate(num_answer=Count('answer')).order_by('-num_answer', '-create_date')
-    elif ordering == 'recommend':  # 추천순 정렬
-        posting_list = posting_list.annotate(num_voter=Count('favorite')).order_by('-num_voter', '-create_date')
-        print(posting_list)
-    elif ordering == 'student_code':  # 학번순 정렬
-        posting_list = posting_list.order_by('profile__student_code')
-    else:  # recent
-        pass
-
-    # 날짜 필터
-    start = None
-    end = None
-    if request.GET.get('start'):
-        time = request.GET.get('start').split('-')
-        start = request.GET.get('start')  # 받은 걸 되돌려서 탬플릿에 보여주기 위한 변수
-        date = datetime(int(time[0]), int(time[1]), int(time[2]))
-        date = datetime.date(date)  # 인수에 datetime이 들어가야 해서 굳이 이렇게 씀;;
-        posting_list= posting_list.filter(create_date__gte= date)  # greater than equal
-    if request.GET.get('end'):
-        time = request.GET.get('end').split('-')
-        end = request.GET.get('end')
-        date = datetime(int(time[0]), int(time[1]), int(time[2])) + timedelta(days=1)  # 시간이 00:00:00으로 잡힌다.
-        date = datetime.date(date)
-        posting_list = posting_list.filter(create_date__lte=date)
-
-    #-----검색기능
-    keyword = request.GET.get('keyword', '')  # 검색어.
-    if keyword != '':  # 검색어가 있다면
-        result = []  # 검색결과를 담기 위한 리스트를 만든다.
-        keywords = keyword.split(' ')  # 공백이 있는 경우 나눈다.
-        for kw in keywords:  # 띄어쓰기로 검색을 하는 경우가 많으니까, 다 찾아줘야지.
-            result += posting_list.filter(  # 검색해서 검색결과에 더한다.
-            Q(subject__icontains=kw) |  # 제목검색
-            Q(content__icontains=kw) |  # 내용검색
-            Q(author__nickname__icontains=kw) |  # 모델의 상위인 user모델의 nickname에서 검색.
-            Q(answer__author__nickname__icontains=kw)  # 하위모델인 answer모델의 참조인 user모델의 속성에서 검색.
-            ).distinct()  # 중복된 내용이 있으면 제거하는 함수.
-        posting_list = result  # 모은 결과를 리스트에 담는다.
-
-    ################## 페이징처리#########
-    from django.core.paginator import Paginator  # 장고엔 다 있다!!
-    page = request.GET.get('page', '1')  #어떤 페이지를 보고 있을지 전달받는다. 추후 탬플릿에서 구현.
-    paginator = Paginator(posting_list, 10)  # 페이지당 10개씩 보여주겠다는 의미.
-    posting_list = paginator.get_page(page)  # 페이징 된 리스트.
-
-    current_page_num=int(page)  #현재 페이지는 몇인가?
-    first_page=1#첫 페이지 넘버
-    last_page = int(paginator.num_pages)  #마지막페이지는 몇인가?
-    left_show =current_page_num - 5  #왼쪽으로 5개까지 나타낸다.
-    right_show =current_page_num + 5  #우측으로 5개까지 나타낸다.
-
-    if current_page_num < 6:
-        left_show=first_page
-    if current_page_num+5 > last_page:
-        right_show = last_page
-
-    page_list = range(left_show, right_show+1)  #보여줄 페이지의 범위.
-
-    ####댓글 갯수 세기
-    for posting in posting_list:
-        posting.comment_sum = posting.answer_set.count()  # 객체의 새로운 속성을 정의하고 각 댓글의 갯수를 부여한다.
-        for answer in posting.answer_set.all(): # posting 객체 하위의 answer로 돌려가며 대댓글 갯수를 추가한다.
-            posting.comment_sum += answer.comment_set.count()
-
-    context = {'posting_list': posting_list,#기존의 리스트 대신 페이지객체를 보낸다.
-               'page_list':page_list,  #보여줄 페이지 리스트
-               'page': page,  # 현재 페이지
-               'keyword': keyword,  # 검색어는 다시 돌려준다.
-               'ordering': ordering,  # 선택한 정렬순서는 다시 돌려준다.
-               'start': start,  # 시작날짜
-               'end': end,  # 끝날짜
-               }
-    return context
-
-def list(request):
-    context=list_hidden(request)# board)
-    notifications = Notification.objects.filter(to_user=request.user)
-    context['notifications'] = notifications
-    return render(request, 'boards/list_show.html', context)
-
-def posting_detail(request, posting_id):
-    posting = get_object_or_404(Posting, pk=posting_id)
-    #----- list함수와 같은 부분 -----
-    context = list_hidden(request)
-    context['posting'] = posting
-    return render(request, 'boards/detail.html', context)
 
 def tag_adding(request, posting):
     tags = request.POST.get('tag').split(',')
@@ -131,54 +34,6 @@ def tag_delete(request, posting_id, tag_name):
 
     tag = get_object_or_404(Tag, name=tag_name)
 
-
-@login_required()
-def posting_create(request):
-    if request.method == 'POST':  #포스트로 요청이 들어온다면... 글을 올리는 기능.
-        form = PostingForm(request.POST)  #폼을 불러와 내용입력을 받는다.
-        if form.is_valid():  #문제가 없으면 다음으로 진행.
-            posting = form.save(commit=False)  #commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
-            posting.author = request.user  # 추가한 속성 author 적용
-            posting.create_date = timezone.now()  #현재 작성일시 자동저장
-            posting.save()
-            tag_adding(request, posting)  # 태그 추가 함수.
-            return redirect('boards:list')  #작성이 끝나면 목록화면으로 보낸다.
-    else:  #포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
-        form = PostingForm()
-    context = {'form': form}  #폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
-    #없으면 그냥 form 작성을 위한 객체를 넘긴다.
-    return render(request, 'boards/create.html', context)
-
-@login_required()
-def posting_modify(request, posting_id):#이름을 update로 해도 괜찮았을 듯하다.
-    posting = get_object_or_404(Posting, pk=posting_id)
-    if request.user != posting.author:
-        messages.error(request, '수정권한이 없습니다')
-        return redirect('boards:detail', posting_id=posting.id)
-
-    if request.method == "POST":
-        form = PostingForm(request.POST, instance=posting)  # 받은 내용을 객체에 담는다. instance에 제대로 된 걸 넣지 않으면 새로운 인스턴스를 만든다.
-        if form.is_valid():
-            posting = form.save(commit=False)
-            posting.author = request.user
-            posting.modify_date = timezone.now()  # 수정일시 자동 저장
-            posting.save()
-            tag_adding(request, posting)  # 태그 추가 함수.
-            return redirect('boards:detail', posting_id=posting.id)
-    else:  # GET으로 요청된 경우.
-        form = PostingForm(instance=posting)  # 해당 모델의 내용을 가져온다!
-    context = {'form': form,
-               'posting': posting,}
-    return render(request, 'boards/create.html', context)
-
-@login_required()
-def posting_delete(request, posting_id):
-    posting = get_object_or_404(Posting, pk=posting_id)
-    if request.user != posting.author:
-        messages.error(request, '삭제권한이 없습니다. 꼼수쓰지 마라;')
-        return redirect('boards:detail', posting_id=posting.id)
-    posting.delete()
-    return redirect('boards:list')
 @login_required()
 def posting_like(request, posting_id):
     posting = get_object_or_404(Posting, pk=posting_id)
@@ -209,7 +64,36 @@ def posting_dislike(request, posting_id):
         posting.save()
         context['like_check'] = True
     return HttpResponse(json.dumps(context), content_type='application/json')
-
+@login_required()
+def posting_interest(request, posting_id):
+    posting = get_object_or_404(Posting, pk=posting_id)
+    context = {}
+    if posting.interest_users.filter(id=request.user.id).exists():
+        posting.interest_users.remove(request.user)  # 이미 추가되어 있다면 삭제한다.
+        posting.interest_count -= 1
+        posting.save()  # save가 있어야 반영된다.
+        context['posting_interest_check'] = False
+    else:
+        posting.interest_users.add(request.user)  # 포스팅의 likeUser에 user를 더한다.
+        posting.interest_count += 1
+        posting.save()
+        context['posting_interest_check'] = True
+    return HttpResponse(json.dumps(context), content_type='application/json')
+@login_required()
+def board_interest(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+    context = {}
+    if board.interest_users.filter(id=request.user.id).exists():
+        board.interest_users.remove(request.user)  # 이미 추가되어 있다면 삭제한다.
+        board.interest_count -= 1
+        board.save()  # save가 있어야 반영된다.
+        context['board_interest_check'] = False
+    else:
+        board.interest_users.add(request.user)  # 포스팅의 likeUser에 user를 더한다.
+        board.interest_count += 1
+        board.save()
+        context['board_interest_check'] = True
+    return HttpResponse(json.dumps(context), content_type='application/json')
 @login_required()
 def answer_create(request, posting_id):
     posting = get_object_or_404(Posting, pk=posting_id)
@@ -221,12 +105,10 @@ def answer_create(request, posting_id):
             answer.author = request.user  # 추가한 속성 author 적용
             answer.create_date = timezone.now()
             answer.save()
-            notification_add(request, type=22, to_user=posting.author, message=posting.subject)
-            return redirect('{}#answer_{}'.format(
-            request.META.get('HTTP_REFERER','/'), answer.id))
-            #request.GET.get('next'), answer.id))  # 글을 올렸던 곳에 대한 정보를 get으로 받아 되돌려준다.
-    #resolve_url('boards:detail', posting_id=posting.id), answer.id))
-            #redirect('boards:detail', posting_id=posting.id)
+            redirect_url = '{}#answer_{}'.format(request.META.get('HTTP_REFERER','/'), answer.id)
+            notification_add(request, type=22, to_users=posting.interest_users.all(), message=posting.subject, url=redirect_url)
+            return redirect(redirect_url)
+
     form = AnswerForm()
     context = {'posting': posting, 'form': form}
     return render(request, 'boards/detail.html', context)
@@ -265,7 +147,6 @@ def answer_delete(request, answer_id):
 @login_required()
 def comment_create(request, answer_id):
     answer = get_object_or_404(Answer, pk=answer_id)
-    posting = answer.posting  # 답글과 연결된 포스팅.
     if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -274,16 +155,16 @@ def comment_create(request, answer_id):
             comment.create_date = timezone.now()
             comment.answer = answer
             comment.save()
-            context = {"content" : comment.content}
+            redirect_url = '{}#comment_{}'.format(request.META.get('HTTP_REFERER','/'), comment.id)
+            to_users = [answer.author]
+            notification_add(request, type=32, to_users=to_users, message=answer.content, url=redirect_url)
             #return HttpResponse(json.dumps(context), content_type='application/json')
             return redirect('{}#answer_{}'.format(
                 request.META.get('HTTP_REFERER','/'), answer.id))
             #return render(request, 'boards/comment_create_ajax.html', {'comment':comment})
-    return redirect('boards:detail', posting_id=answer.posting.id)
-    #else:
-    #    form = CommentForm()
-    #context = {'form': form}
-    #return render(request, 'comment_form.html', context)
+    else:
+        messages.error(request, '제대로 기입하쇼~')
+        return redirect('boards:detail', posting_id=answer.posting.id)
 
 @login_required()
 def comment_update(request, comment_id):
@@ -315,20 +196,5 @@ def comment_delete(request, comment_id):
         comment.delete()
     #return HttpResponse(json.dumps({}))
     #return redirect('boards:detail', posting_id=comment.answer.posting.id)
-
-
-############추천, 즐겨찾기 추가기능##########
-@login_required()
-def favorite_posting(request, posting_id):
-    posting = get_object_or_404(Posting, pk=posting_id)
-    posting.favorite.add(request.user)
-    return redirect('boards:detail', posting_id=posting.id)
-
-@login_required()  # 추천할 것 타입을 지정해 추천을 주게 하면 좋겠는데?
-def vote(request, type, object_id):
-    object = get_object_or_404(type, pk=object_id)
-    object.voter.add(request.user)
-    return redirect('boards:detail', posting_id= posting.id)
-
 
 

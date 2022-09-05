@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import User_create_form
 from django.contrib import messages
 
@@ -54,15 +54,19 @@ def notification_show(request):
     notifications = notifications.order_by('-created_date')
     context = {'notifications': notifications}
     return render(request, 'custom_account/notification_show.html', context)
-#def add_notification(category, to_user, from_user, message, url):
 
-def notification_add(request, type, to_user, message):
+def notification_add(request, type, to_users, message, url):
     # type에 대한 규율은 notification.html을 보자.
     # 어디에 달리는 알람이냐에 따라 다르게 짜줘야 할 필요가 있을지도.... 아니면 포스팅이나 이런저런거에 기본적인 게 달리게 하자.
-    notification = Notification.objects.create(type=type, to_user=to_user, from_user=request.user,
-                                               url=request.META.get('HTTP_REFERER', '/'),
+    for to_user in to_users:
+        Notification.objects.create(type=type, to_user=to_user, from_user=request.user,
+                                               url=url,
                                                message=message)
-
+def notification_click(request, notification_id):
+    notification = get_object_or_404(Notification, pk=notification_id)
+    notification.user_has_seen = True
+    notification.save()
+    return redirect(notification.url)
 
 
 from django.contrib.auth.decorators import login_required #로그인이 있어야 가능함
@@ -77,7 +81,45 @@ def profile(request):
     social_accounts = []
     for accounts in request.user.user_set.all():
         social_accounts.append(accounts.socialaccount_set.all().first())
-    print(social_accounts)
     context = {'social_accounts': social_accounts}
 
     return render(request, 'custom_account/profile.html', context)
+
+
+def send_email_verify_code(request): #  쿠키를 이용해 검증해보자.
+    from django.core.mail import EmailMessage  # 이메일을 보내는 모듈. 파이썬에선 smtplib를 사용하지만, 장고 자체의 기능이 더 편리하다.
+    from django.template.loader import render_to_string  # 템플릿을 렌더링하기 위한 기능.
+    import random
+    from django.shortcuts import reverse
+    from config import secret
+    user = request.user
+    email_verification_code = random.randint(10, 100000)
+    response = redirect(request.META.get('HTTP_REFERER', '/'))  # 다음에 보낼 페이지를 지정해 응답을 받아야 한다.(그래야 저장됨)
+    response.set_cookie('email_verification_code', email_verification_code, max_age=300)  # 사용자의 쿠키에 검증코드 저장
+    content = {'user': user,
+               'email_verification_code': email_verification_code,
+               'to_url': secret.SERVICE_DOMAIN + reverse('custom_account:email_verification'),
+               }  # 이메일에 코드를 담아보낸다.
+    msg = EmailMessage(subject="이메일 인증",  # 이메일 제목
+                       body=render_to_string('custom_account/email_verification.html', content),
+                       to=[request.user.email],
+                       )  # 보내는 사람 메일은 settings.py에 따른다.
+    msg.content_subtype = 'html'  # html 코드로 나타내기 위함.
+    msg.send()
+    messages.info(request, '이메일을 확인해보세요~ 5분동안 유효합니다~')  # 테스트용
+    print(request.COOKIES.get('email_verification_code'))
+    return response
+def email_verification(request):
+    user = request.user
+    if request.GET['email_verification_code'] == request.COOKIES.get('email_verification_code'):  # 쿠키에 있는 걸 쓰면 될듯.
+        user.email_check = True
+        user.save()
+        messages.info(request, '이메일 인증이 완료되었습니다.')
+    else:
+        messages.error(request, '뭔가 문제 생김.')
+        messages.error(request, request.GET['email_verification_code'])
+        messages.error(request, '뭔가 ?? 생김.')
+        messages.error(request, request.COOKIES.get('email_verification_code'))
+    response = redirect('custom_account:profile')  # 다음으로 갈 페이지 지정.
+    response.delete_cookie('email_verification_code')  # 확인했으니, 저장했던 쿠키를 지워준다.
+    return response

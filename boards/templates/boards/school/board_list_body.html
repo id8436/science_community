@@ -1,36 +1,30 @@
-<div class="container">
-    {% include "boards/base/search_on_board.html" %}
+<table class="table table-hover" id="board_table">
+    <thead>
+    <tr class="table-info">
+        <th>제목</th>
+        <th>관심</th>
+        <th>작성자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if board_list %}
+    {% for board in board_list %}
+    <tr>
+        <td>
+            <a href="{% url 'boards:board_detail' board.id %}" class="to_detail">{{ board.board_name }} {{ board.enter_year }}</a>
+            <span>{{ board.posting_set.all.count }}</span>
+        </td>
+        <td>{{ board.interest_count }}</td>
+        <td>{{ board.author.nickname }}</td>
 
-    <table class="table table-hover" id="board_table">
-        <thead>
-        <tr class="table-info">
-            <th>제목</th>
-            <th>작성자</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% if board_list %}
-        {% for board in board_list %}
-        <tr>
-            <td>
-                <a href="{% url base_url|add:'board_detail' board.id %}" class="to_detail">{{ board.board_name }} {{ board.enter_year }}</a>
-                <span>{{ board.posting_set.all.count }}</span>
-            </td>
-            <td>{{ board.author.nickname }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
 
-        </tr>
-        {% endfor %}
-        {% endif %}
-        </tbody>
-    </table>
+<a {% include "custom_account/login_modal_in_html.html" %}
+href="{% url 'boards:board_create' category.id %}" class="btn btn-outline-info">
+학교 등록</a>
 
 
-{%include "boards/base/pagenation_of_board.html"%}
-
-
-
-    <a {% include "custom_account/login_modal_in_html.html" %}
-    href="{% url 'boards:school_board_create' %}" class="btn btn-outline-info">
-        학교 등록</a>
-
-</div>

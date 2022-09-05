@@ -1,0 +1,19 @@
+<h5 class="my-3 border-bottom pb-2">대회 등록</h5>
+
+<!--------폼 처리-->
+<form method="post"  enctype="multipart/form-data" class="post-form my-3">
+{% csrf_token %}
+
+    <div class="form-group">
+        <label>대회명</label>
+    <input type="text" class="form-control" name="board_name" id="board_name"
+                       value="{{ form.board_name.value|default_if_none:'' }}" placeholder="대회의 정식명칭을 띄어쓰기 없이.">
+
+        <label>개최년도</label>
+    <input type="text" class="form-control" name="enter_year" id="enter_year"
+                       value="{{ form.enter_year.value|default_if_none:'' }}" placeholder="대회가 열리는 연도를 써주세요~">
+
+    <input type="submit" class="btn btn-primary" value='등록'>
+    </div>
+</form>
+

@@ -1,0 +1,86 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+<div class="container my-3">
+
+<h2 class="border-bottom py-2">{{ posting.subject }}</h2>
+
+<div class="card my-3">
+    <div class="card-body">
+        <div class="card-text" style="white-space: pre-line;">{{ posting.content| safe  }}</div>
+    </div>
+
+        <div class="d-flex justify-content-end">
+            <div class="badge text-bg-light p-2">
+                <div>작성자:{{ posting.author.nickname }}</div>
+                <div>작성일:{{ posting.create_date }}</div>
+                수정일:{{posting.modify_date}}
+            </div>
+        </div>
+
+</div>
+
+
+
+
+<!-- 삭제, 수정 버튼. -->
+<div class="position-relative">
+<div class="position-absolute top-0 start-50 translate-middle">
+</div>
+{% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+<a href="{% url 'school_report:announcement_modify' posting.id%}" class="btn btn-primary">수정</a>
+<a href="#" data-uri="{% url 'school_report:announcement_delete' posting.id  %}" class="posting_delete btn btn-primary">삭제</a>
+</div>
+
+<!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".posting_delete").on('click', function() {
+        if(confirm("님, 정말로 지움??")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+
+
+    <a href="{% url 'school_report:individual_excel_form' homeroom.id %}">개별공지용 form 다운받기.</a>
+        <div>서식 올리기.</div>
+    <form action="{% url 'school_report:individual_announcement_create' posting.id %}" method="POST" enctype="multipart/form-data">
+            <input type="file" name="uploadedFile">
+            {% csrf_token %}
+            <input type="submit" value="개별공지용 form 올리기.">
+    </form>
+        {% if annoIndividual_list %}
+        {% for annoIndividual in annoIndividual_list %}
+            {{annoIndividual}}
+            {{annoIndividual.content}}
+            {{annoIndividual.check}}
+    {%endfor%}{%endif%}{%endif%}
+
+    <div>
+        공지확인.
+            {% if individual_announcement.check %}
+                이미 확인한 공지입니다~
+            {% else %}
+                확인하세요~
+            <a class="announcement_check" href="{% url 'school_report:announcement_check' individual_announcement.id %}">확인 check!</a>
+            {%endif%}
+        {{individual_announcement.to_student}}
+        {% if individual_announcement.content %}
+            {{individual_announcement.content}}
+        {% else %}
+            전체공지입니다.
+         {% endif %}
+    </div>
+    <script type='text/javascript'>
+    $(document).ready(function(){
+        $(".announcement_check").on('click', function() {
+        if(confirm("한번 확인하면 취소 못하니, 신중히 확인하세요~!")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+
+{% endblock content %}

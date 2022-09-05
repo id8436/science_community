@@ -30,7 +30,7 @@
 $(".board_page").on('click', function() {    // page-link 클래스를 가진 버튼이 클릭되면
     var form = document.getElementById('searchForm')
     $("#board_page").val($(this).data("page"));   // 해당 값을 page에 담고.
-    form.setAttribute('action', '#board_table');
+    form.setAttribute('action', '{% url 'boards:board_list' category.id %}#board_table');  // 보드테이블로 내리게 한다.
     form.submit();              // searchForm 안의 페이지에 담아 제출한다.
 });
 </script>

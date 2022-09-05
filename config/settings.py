@@ -25,7 +25,7 @@ SECRET_KEY = secret.SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['id8436.iptime.org', '127.0.0.1']
+ALLOWED_HOSTS = secret.ALLOWED_HOSTS
 
 
 # Application definition
@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     'custom_account.apps.CustomAccountConfig',
     'main.apps.MainConfig',
     'boards.apps.BoardsConfig',
-    'school_info',
+    'school_info',  # 이거 뭐 쓸 일이 없네;
+    'item_pool',
+    'school_report',  # 학교 내 클래스를 만들기 위한 앱.
+    'score_share',  # 점수 공유앱.
+# 기능 관련
 #--소셜로그인 관련
 'django.contrib.sites',  # 사이트 정보를 설정하기 위해 필요
 'allauth',  # allauth 앱 추가.
@@ -137,7 +141,7 @@ AUTH_USER_MODEL = 'custom_account.User'  # 관리유저로 사용할 모델을 �
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUATGE_CODE = 'ko-kr'
+LANGUATGE_CODE = 'ko-KR'
 TIME_ZONE = 'Asia/Seoul'
 USE_I18N = True
 USE_L10N = True
@@ -152,16 +156,22 @@ STATICFILES_FINDERS = ['django.contrib.staticfiles.finders.FileSystemFinder',
                        'django.contrib.staticfiles.finders.AppDirectoriesFinder',]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+
+MIDIA_URL = '/media/'
+MIDIA_ROOT = BASE_DIR / 'media'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ##### 이메일 관련 설정
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = secret.EMAIL_USE_TLS
 EMAIL_HOST = secret.EMAIL_HOST
 EMAIL_PORT = secret.EMAIL_PORT
 EMAIL_HOST_USER = secret.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = secret.EMAIL_HOST_PASSWORD
-EMAIL_USE_TLS = secret.EMAIL_USE_TLS
-# 클릭재킹 방지설정 변경
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+# 클릭재킹 방지설정 변경(이게 필요한건지 모르겠어서 일단 주석처리 해둠.)
+#X_FRAME_OPTIONS = 'SAMEORIGIN'

@@ -11,6 +11,9 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
 
     path('notification/show/', views.notification_show, name='notification_show'),
-    path('profile/', views.profile, name='profile'),
+    path('notification/click/<int:notification_id>', views.notification_click, name='notification_click'),
 
+    path('profile/', views.profile, name='profile'),
+    path('send_email_verify_code/', views.send_email_verify_code, name='send_email_verify_code'),
+    path('email_verification/', views.email_verification, name='email_verification'),
 ]

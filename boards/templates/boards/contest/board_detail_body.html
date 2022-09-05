@@ -1,0 +1,44 @@
+<h2 class="border-bottom py-2">{{ board.board_name }} {{ board.enter_year }}</h2>
+<span>{% include "boards/base/interest_on_board.html" %}</span>
+<a href="#" data-uri="{% url 'boards:board_delete' board.id  %}" class="board_delete btn btn-primary">삭제</a>
+
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="posting_table">
+    <thead>
+    <tr class="thead-dark">
+        <th>제목</th>
+        <th>작성자</th>
+        <th>추천수</th>
+        <th>작성일시</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% load posting_filter %}
+    {% if posting_list %}
+    {% for posting in posting_list %}
+    <tr>
+        <td>
+            <a href="{% url 'boards:posting_detail' posting.id %}" class="to_detail">{{ posting.subject }}</a>
+            <a>{{posting.comment_sum}}</a>
+        </td>
+        <td>{{ posting.author.nickname }}</td>
+        <td>{{ posting.like_count|sub:posting.dislike_count }}</td>
+        <td>{{ posting.create_date|timesince }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+    </table>
+
+
+
+<a href="{% url 'boards:posting_create' board.id %}" {%include "custom_account/login_modal_in_html.html"%}
+   class="btn btn-outline-info">대회 관련글 등록</a>
+
+    </div>
+</div>
+
+

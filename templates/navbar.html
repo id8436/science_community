@@ -10,18 +10,22 @@
             </li>
             <!-- 과학유머게시판 번호가 4번. -->
             <li class="nav-item ">
-                <a class="nav-link" href="{% url 'boards:humor_list' 4 %}">과학드립</a>
+                <a class="nav-link" href="{% url 'boards:posting_list' 4 %}">과학드립</a>
             </li>
             <li class="nav-item ">
-                <a class="nav-link" href="{% url 'boards:school_board_list' %}">학교 입시정보</a>
+                <a class="nav-link" href="{% url 'boards:board_list' 2 %}">학교 입시정보</a>
             </li>
-
             <li class="nav-item ">
-                <a class="nav-link" href="{% url 'boards:contest_list' 1 %}">대회정보</a>
+                <a class="nav-link" href="{% url 'boards:board_list' 1 %}">대회정보</a>
             </li>
-
             <li class="nav-item ">
-                <a class="nav-link" href="{% url 'boards:report_list' 23 %}">건의,제보</a>
+                <a class="nav-link" href="{% url 'item_pool:list' %}">문제은행</a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="{% url 'school_report:main' %}">학교 알림</a>
+            </li>
+            <li class="nav-item ">
+                <a class="nav-link" href="{% url 'boards:posting_list' 23 %}">건의,제보</a>
             </li>
 
             <!--로그인, 로그아웃 기능-->

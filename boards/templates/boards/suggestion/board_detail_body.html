@@ -1,0 +1,52 @@
+<h2 class="border-bottom py-2">{{ board.board_name }}</h2>
+<span>{% include "boards/base/interest_on_board.html" %}</span>
+
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="posting_table">
+    <thead>
+    <tr class="thead-dark">
+        <th>제목</th>
+        <th>추천</th>
+        <th>작성자</th>
+        <th>작성일시</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% load posting_filter %}
+    {% if posting_list %}
+    {% for posting in posting_list %}
+    <tr>
+        <td>
+            {% if posting.boolean_2 %}
+                <a href="{% url 'boards:posting_detail' posting.id %}" class="to_detail">{{ posting.subject }}</a>
+            {% else %} 내용이 비공개.
+                {% if posting.author == user%}
+                    <a href="{% url 'boards:posting_detail' posting.id %}" class="to_detail">{{ posting.subject }}</a>
+            {%endif%}{%endif%}
+        </td>
+        <td>{{ posting.like_count|sub:posting.dislike_count }}</td>
+        {% if posting.boolean_1 %}
+        <td>{{ posting.author.nickname }}</td>
+        {% else %}
+        <td>비공개.{% if posting.author == user %}{{ posting.author.nickname }}{%endif%}
+        </td>
+        {%endif%}
+        <td>{{ posting.create_date|timesince }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+    </table>
+
+
+
+<a href="{% url 'boards:posting_create' board.id %}" {%include "custom_account/login_modal_in_html.html"%}
+   class="btn btn-outline-info">건의 등록</a>
+
+    </div>
+</div>
+
+

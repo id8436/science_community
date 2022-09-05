@@ -1,0 +1,37 @@
+{% extends "school_report/section.html" %}
+{% block content %}
+홈룸메인
+{{homeroom}}
+
+교사메뉴.
+<div>
+    <a href="{% url 'school_report:student_assignment' homeroom.id %}">학생명단 관리하기</a>
+</div>
+
+<a href="{% url 'school_report:student_code_input' homeroom.id %}">학생 인증하기</a>
+
+<a href="{% url 'school_report:announcement_create' homeroom.id %}">공지 등록</a>
+
+공지목록
+<table class="table table-hover" id="student_list">
+    <thead>
+    <tr class="table-info">
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성일자</th>
+
+    </tr>
+    </thead>
+    <tbody>
+    {% if announcement_list %}
+    {% for announcement in announcement_list %}
+    <tr>
+        <td><a href="{% url 'school_report:announcement_detail' announcement.id %}">{{announcement.subject}}</td>
+        <td>{{announcement.author}}</td>
+        <td>{{announcement.create_date}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}

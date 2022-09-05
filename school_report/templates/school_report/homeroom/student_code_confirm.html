@@ -1,0 +1,20 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+code 입력.
+학생인증을 위한 코드를 입력합니다.
+<div>
+    등록하고자 하시는 분이 {{student.number}}번 '{{student.name}}'님 맞습니까?(이상이 있다면 담임선생님께 문의하세요~)
+</div>
+
+<form method="post" enctype="multipart/form-data" class="post-form my-3" >
+    {% csrf_token %}
+    <div class="form-group">
+        <label>코드 입력</label>
+    <input type="password" class="form-control" name="code" id="code" placeholder="한 번 더 입력해주세요~">
+
+    <input type="submit" class="btn btn-primary" value='등록'>
+</form>
+
+
+{% endblock content%}

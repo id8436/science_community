@@ -1,0 +1,146 @@
+{% extends 'common.html' %}
+
+
+{% block content %}
+{% if question %}
+<div class="container my-3">
+    <h2 class="border-bottom py-2">{{ question.subject }}</h2>
+
+    {% if answer %}
+    당신의 답은 {{answer}}....
+    {{feedback}}<!--정답여부 알려줌.-->
+    <!--해설은 여기에 띄워줌.-->
+    정답은 {{question.rightAnswer}}
+    <div class="card my-3">
+    <div class="card-body my-3" style="white-space: pre-line;">{{question.solution | safe}}</div></div>
+    {% endif %}
+
+    <div class="card my-3">
+        <div class="card-body">
+            <div class="card-text" style="white-space: pre-line;">{{ question.content| safe  }}</div>
+
+                <form method="post" action="{% url 'pool:solve' question.id %}">
+                    {% csrf_token %}
+                    <input type="text" size="20" name="answer" placeholder="대소문자 구분합니다.">
+                <button type="submit" class="btn btn-primary">정답제출</button>
+                </form>
+
+
+            <div class="d-flex justify-content-end">
+                <div class="badge badge-light p-2">
+                    정답:{{ question.correct }}, 오답:{{ question.wrong }}
+                    <div>정답률:{{ question.correctRate}}</div>
+                    즐겨찾기한 사람 수:{{question.favorite.count}}
+                </div>
+                <div class="badge badge-light p-2">
+                    <div>작성자:{{ question.author.username }}</div>
+                    <div>작성일:{{ question.create_date }}</div>
+                    수정일:{{question.modify_date}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% if request.user == question.author %}<!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+<a href="{% url 'pool:modify' question.id%}" class="btn btn-primary">수정</a>
+<a href="#" data-uri="{% url 'pool:delete' question.id  %}" class="delete btn btn-primary">삭제</a>
+
+<!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".delete").on('click', function() {
+        if(confirm("님, 정말로 지움??")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script>
+<!-- 취소를 누르면 아무 일도 하지 않는다.-->
+{% endif %}
+
+    <a href="{% url 'pool:favorite' question.id%}" class="btn btn-primary">즐겨찾기 추가</a>
+
+
+<!------------------------------------------------------------답변을 보기 위한 것----------------->
+<h5 class="border-bottom my-3 py-2">{{question.answer_set.count}}개의 답변이 있습니다.</h5>
+
+<div class="mt-3"><!-- 답변을 담기 위한 공간. 너무 많아서.. 따로 처리하는 것도 좋을듯;-->
+    {% for answer in question.answer_set.all %}
+    <div class="card my-3">
+        <div class="card-body">
+            <div class="card-text" style="white-space: pre-line;">{{ answer.content }}</div>
+            <a id="answer_{{answer.id}}"></a> <!-- 답변등록 후 해당 답변으로 오게 하기 위한 앵커 -->
+            <div class="d-flex justify-content-end">
+                <div class="badge badge-light p-2">
+                    <div>{{ answer.author.nickname }}</div>
+                    {{ answer.create_date }}
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!--답변수정, 삭제-->
+            {% if request.user == answer.author %}<!--답변 작성자에게만 보이게끔.-->
+            <div class="my-3">
+                <a href="{% url 'pool:answer_update' answer.id  %}"
+                   class="btn btn-sm btn-outline-secondary">수정</a>
+                        <a href="#" class="delete btn btn-sm btn-outline-secondary "
+                   data-uri="{% url 'pool:answer_delete' answer.id  %}">삭제</a>
+            </div>
+
+            {% endif %}
+        <!--대댓글 기능!-->
+        {% if answer.comment_set.count > 0 %}
+
+        {% for comment in answer.comment_set.all %}<!--댓글객체에서 대댓글 객체를 뽑아낸다.-->
+        <div class="mt-3">
+                <span style="white-space: pre-line;">{{ comment.content }}</span>
+                <span>
+                    - {{ comment.author.nickname }}, {{ comment.create_date }}
+                    {% if comment.modify_date %}
+                    (수정:{{ comment.modify_date }})
+                    {% endif %}
+                </span>
+                {% if request.user == comment.author %}
+                <a href="{% url 'pool:comment_update' comment.id  %}" class="small">수정</a>,
+                <a href="#" class="small delete"
+                   data-uri="{% url 'pool:comment_delete' comment.id  %}">삭제</a>
+                    {% endif %}
+
+        </div>
+        {% endfor %}
+        {% endif %}
+            <div>
+            <a href="{% url 'pool:comment_create' answer.id  %}"
+            class="small">대댓글 추가하기</a>
+            </div>
+    {% endfor %}
+
+
+<!--답변등록을 위한 것---------------------------------------------------------------->
+<form action="{% url 'pool:answer_create' question.id %}" method="post">
+{% csrf_token %}
+<!--폼에러를 나타내기 위한 것-->
+    {% if form.errors %}
+    <div class="alert alert-danger" role="alert">
+    {% for field in form %}
+        {% if field.errors %}
+        <strong>{{ field.label }}</strong>
+        {{ field.errors }}
+        {% endif %}
+    {% endfor %}
+    </div>
+    {% endif %}
+    <!--답변등록을 위한 칸---->
+    <div class="form-group">
+            <textarea class="form-control" name="content"
+                      id="content" rows="2">{{ form.content.value|default_if_none:'' }}</textarea>
+    <input type="submit" value="댓글등록">
+    </form>
+    </div>
+</div>
+{% endif %}
+
+{% include "list.html" %}
+{% endblock content %}
+

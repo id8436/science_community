@@ -1,6 +1,8 @@
 <h5 class="border-bottom my-3 py-2">{{posting.answer_set.count}}개의 댓글이 있습니다.</h5>
-<div class="mt-3"><!-- 댓글_1을 담기 위한 공간. 너무 많아서.. 따로 처리하는 것도 좋을듯;-->
-    {% for answer in posting.answer_set.all %}
+<div class="mt-3" id="answer_table"><!-- 댓글_1을 담기 위한 공간. 너무 많아서.. 따로 처리하는 것도 좋을듯;-->
+    {%include "boards/base/pagenation_of_answer.html"%}
+<!-- 페이지네이터는 아래에도 있음. 위아래 배치!-->
+    {% for answer in answer_list %}
     <div class="card my-3" id="answer_{{answer.id}}"> <!-- 댓글_1등록 후 해당 댓글_1으로 오게 하기 위한 앵커 -->
         <div class="card-body">
             <span class=".bg-info.bg-gradient" style="--bs-bg-opacity: .2;">
@@ -9,10 +11,12 @@
             <span class="badge text-bg-light">
                     {{ answer.author.nickname }}
                     {{ answer.create_date }}
-                {% if user == answer.author %}<!--댓글_1 작성자에게만 보이게끔.-->
+                <!--
+                {% if user == answer.author %}
                 <a href="#" class="delete btn btn-sm btn-outline-secondary "
                 data-uri="{% url 'boards:answer_delete' answer.id  %}">삭제</a>
-                {% endif %}
+                {% endif %}-->
+                <!--댓글_1 작성자에게만 보이게끔.-->
             </span>
 
 
@@ -36,8 +40,10 @@
 
     {% endfor %}
 
+{%include "boards/base/pagenation_of_answer.html"%}
 
 <script>
+// 코멘트 작성 버튼 누르면 작성칸 나오게 하기.
 function show_comment_input_area_(id){
     $("#comment_input_area_"+id).show();
     $("#commet_add_"+id).hide();
@@ -75,7 +81,8 @@ function comment_create(id,url) {
     {% endif %}
     <!--댓글_1등록을 위한 칸---->
         <div class="form-group" {% if user.is_authenticated %}{% else %}data-toggle="modal" data-target="#loginModal"{% endif %}>
-            <textarea class="form-control" name="content" placeholder="1~300자까지. 안맞으면 에러남."
+            <textarea class="form-control" name="content" placeholder="1~300자까지. 안맞으면 에러남.
+한 번 뱉은 말은 주워담을 수 없는 법. 삭제, 수정 불가."
             id="content" rows="2">{{ form.content.value|default_if_none:'' }}</textarea>
             <input type="submit" class="btn btn-outline-info" value="댓글등록">
         </div>

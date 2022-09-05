@@ -1,0 +1,17 @@
+from django import forms
+from .models import *
+
+class HomeroomForm(forms.ModelForm):
+    class Meta:
+        model = Homeroom
+        fields = ['grade', 'cl_num']
+
+class ClassroomForm(forms.ModelForm):
+    class Meta:
+        model = Classroom
+        fields = ['subject']
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['subject', 'content']

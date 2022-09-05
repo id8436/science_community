@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from school_report.models import Teacher, Student
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None):
@@ -21,7 +22,7 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser):
-    username = models.CharField(max_length=15, unique=True, null=False)  # 실명을 기입하게끔 하자.
+    username = models.CharField(max_length=15, unique=True, null=False)  # identifier. 다른서비스와 연동될 때 username을 식별자로 많이 사용하기에.. 이는 선택지가 없다.
     # 기본 기능들
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -34,14 +35,18 @@ class User(AbstractBaseUser):
     is_social = models.BooleanField(default=True)  # 소셜계정인가 여부. 기본적으로 True로 두어 추가계정 연결을 꾀한다.
     connected_user = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
     email = models.EmailField(max_length=128, null=True, blank=True)  # 이메일은 반드시 입력하게끔.
+    email_check = models.BooleanField(default=False)
     nickname = models.CharField(max_length=15, unique=True, null=True, blank=False)
     created_date = models.DateTimeField(auto_now_add='True')
     is_notification = models.BooleanField(default=False)
 
+    # 학교기능 관련.
+    teacher = models.OneToOneField(Teacher, default=None, blank=True, null=True, on_delete=models.SET_NULL)  # 연결된 교사프로필
+    student = models.OneToOneField(Student, default=None, blank=True, null=True, on_delete=models.SET_NULL, related_name='connected_student')  # 연결된 학생프로필
     def __str__(self):
         # if self.identifier ==None:
         #     return self.username
-        return self.username
+        return self.nickname or "이름없음"
 
     def has_module_perms(self, app_label):
         '''앱 라벨을 받아, 해당 앱에 접근 가능한지 파악'''

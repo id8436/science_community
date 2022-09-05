@@ -1,0 +1,10 @@
+{% extends base_template|add:'section.html' %}
+
+{% block content %}
+
+<div class="container">
+{% include "form_errors.html" %}
+{% include base_template|add:"board_create_body.html" %}
+
+</div>
+{% endblock %}

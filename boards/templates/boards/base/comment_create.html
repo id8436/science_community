@@ -8,7 +8,8 @@
 <div style="display:none" id="comment_input_area_{{answer.id}}">
     <form action="{% url 'boards:comment_create' answer.id  %}" method="post">
     {% csrf_token %}
-    <textarea id="comment_input_area{{answer.id}}" class="form-control" name="content" placeholder="1~150자까지. 글자수 안맞으면 에러남. 대댓글은 수정 안되니 신중히~"></textarea>
+    <textarea id="comment_input_area{{answer.id}}" class="form-control" name="content" placeholder="1~150자까지. 글자수 안맞으면 에러남.
+한 번 뱉은 말은 주워담을 수 없는 법. 삭제, 수정 불가."></textarea>
     <input type="submit" class="btn btn-outline-info btn-sm" value="대댓글등록" onclick="comment_create({{answer.id}} {% url 'boards:comment_create' answer.id  %})">
     </form>
 </div>

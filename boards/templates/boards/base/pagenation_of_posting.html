@@ -29,7 +29,10 @@
 <script type='text/javascript'>
 // 페이지네이션은 검색 기능과 연동하여 작동한다.
 $(".posting_page").on('click', function() {    // page-link 클래스를 가진 버튼이 클릭되면
+    console.log('posting_pagenation click');
+    var form = document.getElementById('searchForm')
     $("#posting_page").val($(this).data("page"));   // 해당 값을 page에 담고.
-    $("#searchForm").submit();              // searchForm 안의 페이지에 담아 제출한다.
+    form.setAttribute('action', '#posting_table');  // 답변의 처음으로 이동시키자.
+    form.submit();              // searchForm 안의 페이지에 담아 제출한다.
 });
 </script>
