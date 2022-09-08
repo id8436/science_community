@@ -8,6 +8,8 @@ urlpatterns = [
 
     # 학교기능 관련.
     path('school/<int:school_id>/', school.main, name='school_main'),
+    path('school/school_list/', school.list, name='school_list'),
+    #교사명단
     path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),
     path('school/download_excel_form/', school.download_excel_form, name='school_download_excel_form'),
     path('school/upload_excel_form/<int:school_id>/', school.upload_excel_form, name='school_upload_excel_form'),
@@ -35,4 +37,11 @@ urlpatterns = [
     # 교과교실 관련.
     path('classroom/create/<int:school_id>/', classroom.create, name='classroom_create'),
     path('classroom/main/<int:classroom_id>/', classroom.main, name='classroom_main'),
+    # 과제
+    path('classroom/homework/create/<int:classroom_id>/', classroom.homework_create, name='homework_create'),
+    path('classroom/homework/detail/<int:posting_id>/', classroom.homework_detail, name='homework_detail'),
+    path('classroom/homework/modify/<int:posting_id>/', classroom.homework_modify, name='homework_modify'),
+    path('classroom/homework/delete/<int:posting_id>/', classroom.homework_delete, name='homework_delete'),
+    path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
+
 ]

@@ -1,17 +1,19 @@
 {% extends "school_report/section.html" %}
 
 {% block content %}
-test학교 메인
-{{ teacher.name }}
-<br>
 --내가 주 관리자인 학교
-{% if maintain_school_list %}
-{% for school in maintain_school_list %}
+{% if user.school_set.all %}
+{% for school in user.school_set.all %}
 <a href="{% url 'school_report:school_main' school.id %}">{{ school }}</a>
 {%endfor%}{%endif%}
 <br>
+test학교 메인
+{% if teacher %}
+{{ teacher.name }}
+<br>
+
 ##내가 교사로 속한 학교
-{{ joint_school }}
+<a href="{% url 'school_report:school_main' joint_school.id %}">{{ joint_school }}</a>
 
 <br><br>
 - 내가 주 관리자인 학급
@@ -40,7 +42,9 @@ test학교 메인
 {%endfor%}{%endif%}
 <br>
 <br>
+{% endif %}
 
+{% if student %}
 # 학생으로서 속한 학급.
 <a href="{% url 'school_report:homeroom_main' joint_homeroom.id %}">{{ joint_homeroom }}</a>
 <br>
@@ -51,5 +55,17 @@ test학교 메인
 {{ classroom }}
 {%endfor%}{%endif%}
 <br>
+{% endif %}
+
+
+학교 찾기
+<form id="searchForm" method="get" action="{% url 'school_report:school_list' %}">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" name="keyword" placeholder="학교 검색하기" id="search_keyword"
+                   value="{{ keyword|default_if_none:'' }}">
+            <input class="btn btn-outline-secondary" type="submit" id="btn_search" value="검색">
+        </div>
+</form>
+
 
 {% endblock content%}

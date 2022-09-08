@@ -9,8 +9,9 @@
 
 
 가입 축하한다요. {{user}}! 다음 버튼을 누루라요~{{to_url}}
-<form action="{{to_url}}" method="get">
+<form action="{{to_url}}" method="GET">
     <input type="hidden" name="email_verification_code" value="{{email_verification_code}}">
+    <input type="hidden" name="user_id" value="{{user.id}}">
     <input type="submit" value="이메일 검증하기">
     <!-- 이메일에선 헤드 태그를 사용하지 못하는듯;;;? -->
 </form>

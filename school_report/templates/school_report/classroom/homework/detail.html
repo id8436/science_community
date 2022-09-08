@@ -1,0 +1,136 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+<div class="container my-3">
+
+<h2 class="border-bottom py-2">{{ posting.subject }}</h2>
+
+<div class="card my-3">
+    <div class="card-body">
+        <div class="card-text" style="white-space: pre-line;">{{ posting.content| safe  }}</div>
+    </div>
+
+        <div class="d-flex justify-content-end">
+            <div class="badge text-bg-light p-2">
+                <div>작성자:{{ posting.author.nickname }}</div>
+                <div>작성일:{{ posting.create_date }}</div>
+                수정일:{{posting.modify_date}}
+                <div>마감일:{{ posting.deadline }}</div>
+            </div>
+        </div>
+
+</div>
+
+<!-- 삭제, 수정 버튼. -->
+<div class="position-relative">
+<div class="position-absolute top-0 start-50 translate-middle">
+</div>
+{% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+<a href="{% url 'school_report:homework_modify' posting.id%}" class="btn btn-primary">수정</a>
+<a href="#" data-uri="{% url 'school_report:homework_delete' posting.id  %}" class="posting_delete btn btn-primary">삭제</a>
+</div>
+
+<!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".posting_delete").on('click', function() {
+        if(confirm("님, 정말로 지움??")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+
+{% if submit_list %}
+<table class="table table-hover" id="submit_list">
+    <thead>
+    <tr class="table-info">
+        <th>번호</th>
+        <th>이름</th>
+        <th>상태</th>
+        <th>제출시각</th>
+        <th>제출내용</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for annoIndividual in submit_list %}
+    <tr>
+        <td>{{annoIndividual.to_student.number}}</td>
+        <td>{{annoIndividual.to_student.name}}</td>
+        {% if annoIndividual.check %}
+        <td>제출</td>
+        <td>{{annoIndividual.submit_date|date:'m.d H:i'}}</td>
+        {% elif annoIndividual.read %}
+        <td class="table-secondary" colspan="2">읽음</td>
+        {% else %}
+        <td class="table-danger" colspan="2">미열람</td>
+        {% endif %}
+        <td>{{annoIndividual.content}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+{%endif%}
+
+
+
+<script type='text/javascript'>
+    $(document).ready(function(){
+        $(".announcement_check").on('click', function() {
+        if(confirm("한번 확인하면 취소 못하니, 신중히 확인하세요~!")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+
+<div>
+    {{individual_announcement.to_student}}
+        {% if individual_announcement.check %}
+            <h5 class="border-bottom">제출 과제 확인</h5>
+
+            <div class="card my-3">
+            <div class="card-body">
+            {{individual_announcement.content}}
+                <div class="badge text-bg-light p-2">
+                <div>작성일:{{ individual_announcement.submit_date }}</div>
+            </div>
+        </div>
+            </div>
+    <a href="{% url 'school_report:homework_resubmit' individual_announcement.id %}" class="homework_submit btn btn-primary">수정 제출하기</a>
+<script type='text/javascript'>
+    $(document).ready(function(){
+        $(".homework_submit").on('click', function() {
+        if(confirm("수정하게 되면 제출이 취소됩니다~!")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+        {% else %}
+            <h2>아직 제출이 안되었습니다~</h2>
+            <!-- 에러처리 -->
+            {% include "form_errors.html" %}
+            <h5 class="my-3 border-bottom pb-2">과제 제출</h5>
+            <!-- 폼 처리-->
+            <form method="post" enctype="multipart/form-data" class="post-form my-3" >
+                {% csrf_token %}
+                <div class="form-group">
+                <textarea type="text" class="form-control" name="content" id="content"
+                    placeholder="내용을 입력해주세요~">{{ form.content }}</textarea>
+                </div>
+                <input type="submit" class="btn btn-primary" value='제출'>
+            </form>
+        {%endif%}
+
+
+</div>
+
+
+
+
+
+
+
+{% endblock content %}

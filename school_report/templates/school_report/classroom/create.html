@@ -11,14 +11,12 @@
     <div class="form-group">
         <label>학교</label>
     <div type="text" class="form-control" name="school" id="school">{{school}}</div>
-        <label>학교 코드</label>
-    <input type="password" class="form-control" name="code" id="code"
-                       value="{{ form.code.value|default_if_none:'' }}" placeholder="학교 비밀코드를 입력하세요.">
 
     <label>과목명</label>
     <input type="text" class="form-control" name="subject" id="subject"
            value="{{ form.subject.value|default_if_none:'' }}" placeholder="과목명이 교실이름으로 쓰입니다~">
 
+    <label>어떤 학급을 기반으로 만들 건가요?(필요한 만큼 선택)</label>
     {% for homeroom in homeroom_list %}
     <div class="form-check">
         <input class="form-check-input" type="checkbox" value="{{homeroom.id}}" id="{{homeroom.id}}" name="homeroom_list">

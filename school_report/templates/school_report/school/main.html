@@ -6,36 +6,20 @@ test학교 메인
 <div>
     학교마스터 : {{school.master}}
 </div>
-<a href="{% url 'school_report:teacher_assignment' school.id %}">보조관리자 등록하기</a>
 
+{% if user.teacher.school != school %}
 <div>
-    교사명단(인증한 교사에게만 보입니다)
-<table class="table table-hover" id="board_table">
-    <thead>
-    <tr class="table-info">
-        <th>성함</th>
-        <th>담임</th>
-        <th>담임반</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% if teacher_list %}
-    {% for teacher in teacher_list %}
-    <tr>
-        <td>{{teacher.name}}</td>
-        <th>{{teacher.grade}}</th>
-        <th>{{teacher.cl_num}}</th>
-    </tr>
-    {% endfor %}
+    <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기</a>
+</div>
+{% else%}
+    (학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)
+    <a href="{% url 'school_report:classroom_create' school.id %}">교과교실 생성</a>
+    {% if school.master == user %}
+        <a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
     {% endif %}
-    </tbody>
-</table>
+{% endif %}
 
-</div>
-<div>
-    <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기.</a>
-</div>
-## 학급 명단.(학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)
+<h4 class="my-3 border-bottom pb-2">학급 목록</h4>
    <table class="table table-hover" id="homeroom_table">
     <thead>
     <tr class="table-info">
@@ -48,7 +32,28 @@ test학교 메인
     {% for homeroom in homeroom_list %}
     <tr>
         <td><a href="{% url 'school_report:homeroom_main' homeroom.id %}">{{homeroom}}</a></td>
-        <th>{{homeroom.master.name|truncatechars:2}}</th>
+        <th>{{homeroom.master.name|slice:2}}**</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+
+<h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
+   <table class="table table-hover" id="classroom_table">
+    <thead>
+    <tr class="table-info">
+        <th>교과교실</th>
+        <th>관리자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if classroom_list %}
+    {% for classroom in classroom_list %}
+    <tr>
+        <td><a href="{% url 'school_report:classroom_main' classroom.id %}">{{classroom}}</a></td>
+        <th>{{classroom.master.name|slice:2}}**</th>
     </tr>
     {% endfor %}
     {% endif %}
@@ -57,11 +62,8 @@ test학교 메인
 
 
 
-<a href="{% url 'school_report:homeroom_create' school.id %}">학급 생성하기</a>
-<a href="{% url 'school_report:classroom_create' school.id %}">교과교실 생성하기</a>
-## 교과교실 명단.
-{% if classroom_list %}
-{% for classroom in classroom_list %}
-{{classroom}}
-{%endfor%}{%endif%}
+
+
+
+
 {% endblock content%}

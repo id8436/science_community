@@ -13,8 +13,6 @@ from . import models  # 모델 호출.
 @login_required()
 def main(request):
     context = {}  # 정보를 담을 사전.
-    maintain_school_list = models.School.objects.filter(master=request.user)  # 관리자는 유저에 직접 연결하자.
-    context['maintain_school_list'] = maintain_school_list
     # 프로필 가져오기.
     teacher = request.user.teacher
     context['teacher'] = teacher

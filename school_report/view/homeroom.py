@@ -177,6 +177,10 @@ def announcement_modify(request, posting_id):
             posting = form.save(commit=False)
             posting.author = request.user
             posting.save()
+            # 개별 확인을 위한 개별과제 체크 해제.
+            submit_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
+            for submit in submit_list:
+                submit.check = False
             return redirect('school_report:announcement_detail', posting_id=posting.id)
     else:  # GET으로 요청된 경우.
         form = AnnouncementForm(instance=posting)  # 해당 모델의 내용을 가져온다!

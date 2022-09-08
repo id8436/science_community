@@ -15,3 +15,8 @@ class AnnouncementForm(forms.ModelForm):
     class Meta:
         model = Announcement
         fields = ['subject', 'content']
+
+class HomeworkForm(forms.ModelForm):
+    class Meta:
+        model = Homework
+        fields = ['subject', 'content', 'deadline']

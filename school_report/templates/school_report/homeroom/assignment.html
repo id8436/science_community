@@ -2,7 +2,7 @@
 
 {% block content %}
 
-{{ homeroom }}의 학생 명단을 등록합니다.
+{{ homeroom }}의 학생 명단을 등록합니다.(담임교사만 등록 가능하고, 이외 열람만 가능합니다.)
 
 <div>한번에 등록하기.</div>
 <a href="{% url 'school_report:homeroom_download_excel_form' %}">양식 다운 받기</a>
@@ -11,7 +11,7 @@
 <form action="{% url 'school_report:homeroom_upload_excel_form' homeroom.id %}" method="POST" enctype="multipart/form-data">
         <input type="file" name="uploadedFile">
         {% csrf_token %}
-        <input type="submit" value="Upload">
+        <input type="submit" value="엑셀 파일 올리기">
 </form>
 
 등록 마친 명단

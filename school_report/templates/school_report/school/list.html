@@ -1,0 +1,38 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+<div class="container">
+
+<table class="table table-hover" id="board_table">
+    <thead>
+    <tr class="table-info">
+        <th>학교명</th>
+        <th>사용년도</th>
+        <th>관리자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if board_list %}
+    {% for board in board_list %}
+    <tr>
+        <td>
+            <a href="{% url 'school_report:school_main' board.id %}" class="to_detail">{{ board.name }} </a>
+            <span>{{ board.posting_set.all.count }}</span>
+        </td>
+        <td>{{ board.year }}</td>
+        <td>{{ board.master }}</td>
+
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+<span class="btn btn-outline-info">
+학교 등록</span>
+
+</div>
+
+
+
+{% endblock content%}

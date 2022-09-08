@@ -17,12 +17,20 @@ def main(request, school_id):
     context['homeroom_list'] = homeroom_list
     classroom_list = school.classroom_set.all()
     context['classroom_list'] = classroom_list
-
-    teacher_list = models.Teacher.objects.filter(school=school, obtained=True)  # 학교 내에 등록된 프로필만 가져온다.
-    for teacher in teacher_list:
-        if teacher.admin == request.user:  # 프로필 등록자 중에 해당한다면..
-            context['teacher_list'] = teacher_list
     return render(request, 'school_report/school/main.html', context)
+def list(request):
+    context = {}
+    school_list = models.School.objects.order_by('-id')  # 생성순서의 반대.
+    #-----검색기능
+    keyword = request.GET.get('keyword', '')  # 검색어를 받는다.
+    if keyword != '':  # 검색어가 있다면
+        result = []  # 검색결과를 담기 위한 리스트를 만든다.
+        keywords = keyword.split(' ')  # 공백이 있는 경우 나눈다.
+        for kw in keywords:  # 띄어쓰기로 검색을 하는 경우가 많으니까, 다 찾아줘야지.
+            result += school_list.filter(name__icontains=kw) # 제목검색
+    school_list = result
+    context['board_list'] = school_list
+    return render(request, 'school_report/school/list.html', context)
 
 @login_required()
 def download_excel_form(request):
@@ -117,8 +125,10 @@ def teacher_code_confirm(request, teacher_id):
 def assignment(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
-
     if school.master == request.user:
-        teacher_list = models.Teacher.objects.filter(school=school, obtained=False)  # 등록 안한 사람만 반환.
-        context['teacher_list'] = teacher_list
+        teacher_list_resistered = models.Teacher.objects.filter(school=school, obtained=True)  # 학교 내에 등록된 프로필만 가져온다.
+        context['teacher_list_resistered'] = teacher_list_resistered
+
+        teacher_list_unresistered = models.Teacher.objects.filter(school=school, obtained=False)  # 등록 안한 사람만 반환.
+        context['teacher_list_unresistered'] = teacher_list_unresistered
         return render(request, 'school_report/school/assignment.html', context)

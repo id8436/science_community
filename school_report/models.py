@@ -40,7 +40,7 @@ class Homeroom(models.Model):
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
     code = models.TextField()  # 비밀코드
     def __str__(self):
-        return str(self.school) +'/'+ str(self.grade)+'학년' + str(self.cl_num) + '반'
+        return str(self.grade)+'학년' + str(self.cl_num) + '반'
     class Meta:
         unique_together = (
             ('school', 'grade', 'cl_num')
@@ -112,6 +112,7 @@ class HomeworkSubmit(models.Model):
     to_student = models.ForeignKey('Student', on_delete=models.CASCADE)  # 각 개별 학생에게 전달되게끔.
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
-    submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.
+    read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
+    submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
         return self.to_student.name

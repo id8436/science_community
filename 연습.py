@@ -1,4 +1,4 @@
-import sqlite3
+'''import sqlite3
 
 con = sqlite3.connect("db.sqlite3")
 type(con)
@@ -12,4 +12,9 @@ cursor.execute("INSERT INTO school_report_teacher \
 cursor.execute("SELECT * FROM school_report_teacher")
 print(cursor.fetchall())
 con.commit()
-con.close()
+con.close()'''
+import random
+
+p = random.random()
+print(p)
+print(p)

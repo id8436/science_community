@@ -93,12 +93,13 @@ def send_email_verify_code(request): #  쿠키를 이용해 검증해보자.
     from django.shortcuts import reverse
     from config import secret
     user = request.user
-    email_verification_code = random.randint(10, 100000)
+    email_verification_code = random.random()
+    print(email_verification_code)
     response = redirect(request.META.get('HTTP_REFERER', '/'))  # 다음에 보낼 페이지를 지정해 응답을 받아야 한다.(그래야 저장됨)
     response.set_cookie('email_verification_code', email_verification_code, max_age=300)  # 사용자의 쿠키에 검증코드 저장
     content = {'user': user,
                'email_verification_code': email_verification_code,
-               'to_url': secret.SERVICE_DOMAIN + reverse('custom_account:email_verification'),
+               'to_url': request.get_host() + reverse('custom_account:email_verification'),
                }  # 이메일에 코드를 담아보낸다.
     msg = EmailMessage(subject="이메일 인증",  # 이메일 제목
                        body=render_to_string('custom_account/email_verification.html', content),
@@ -109,9 +110,12 @@ def send_email_verify_code(request): #  쿠키를 이용해 검증해보자.
     messages.info(request, '이메일을 확인해보세요~ 5분동안 유효합니다~')  # 테스트용
     print(request.COOKIES.get('email_verification_code'))
     return response
-def email_verification(request):
+
+def email_verify(request):
     user = request.user
-    if request.GET['email_verification_code'] == request.COOKIES.get('email_verification_code'):  # 쿠키에 있는 걸 쓰면 될듯.
+    cookie = request.COOKIES.get('email_verification_code')
+    code = request.GET.get('email_verification_code')
+    if  code == cookie:  # 쿠키에 있는 걸 쓰면 될듯.
         user.email_check = True
         user.save()
         messages.info(request, '이메일 인증이 완료되었습니다.')
@@ -120,6 +124,16 @@ def email_verification(request):
         messages.error(request, request.GET['email_verification_code'])
         messages.error(request, '뭔가 ?? 생김.')
         messages.error(request, request.COOKIES.get('email_verification_code'))
-    response = redirect('custom_account:profile')  # 다음으로 갈 페이지 지정.
-    response.delete_cookie('email_verification_code')  # 확인했으니, 저장했던 쿠키를 지워준다.
-    return response
+    if cookie == None:
+        messages.error(request, '쿠키가 삭제되었습니다. 이메일 요청을 다시 하세요~')
+    return True
+def email_verification(request):
+    '''이메일 인증기능.'''
+    if email_verify(request):
+        response = redirect('custom_account:profile')  # 다음으로 갈 페이지 지정.
+        response.delete_cookie('email_verification_code')  # 확인했으니, 저장했던 쿠키를 지워준다.
+        return response
+# 네이버 로그인데서 추가로 비밀번호 입력이 안되게 해둬서... 고민해봤는데.. 비밀번호가 없으면 운영이 안될텐데;;
+# def signup_by_email(request):
+#     user_id = request.GET.get('user_id')
+#     if email_verify(request):
