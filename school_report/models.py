@@ -19,9 +19,11 @@ class Teacher(models.Model):
     obtained = models.BooleanField(default=False)
     name = models.CharField(max_length=10)  # 실명을 기입하게 하자.
     code = models.TextField(null=True, blank=True)  # 교사프로필을 습득할 수 있게 하는 코드. 습득 후 지우게끔 하자. 코드가 1이 되면 소유하고 있음.
+    created = models.DateTimeField(auto_now_add=True)
+    activated = models.DateTimeField(auto_now=True, null=True, blank=True)
     # 소유 객체들.
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 어느 학교 소속 프로필인가.
-    homeroom_have = models.ManyToManyField('Homeroom', blank=True)  # 권한을 가진 홈룸.
+    # homeroom_have = models.ManyToManyField('Homeroom', blank=True)  # 권한을 가진 홈룸. 그런거 없이, 학교권한으로 접근.
     classroom_have = models.ManyToManyField('Classroom', blank=True)  # 권한을 가진 클래스룸.(공동관리가 필요할 경우)
     # 담임, 과목정보?
     grade = models.IntegerField(null=True, blank=True)  # 학년
@@ -67,6 +69,7 @@ class Student(models.Model):
     name = models.CharField(max_length=10)  # 학생 이름.
     obtained = models.BooleanField(default=False)
     code = models.TextField(null=True, blank=True)
+    activated = models.DateTimeField(auto_now=True, null=True, blank=True)
     def __str__(self):
         return str(self.number)+'번 ' + self.name
     class Meta:

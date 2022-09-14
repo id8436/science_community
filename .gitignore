@@ -3,11 +3,11 @@ db.sqlite3
 *.pyc
 __pycache__
 logs
+config/secret.py
+media/
+migrations/
 sc_venv
 sc_venv_10
 venv_samsung
 venv_hp
 venv_sc
-config/secret.py
-media/
-migrations/

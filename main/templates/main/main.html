@@ -7,4 +7,23 @@
 {% for con in user.conneted_user_set.all %}
     {{con}}
 {%endfor%}
+
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-5 card">
+      {% include "school_report/main_body.html" %}
+    </div>
+    <div class="col-sm-5 card">col-sm-
+    </div>
+
+
+  </div>
+  <div class="row">
+    <div class="col-sm">col-sm</div>
+    <div class="col-sm">col-sm</div>
+    <div class="col-sm">col-sm</div>
+  </div>
+</div>
 {% endblock content %}

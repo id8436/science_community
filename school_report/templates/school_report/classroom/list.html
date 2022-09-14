@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+   <table class="table table-hover" id="classroom_table">
+    <thead>
+    <tr class="table-info">
+        <th>교과교실</th>
+        <th>관리자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if classroom_list %}
+    {% for classroom in classroom_list %}
+    <tr>
+        <td><a href="{% url 'school_report:classroom_main' classroom.id %}">{{classroom}}</a></td>
+        <th>{{classroom.master.name|slice:2}}**</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>

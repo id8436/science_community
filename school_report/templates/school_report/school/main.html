@@ -1,6 +1,7 @@
 {% extends "school_report/section.html" %}
 
 {% block content %}
+
 test학교 메인
 {{ school }}
 <div>
@@ -20,45 +21,12 @@ test학교 메인
 {% endif %}
 
 <h4 class="my-3 border-bottom pb-2">학급 목록</h4>
-   <table class="table table-hover" id="homeroom_table">
-    <thead>
-    <tr class="table-info">
-        <th>학급</th>
-        <th>담임</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% if homeroom_list %}
-    {% for homeroom in homeroom_list %}
-    <tr>
-        <td><a href="{% url 'school_report:homeroom_main' homeroom.id %}">{{homeroom}}</a></td>
-        <th>{{homeroom.master.name|slice:2}}**</th>
-    </tr>
-    {% endfor %}
-    {% endif %}
-    </tbody>
-</table>
+{% include "school_report/homeroom/list.html" %}
 
 
 <h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
-   <table class="table table-hover" id="classroom_table">
-    <thead>
-    <tr class="table-info">
-        <th>교과교실</th>
-        <th>관리자</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% if classroom_list %}
-    {% for classroom in classroom_list %}
-    <tr>
-        <td><a href="{% url 'school_report:classroom_main' classroom.id %}">{{classroom}}</a></td>
-        <th>{{classroom.master.name|slice:2}}**</th>
-    </tr>
-    {% endfor %}
-    {% endif %}
-    </tbody>
-</table>
+{% include "school_report/classroom/list.html" %}
+
 
 
 

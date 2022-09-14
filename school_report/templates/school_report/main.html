@@ -1,71 +1,10 @@
 {% extends "school_report/section.html" %}
 
 {% block content %}
---내가 주 관리자인 학교
-{% if user.school_set.all %}
-{% for school in user.school_set.all %}
-<a href="{% url 'school_report:school_main' school.id %}">{{ school }}</a>
-{%endfor%}{%endif%}
-<br>
-test학교 메인
-{% if teacher %}
-{{ teacher.name }}
-<br>
-
-##내가 교사로 속한 학교
-<a href="{% url 'school_report:school_main' joint_school.id %}">{{ joint_school }}</a>
-
-<br><br>
-- 내가 주 관리자인 학급
-{% if maintain_homeroom_list %}
-{% for homeroom in maintain_homeroom_list %}
-<a href="{% url 'school_report:homeroom_main' homeroom.id %}">{{ homeroom }}</a>
-{%endfor%}{%endif%}
-<br>
-##내가 공동 관리자 학급
-{% if joint_homeroom_list %}
-{% for homeroom in joint_homeroom_list %}
-{{ homeroom }}
-{%endfor%}{%endif%}
-<br><br>
-- 내가 주 관리자인 교과교실
-{% if maintain_classroom_list %}
-{% for classroom in maintain_classroom_list %}
-{{ classroom }}
-{%endfor%}{%endif%}
-<br><br>
-
-##내가 공동 관리자 교과교실
-{% if joint_classroom_list %}
-{% for classroom in joint_classroom_list %}
-{{ classroom }}
-{%endfor%}{%endif%}
-<br>
-<br>
-{% endif %}
-
-{% if student %}
-# 학생으로서 속한 학급.
-<a href="{% url 'school_report:homeroom_main' joint_homeroom.id %}">{{ joint_homeroom }}</a>
-<br>
-
-# 학생으로서 속한 교과교실.
-{% if joint_classroom_list %}
-{% for classroom in joint_classroom_list %}
-{{ classroom }}
-{%endfor%}{%endif%}
-<br>
-{% endif %}
 
 
-학교 찾기
-<form id="searchForm" method="get" action="{% url 'school_report:school_list' %}">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" name="keyword" placeholder="학교 검색하기" id="search_keyword"
-                   value="{{ keyword|default_if_none:'' }}">
-            <input class="btn btn-outline-secondary" type="submit" id="btn_search" value="검색">
-        </div>
-</form>
+{% include "school_report/main_body.html" %}
+
 
 
 {% endblock content%}

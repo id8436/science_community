@@ -1,10 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% if user.teacher_user.all %}
+교사프로필
+<!-- 연결된 교사 객체를 가져온다. -->
+{% for teacher in user.teacher_user.all %}
+<div>
+    {{ teacher }}선생님(활성일자:{{teacher.activated}})<br>
+    <p>소속 : <a href="{% url 'school_report:school_main' teacher.school.id %}">{{ teacher.school }}</a>
+    {% if teacher.school.master == user %}(주 관리자){%endif%}</p>
+
+    {% if teacher.homeroom_set.all %}
+        담임학급(주관리자)
+    {% with teacher.homeroom_set.all as homeroom_list %}
+        {% include "school_report/homeroom/list.html" %}
+    {% endwith %}
+    {%endif%}
+
+    <br>관리중인 교과교실
+    {% with teacher.classroom_set.all as classroom_list %}
+        {% include "school_report/classroom/list.html" %}
+    {% endwith %}
+{%endfor%}
+</div>{%endif%}
+
+{% if user.student_user.all %}
+{% for student in user.student_user.all %}
+    {{ student }}학생(활성일자:{{student.activated}})<br>
+    <p>소속 : <a href="{% url 'school_report:homeroom_main' student.homeroom.id %}">{{ student.homeroom }}</a></p>
+    {% if student.homeroom.classroom_set.all %}
+    <br>소속 교과
+    {% with student.homeroom.classroom_set.all as classroom_list %}
+        {% include "school_report/classroom/list.html" %}
+    {% endwith %}    {% endif %}
+
+{%endfor%}{% endif %}
+
+
+학교 찾기
+<form id="searchForm" method="get" action="{% url 'school_report:school_list' %}">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" name="keyword" placeholder="학교 검색하기" id="search_keyword"
+                   value="{{ keyword|default_if_none:'' }}">
+            <input class="btn btn-outline-secondary" type="submit" id="btn_search" value="검색">
+        </div>
+</form>

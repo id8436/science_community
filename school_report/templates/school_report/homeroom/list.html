@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+  <table class="table table-hover" id="homeroom_table">
+    <thead>
+    <tr class="table-info">
+        <th>학급</th>
+        <th>담임</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if homeroom_list %}
+    {% for homeroom in homeroom_list %}
+    <tr>
+        <td><a href="{% url 'school_report:homeroom_main' homeroom.id %}">{{homeroom}}</a></td>
+        <th>{{homeroom.master.name|slice:2}}**</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
