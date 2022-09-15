@@ -4,8 +4,7 @@ db.sqlite3
 __pycache__
 logs
 config/secret.py
-config/localsettings.py
-config/localsttings(in server).py
+config/secret(server).py
 media/
 migrations/
 sc_venv

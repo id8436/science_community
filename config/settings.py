@@ -111,8 +111,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-from config import localsettings
-DATABASES = localsettings.databases(BASE_DIR)
+DATABASES = secret.databases(BASE_DIR)
 
 
 # Password validation
