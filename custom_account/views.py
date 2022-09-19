@@ -99,7 +99,8 @@ def send_email_verify_code(request): #  쿠키를 이용해 검증해보자.
     response.set_cookie('email_verification_code', email_verification_code, max_age=300)  # 사용자의 쿠키에 검증코드 저장
     content = {'user': user,
                'email_verification_code': email_verification_code,
-               'to_url': request.get_host() + reverse('custom_account:email_verification'),
+               # http를 안넣어주면... 네이버를 호스트로 삼아 움직인다;
+               'to_url': 'http://' + request.get_host() + reverse('custom_account:email_verification'),
                }  # 이메일에 코드를 담아보낸다.
     msg = EmailMessage(subject="이메일 인증",  # 이메일 제목
                        body=render_to_string('custom_account/email_verification.html', content),

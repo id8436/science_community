@@ -10,6 +10,7 @@ class Exam(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)  # 게시자.
     test_code_min = models.IntegerField()  # 수험번호의 최소
     test_code_max = models.IntegerField()  # 수험번호의 최대. 생태교란자를 파악하기 위함.
+    association = models.ForeignKey('Exam', on_delete=models.SET_NULL, null=True, blank=True)  # 연관실험.(시간연속성)
     def __str__(self):
         return self.name + str(self.year)
     class Meta:
@@ -17,19 +18,23 @@ class Exam(models.Model):
             ('name', 'year')
         )
 class Subject(models.Model):
-    '''시험 하위 과목'''
+    '''시험 하위 과목'''  # form에서 컴마로 구분되게 하면 어떨까? 태그 기입하듯.
     base_exam = models.ForeignKey('Exam', null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)  # 과목명.
     class Meta:
         unique_together = (
             ('name', 'base_exam')
         )
+class Exam_profile(models.Model):
+    '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
+    master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='exam_user')
+    name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
 
 class Score(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 유저에 직접 담자.
     test_code = models.IntegerField()  # 수험번호.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
-    score = models.IntegerField()  # 한 번 기입하면 변경이 불가능.
+    score = models.IntegerField()  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
     real_score = models.IntegerField()
 
 

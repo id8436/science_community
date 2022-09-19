@@ -54,7 +54,13 @@ class Posting(models.Model):
     report_user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='report_user', on_delete=models.SET_NULL)  # 유저 신고용.
     def __str__(self):
             return str(self.subject)
-
+    ## 추가정보 관련 idea.
+    # 추후 학교정보나 대회정보 등에서 내용을 추가하게 할 때... user_text 따위로 추가해서.. 다대다로 추가하게 하면 좋을듯.
+    # 수정이력은 위 모델의 작성내역으로 대신하면 깔끔하게 될듯. 새 정보 등록버튼, 수정이력을 보면 대댓글처럼 나오게.(내용, 작성자, 등록일자.)
+    # '등록만 가능하고, 수정, 삭제는 불가하니 신중하게 등록.
+    # class user_text: text=, created=auto_add_now
+    ## 신고 관련 아이디어.
+    # 모달로 새 창 띄워서 별명으로 신고대상자 넣어서... 게시글, 답변 등에서 변수를 넣는 방식으로 신고방식을 통일할 수 있을듯.
 
 class Answer(models.Model):  # 세부내용은 필요에 따라..
     posting = models.ForeignKey(Posting, on_delete=models.CASCADE)
