@@ -4,7 +4,7 @@ from .models import Posting, Answer, Comment, Board
 class BoardForm(forms.ModelForm):
     class Meta:
         model = Board
-        fields = ['board_name', 'enter_year']
+        fields = ['enter_year',]
 
 class PostingForm(forms.ModelForm):
     class Meta:

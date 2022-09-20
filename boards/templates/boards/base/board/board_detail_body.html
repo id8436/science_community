@@ -1,0 +1,25 @@
+<div class="container my-3">
+
+{% include "boards/base/search_on_posting.html" %}
+    {% include base_template|add:"board_detail_body.html" %}
+    {%include "boards/base/pagenation_of_posting.html"%}
+
+</div>
+
+<!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
+<!-- 취소를 누르면 아무 일도 하지 않는다.-->
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".board_delete").on('click', function() {
+        if(confirm("님, 정말로 지움??")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script>
+
+<!-- 단일게시판이 아니라 학교소개 등 단체게시판인 경우에만 게시판 목록을 가져온다. -->
+{% if board.category.board_set.count > 2 %}
+{% include "boards/base/board/board_list_body.html" %}
+{% else %}
+{%endif%}

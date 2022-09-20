@@ -37,5 +37,21 @@ class Score(models.Model):
     score = models.IntegerField()  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
     real_score = models.IntegerField()
 
+class Answer(models.Model):  # 세부내용은 필요에 따라..
+    posting = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='score_answer_author')
+    content = models.CharField(max_length=300)
+    create_date = models.DateTimeField(auto_now_add='True')
+    modify_date = models.DateTimeField(null=True, blank=True)
+    voter = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="score_answer_voter")
+
+
+class Comment(models.Model):
+    answer = models.ForeignKey(Answer, null=True, blank=True, on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='score_comment_author')
+    content = models.CharField(max_length=150)
+    create_date = models.DateTimeField(auto_now_add='True')
+    modify_date = models.DateTimeField(null=True, blank=True)
+    voter = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="score_comment_voter")
 
 

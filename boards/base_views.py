@@ -8,6 +8,7 @@ from django.contrib import messages  # 넌필드 오류를 반환하기 위한 �
 
 from .forms import PostingForm, AnswerForm, CommentForm, BoardForm
 from .models import * #모델을 불러온다.
+from school_report.models import School
 from django.db.models import Q, Count  # 검색을 위함. filter에서 OR조건으로 조회하기 위한 함수.(장고제공)
 from .view import posting_interest, board_interest
 from custom_account.views import notification_add  # 관심 게시판에 게시글을 작성하면 알림을 주기 위함.
@@ -138,7 +139,10 @@ def board_detail(request, board_id):
     return render(request, 'boards/base/board/board_detail.html', context)
 
 def board_name_adding(request, board):
-    instr = request.POST.get('board_name')
+    try:
+        instr = request.POST['board_name']
+    except:  # 게시판 이름 없이 진행된다면...
+        instr = request.POST.get('school')
     outstr = ''
     for i in range(0, len(instr)):  # 문자열 내 공백 없애기.
         if instr[i] != ' ':
@@ -146,6 +150,18 @@ def board_name_adding(request, board):
     board_name_, created = Board_name.objects.get_or_create(name=outstr)  # created엔 새로 만들어졌는지 여부가 True로 나오고, tag_엔 그 태그가 담긴다.
     board.board_name = board_name_
     board.save()
+def school_adding(request, board):
+    # try:
+    instr = request.POST['school']
+    outstr = ''
+    for i in range(0, len(instr)):  # 문자열 내 공백 없애기.
+        if instr[i] != ' ':
+            outstr += instr[i]
+    school_name_, created = School.objects.get_or_create(name=outstr, year=request.POST['enter_year'])  # created엔 새로 만들어졌는지 여부가 True로 나오고, tag_엔 그 태그가 담긴다.
+    board.school = school_name_
+    board.save()
+    # except:  # school로 받는 게 없는 경우.
+    #     pass
 @login_required()
 def board_create(request, category_id):
     category = get_object_or_404(Board_category, pk=category_id)
@@ -159,6 +175,7 @@ def board_create(request, category_id):
             board.category = category
             board.save()
             board_name_adding(request, board)  # 태그 추가 함수.
+            school_adding(request, board)  # 위와 동일.
             board_interest(request, board.id)
             return redirect('boards:board_list', category.id)  # 작성이 끝나면 목록화면으로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.

@@ -1,11 +1,7 @@
 {% extends base_template|add:"section.html" %}
 
 {% block content %}
-<div class="container">
-    {% include "boards/base/search_on_board.html" %}
 
+{% include "boards/base/board/board_list_body.html" %}
 
-    {% include base_template|add:"board_list_body.html" %}
-    {% include "boards/base/pagenation_of_board.html" %}
-</div>
 {% endblock content%}

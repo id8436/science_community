@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.db import models
+from school_report.models import Student, School
 
 class Board(models.Model):
     board_name = models.ForeignKey('Board_name', on_delete=models.PROTECT, null=True, blank=True)  # board_name.
-    category = models.ForeignKey('Board_category', on_delete=models.PROTECT, null=True, blank=True)
-    enter_year = models.IntegerField()  # 입학년도 혹은 개최년도를 기입하자.
+    category = models.ForeignKey('Board_category', on_delete=models.PROTECT, null=False, blank=True)
+    enter_year = models.IntegerField(null=False, blank=True)  # 입학년도 혹은 개최년도를 기입하자.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
                                related_name='board_author')
     text_1 = models.ManyToManyField('Comment', blank=True, related_name='+')  # 한 줄 코멘트 다는 용도. 혹은 컨텐츠.
@@ -12,6 +13,12 @@ class Board(models.Model):
 
     interest_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='board_interest_users')
     interest_count = models.IntegerField(default=0)
+
+    # - 점수공유에 대한 기능.
+    school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)  # 주관단체
+    test_code_min = models.IntegerField(null=True, blank=True)  # 수험번호의 최소
+    test_code_max = models.IntegerField(null=True, blank=True)  # 수험번호의 최대. 생태교란자를 파악하기 위함.
+    association = models.ForeignKey('Board', on_delete=models.SET_NULL, null=True, blank=True)  # 연관실험.(시간연속성)
     def __str__(self):
         return str(self.board_name) + str(self.enter_year)
     class Meta:
@@ -20,6 +27,7 @@ class Board(models.Model):
             )
 
 class Board_name(models.Model):
+    '''게시판 접속을 위한 코드로...'''
     name = models.CharField(max_length=32)
     def __str__(self):
         return self.name
@@ -28,8 +36,17 @@ class Board_category(models.Model):
     name = models.CharField(max_length=32)
     def __str__(self):
         return self.name
+class Subject(models.Model):
+    '''시험 하위 과목'''  # form에서 컴마로 구분되게 하면 어떨까? 태그 기입하듯.
+    base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
+    name = models.CharField(max_length=20)  # 과목명.
+    class Meta:
+        unique_together = (
+            ('name', 'base_exam')
+        )
 
 class Posting(models.Model):
+    #- 게시판으로서의 기능.
     board = models.ForeignKey('Board', on_delete=models.PROTECT, null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
                                related_name="posting_author")
@@ -47,6 +64,7 @@ class Posting(models.Model):
     interest_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='posting_interest_users')
     interest_count = models.IntegerField(default=0)
 
+    #- 건의, 문제제출용의 기능.
     source = models.TextField(null=True, blank=True)  # 출처 표기. + 정답 저장용으로 사용. +
     boolean_1 = models.BooleanField(default=True, null=True, blank=True)  # 저자 공개여부로 사용.(비공개가 False)
     boolean_2 = models.BooleanField(default=True, null=True, blank=True)  # 내용 공개여부로 사용.(비공개가 False)
