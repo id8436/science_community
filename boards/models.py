@@ -18,7 +18,7 @@ class Board(models.Model):
     school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)  # 주관단체
     test_code_min = models.IntegerField(null=True, blank=True)  # 수험번호의 최소
     test_code_max = models.IntegerField(null=True, blank=True)  # 수험번호의 최대. 생태교란자를 파악하기 위함.
-    association = models.ForeignKey('Board', on_delete=models.SET_NULL, null=True, blank=True)  # 연관실험.(시간연속성)
+    association = models.ForeignKey('Board', on_delete=models.SET_NULL, null=True, blank=True, related_name='associated_exam')  # 연관실험.(시간연속성)
     def __str__(self):
         return str(self.board_name) + str(self.enter_year)
     class Meta:
