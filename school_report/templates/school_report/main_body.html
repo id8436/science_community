@@ -24,7 +24,14 @@
 {% if user.student_user.all %}
 {% for student in user.student_user.all %}
     {{ student }}학생(활성일자:{{student.activated}})<br>
-    <p>소속 : <a href="{% url 'school_report:homeroom_main' student.homeroom.id %}">{{ student.homeroom }}</a></p>
+    <p>소속 : <a href="{% url 'school_report:school_main' student.school.id %}">{{ student.school }}</a></p>
+
+    {% if student.homeroom.all %}
+    <br>소속 학급
+    {% with student.homeroom.all as homeroom_list %}
+        {% include "school_report/homeroom/list.html" %}
+    {% endwith %}    {% endif %}
+
     {% if student.homeroom.classroom_set.all %}
     <br>소속 교과
     {% with student.homeroom.classroom_set.all as classroom_list %}

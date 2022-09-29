@@ -11,19 +11,24 @@ urlpatterns = [
     path('school/school_list/', school.list, name='school_list'),
     #교사명단
     path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),
-    path('school/download_excel_form/', school.download_excel_form, name='school_download_excel_form'),
+    path('school/download_excel_form/<int:school_id>/', school.download_excel_form, name='school_download_excel_form'),
     path('school/upload_excel_form/<int:school_id>/', school.upload_excel_form, name='school_upload_excel_form'),
     path('school/teacher_code_input/<int:school_id>/', school.teacher_code_input, name='teacher_code_input'),
     path('school/teacher_code_confirm/<int:teacher_id>/', school.teacher_code_confirm, name='teacher_code_confirm'),
+    #학생명단
+    path('school/student_assignment/<int:school_id>/', school.student_assignment, name='student_assignment'),
+    path('school/student_download_excel_form/<int:school_id>/', school.school_student_download_excel_form, name='school_student_download_excel_form'),
+    path('school/student_upload_student_excel_form/<int:school_id>/', school.school_student_upload_excel_form,
+         name='school_student_upload_excel_form'),
+    path('school/student_code_input/<int:school_id>/', school.student_code_input, name='student_code_input'),
+    path('school/student_code_confirm/<int:student_id>/', school.student_code_confirm, name='student_code_confirm'),
 
     # 학급 관련.
     path('homeroom/create/<int:school_id>/', homeroom.create, name='homeroom_create'),
     path('homeroom/main/<int:homeroom_id>/', homeroom.main, name='homeroom_main'),
-    path('homeroom/student_assignment/<int:homeroom_id>/', homeroom.assignment, name='student_assignment'),
-    path('homeroom/download_excel_form/', homeroom.download_excel_form, name='homeroom_download_excel_form'),
+    path('homeroom/student_assignment/<int:homeroom_id>/', homeroom.assignment, name='homeroom_student_assignment'),
+    path('homeroom/download_excel_form/<int:homeroom_id>/', homeroom.download_excel_form, name='homeroom_download_excel_form'),
     path('homeroom/upload_excel_form/<int:homeroom_id>/', homeroom.upload_excel_form, name='homeroom_upload_excel_form'),
-    path('homeroom/student_code_input/<int:homeroom_id>/', homeroom.student_code_input, name='student_code_input'),
-    path('homeroom/student_code_confirm/<int:student_id>/', homeroom.student_code_confirm, name='student_code_confirm'),
     # 공지
     path('homeroom/announcement/create/<int:homeroom_id>/', homeroom.announcement_create, name='announcement_create'),
     path('homeroom/posting/detail/<int:posting_id>/', homeroom.announcement_detail, name='announcement_detail'),

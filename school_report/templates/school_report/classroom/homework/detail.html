@@ -75,6 +75,8 @@ $(document).ready(function(){
 
 
 
+{% if is_teacher %}
+{% else %}
 <script type='text/javascript'>
     $(document).ready(function(){
         $(".announcement_check").on('click', function() {
@@ -126,7 +128,7 @@ $(document).ready(function(){
 
 
 </div>
-
+{% endif %}
 
 
 

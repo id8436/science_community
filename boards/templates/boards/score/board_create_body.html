@@ -6,13 +6,13 @@
 {% csrf_token %}
 
     <div class="form-group">
-        <label>시험명</label> ex)2학년2학기1회고사
+        <label>시험명.</label> 큰 틀에서부터 /로 구분하면 보기 좋다.<br>ex)2학년/2학기/1회고사
     <input type="text" class="form-control" name="board_name" id="board_name"
                        value="{{ form.board_name.value|default_if_none:'' }}" placeholder="대회의 정식명칭을 띄어쓰기 없이.">
-        <label>주관단체</label> ex)원주중학교
+        <label>주관단체.</label> ex)원주중학교
     <input type="text" class="form-control" name="school" id="school"
                        value="{{ form.school.value|default_if_none:'' }}" placeholder="대회를 주관하는 단체의 정식명을 정확하게 써주세요~">
-        <label>개최년도</label> ex)2022
+        <label>개최년도.</label> ex)2022
     <input type="text" class="form-control" name="enter_year" id="enter_year"
                        value="{{ form.enter_year.value|default_if_none:'' }}" placeholder="대회가 열리는 연도를 써주세요~(숫자만)">
 

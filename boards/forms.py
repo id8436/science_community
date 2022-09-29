@@ -1,5 +1,5 @@
 from django import forms
-from .models import Posting, Answer, Comment, Board
+from .models import Posting, Answer, Comment, Board, Exam_profile
 
 class BoardForm(forms.ModelForm):
     class Meta:
@@ -29,3 +29,7 @@ class CommentForm(forms.ModelForm):
             'content': '댓글내용',
         }
 
+class ScoreForm(forms.ModelForm):
+    class Meta:
+        model = Exam_profile
+        fields = ['test_code']

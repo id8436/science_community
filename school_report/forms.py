@@ -4,7 +4,7 @@ from .models import *
 class HomeroomForm(forms.ModelForm):
     class Meta:
         model = Homeroom
-        fields = ['grade', 'cl_num']
+        fields = ['name']
 
 class ClassroomForm(forms.ModelForm):
     class Meta:

@@ -37,12 +37,12 @@ def main(request, homeroom_id):
 
     return render(request, 'school_report/homeroom/main.html', context)
 
+from . import check
 @login_required()
 def assignment(request, homeroom_id):
     homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
     context = {'homeroom': homeroom}
-
-    if homeroom.master == request.user.teacher:
+    if check.Check_teacher(request, homeroom.school).in_school_and_none():
         resistered = models.Student.objects.filter(homeroom=homeroom, obtained=True)
         context['resistered'] = resistered
         unresistered = models.Student.objects.filter(homeroom=homeroom, obtained=False)  # 등록 안한 사람만 반환.
@@ -53,11 +53,19 @@ def assignment(request, homeroom_id):
         return redirect('school_report:homeroom_main', homeroom_id=homeroom_id)
 
 @login_required()
-def download_excel_form(request):
+def download_excel_form(request, homeroom_id):
+    homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
+    students = homeroom.student_set.all()  # 학급에 속한 학생.
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
-    ws['A1'] = '번호'
+    ws['A1'] = '수험코드(학번)'
     ws['B1'] = '이름'
+    a = 'A'  # 번호쓰는 라인.
+    b = 'B'  # 이름쓰는 라인.
+    for i, student in enumerate(students):
+        num = str(i + 2)
+        ws[a + num] = student.student_code
+        ws[b + num] = student.name
     response = HttpResponse(content_type="application/vnd.ms-excel")
     response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
     wb.save(response)
@@ -84,49 +92,13 @@ def upload_excel_form(request, homeroom_id):
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
         if request.user.teacher == homeroom.master:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
-                student, created = models.Student.objects.get_or_create(name=data[1], number=data[0], homeroom=homeroom)
-                student.code = random.randint(100000, 999999)  # 코드 지정.
+                student_code = data[0]
+                name = data[1]
+                student = models.Student.objects.get(name=name, student_code=student_code, school=homeroom.school)
+                student.homeroom.add(homeroom)
                 student.save()
 
-    return redirect('school_report:student_assignment', homeroom_id=homeroom_id)  # 필요에 따라 렌더링.
-
-@login_required()
-def student_code_input(request, homeroom_id):
-    homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
-    context = {'homeroom': homeroom}
-    if request.method == 'POST':  # 포스트로 요청이 들어온다면...
-        code = request.POST.get('code')
-        try:
-            student = models.Student.objects.filter(homeroom=homeroom, code=code)[0]  # 해당 계정 중 1번째.
-            if student.obtained == True:
-                messages.error(request, '이미 누군가 등록한 프로필입니다.')
-                return render(request, 'school_report/school/student_code_input.html', context)
-            # 이상 없으면 확인 페이지로 이동시킨다.
-            return redirect('school_report:student_code_confirm', student_id=student.id)
-        except Exception as e:
-            messages.error(request, e)
-            messages.error(request, '코드 해당계정이 없습니다.')
-    return render(request, 'school_report/homeroom/student_code_input.html', context)
-
-def student_code_confirm(request, student_id):
-    student = get_object_or_404(models.Student, pk=student_id)
-    context={'student':student}
-    if request.method == 'POST':  # 포스트로 요청이 들어온다면...
-        code = request.POST.get('code')
-        if code == student.code:
-            student.admin = request.user
-            student.obtained = True
-            student.code = None
-            student.save()
-            request.user.student = student  # 계정에 등록.
-            request.user.save()
-            messages.info(request, '인증에 성공하였습니다.')
-            return redirect('school_report:homeroom_main', homeroom_id=student.homeroom.id)
-        else:
-            messages.error(request, '코드가 안맞는데요;')
-            return render(request, 'school_report/homeroom/student_code_confirm.html', context)
-
-    return render(request, 'school_report/homeroom/student_code_confirm.html', context)
+    return redirect('school_report:homeroom_student_assignment', homeroom_id=homeroom_id)
 
 @login_required()
 def announcement_create(request, homeroom_id):
@@ -162,6 +134,7 @@ def announcement_detail(request, posting_id):
     annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
     context['annoIndividual_list'] = annoIndividual_list  # 이건 나중에 없애도 될듯.
     student = get_object_or_404(models.Student, admin=request.user, homeroom=homeroom)  # 학생객체 가져와서...
+    # 해당 반 학생이 아니면 404가 뜸.
     individual_announcement = get_object_or_404(models.AnnoIndividual, to_student=student, base_announcement=posting)
     context['individual_announcement'] = individual_announcement
     return render(request, 'school_report/homeroom/announcement/detail.html', context)

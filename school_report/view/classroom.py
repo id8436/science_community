@@ -105,9 +105,13 @@ def homework_detail(request, posting_id):
         homework_submit.save()
         return redirect('school_report:homework_detail', posting.id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:
-        form = get_object_or_404(models.HomeworkSubmit, base_homework=posting, to_student=request.user.student)  # 해당 모델의 내용을 가져온다!
-        # 태그를 문자열화 하여 form과 함께 담는다.
-        context['form'] = form
+        if request.user.teacher.school == classroom.school:  # 교사계정이 있다면 건너뛰게.
+            context['is_teacher'] = True
+            pass
+        else:
+            form, crated = models.HomeworkSubmit.objects.get_or_create(base_homework=posting, to_student=request.user.student)  # 해당 모델의 내용을 가져온다!
+            # 태그를 문자열화 하여 form과 함께 담는다.
+            context['form'] = form
     if request.user == posting.author:  # 작성자가 제출여부 볼 수 있다.
         context['classroom'] = classroom
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)

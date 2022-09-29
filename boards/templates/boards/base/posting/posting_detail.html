@@ -6,14 +6,15 @@
 
 
 <!-- 삭제, 수정 버튼. -->
-<div class="position-relative">
-<div class="position-absolute top-0 start-50 translate-middle">
-<span>{% include "boards/base/like_on_posting.html" %}</span>
-<span>{% include "boards/base/interest_on_posting.html" %}</span>
+<div class="" style="text-align:center"><!-- 좋아요 등. -->
+    <span>{% include "boards/base/like_on_posting.html" %}</span>
+    <span>{% include "boards/base/interest_on_posting.html" %}</span>
 </div>
-{% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
-<a href="{% url 'boards:posting_modify' posting.id%}" class="btn btn-primary">수정</a>
-<a href="#" data-uri="{% url 'boards:posting_delete' posting.id  %}" class="posting_delete btn btn-primary">삭제</a>
+
+<div class="">
+    {% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+    <a href="{% url 'boards:posting_modify' posting.id%}" class="btn btn-primary">수정</a>
+    <a href="#" data-uri="{% url 'boards:posting_delete' posting.id  %}" class="posting_delete btn btn-primary">삭제</a>
 </div>
 
 <!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Posting, Tag, Board, Board_name, Board_category
+from .models import Posting, Tag, Board, Board_name, Board_category, Exam_profile, Score
 
 class BoardAdmin(admin.ModelAdmin):
     list_display = ('id', 'board_name',)
@@ -15,4 +15,7 @@ admin.site.register(Posting)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name',)
 admin.site.register(Tag, TagAdmin)
+
+admin.site.register(Exam_profile)
+admin.site.register(Score)
 # Register your models here.

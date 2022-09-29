@@ -5,13 +5,36 @@ class School(models.Model):
     name = models.CharField(max_length=10)
     year = models.IntegerField()
     level = models.CharField(max_length=10)  # 초중고대, 대학원 + 기타.
-    master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)  # 메인관리자.
+    master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자. 마스터는 등록 안했다면 비게끔.
     code = models.TextField()  # 학교 내에 클래스를 만들 권한을 주는 비밀코드.
     def __str__(self):
         return self.name + str(self.year)
     class Meta:
         unique_together = (
             ('name', 'year')
+        )
+class Homeroom(models.Model):
+    school = models.ForeignKey('School', on_delete=models.CASCADE)
+    #grade = models.IntegerField(null=True, blank=True)   # 학년
+    #cl_num = models.IntegerField(null=True, blank=True)  # 반
+    name = models.CharField(max_length=20, null=True, blank=True)  # 학년반 대신 학급명을 사용하는 경우.
+    master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자.
+    code = models.TextField()  # 비밀코드
+    def __str__(self):
+        return self.name
+
+class Classroom(models.Model):
+    school = models.ForeignKey('School', on_delete=models.PROTECT)  # 학교 아래 귀속시키기 위함.
+    homeroom = models.ForeignKey('Homeroom', on_delete=models.PROTECT)  # 학생명단을 가져올 홈룸.
+    subject = models.CharField(max_length=10)  # 과목명
+    master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
+    name = models.CharField(max_length=25)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯?
+    code = models.TextField()  # 가입을 위한 비밀코드
+    def __str__(self):
+        return str(self.homeroom) + ' ' + self.subject
+    class Meta:
+        unique_together = (
+            ('school', 'homeroom', 'subject')
         )
 
 class Teacher(models.Model):
@@ -26,8 +49,8 @@ class Teacher(models.Model):
     # homeroom_have = models.ManyToManyField('Homeroom', blank=True)  # 권한을 가진 홈룸. 그런거 없이, 학교권한으로 접근.
     classroom_have = models.ManyToManyField('Classroom', blank=True)  # 권한을 가진 클래스룸.(공동관리가 필요할 경우)
     # 담임, 과목정보?
-    grade = models.IntegerField(null=True, blank=True)  # 학년
-    cl_num = models.IntegerField(null=True, blank=True)  # 반
+    #grade = models.IntegerField(null=True, blank=True)  # 학년. 추후 없애도록 해보자.
+    #cl_num = models.IntegerField(null=True, blank=True)  # 반. 추후 없애도록 해보자.
     def __str__(self):
         return self.name
     class Meta:
@@ -35,46 +58,22 @@ class Teacher(models.Model):
             ('school', 'name')
         )
 
-class Homeroom(models.Model):
-    school = models.ForeignKey('School', on_delete=models.CASCADE)
-    grade = models.IntegerField()   # 학년
-    cl_num = models.IntegerField()  # 반
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
-    code = models.TextField()  # 비밀코드
-    def __str__(self):
-        return str(self.grade)+'학년' + str(self.cl_num) + '반'
-    class Meta:
-        unique_together = (
-            ('school', 'grade', 'cl_num')
-        )
-
-class Classroom(models.Model):
-    school = models.ForeignKey('School', on_delete=models.PROTECT)  # 학교 아래 귀속시키기 위함.
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.PROTECT)  # 학생명단을 가져올 홈룸.
-    subject = models.CharField(max_length=10)  # 과목명
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
-    name = models.CharField(max_length=25)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯?
-    code = models.TextField()  # 가입을 위한 비밀코드
-    def __str__(self):
-        return str(self.homeroom) + self.subject
-    class Meta:
-        unique_together = (
-            ('school', 'homeroom', 'subject')
-        )
 
 class Student(models.Model):
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='student_user')
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)
-    number = models.IntegerField()  # 학생번호.
+    school = models.ForeignKey('School', on_delete=models.CASCADE)
+    homeroom = models.ManyToManyField('Homeroom')
+    #number = models.IntegerField()  # 학생번호. 지우자.
+    student_code = models.CharField(max_length=20, null=True, blank=True)  # 학생 인증코드.(학번 등)
     name = models.CharField(max_length=10)  # 학생 이름.
     obtained = models.BooleanField(default=False)
     code = models.TextField(null=True, blank=True)
     activated = models.DateTimeField(auto_now=True, null=True, blank=True)
     def __str__(self):
-        return str(self.number)+'번 ' + self.name
+        return str(self.school) + " " + str(self.student_code)+ self.name
     class Meta:
         unique_together = (
-            ('homeroom', 'number')
+            ('school', 'student_code')
         )
 class Announcement(models.Model):
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.

@@ -5,12 +5,13 @@
 {{ school }}의 교사 명단을 등록합니다.
 # 여기다 폼으로 한명한명 등록하게 해볼까?
 <div>주의!</div>
-<li>한 학교에 이름이 같은 선생님이 있다면 A, B 등으로 구분해주세요.(언젠가 에러가 생김)</li>
+<li>한 학교에 이름이 같은 선생님이 있다면 A, B 등으로 구분해주세요.(이름으로 대상을 구분합니다.)</li>
 <div>여러 교사 한번에 등록하기.</div>
-<a href="{% url 'school_report:school_download_excel_form' %}">양식 다운 받기</a>
+<a href="{% url 'school_report:school_download_excel_form' school.id %}">양식 다운 받기</a>
 
 <a>서식 올리기.</a>
-<form action="{% url 'school_report:school_upload_excel_form' school.id %}" method="POST" enctype="multipart/form-data">
+<form action="{% url 'school_report:school_upload_excel_form' school.id %}" method="POST" enctype="multipart/form-data"
+onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 갱신됩니다. 진행할까요?')">
         <input type="file" name="uploadedFile" value="파일을 선택해주세요.">
         {% csrf_token %}
         <input type="submit" value="엑셀파일 올리기">
@@ -20,8 +21,6 @@
     <thead>
     <tr class="table-info">
         <th>성함</th>
-        <th>담임</th>
-        <th>담임반</th>
     </tr>
     </thead>
     <tbody>
@@ -29,8 +28,6 @@
     {% for teacher in teacher_list_resistered %}
     <tr>
         <td>{{teacher.name}}</td>
-        <th>{{teacher.grade}}</th>
-        <th>{{teacher.cl_num}}</th>
     </tr>
     {% endfor %}
     {% endif %}
@@ -42,8 +39,6 @@
     <thead>
     <tr class="table-info">
         <th>성함</th>
-        <th>담임</th>
-        <th>담임반</th>
         <th>가입코드</th>
     </tr>
     </thead>
@@ -52,8 +47,6 @@
     {% for teacher in teacher_list_unresistered %}
     <tr>
         <td>{{teacher.name}}</td>
-        <th>{{teacher.grade}}</th>
-        <th>{{teacher.cl_num}}</th>
         <td>{{ teacher.code }}</td>
     </tr>
     {% endfor %}

@@ -1,0 +1,34 @@
+{% if exam_profile %}
+
+    <table class="table table-hover" id="score_table">
+    <thead>
+    <tr class="thead-dark">
+        <th>과목</th>
+        <th>내 점수</th>
+        <th>실제 점수</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for score in exam_profile.score_set.all %}
+    <tr>
+        <td>
+            제 {{forloop.counter}}과목 : {{score.base_subject}}
+        </td>
+        <td>{{score.score}}</td>
+        <td>미구현</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+
+시험점수 공유함. {{exam_profile.modify_num}}회 수정함.
+<a href="{% url 'boards:subject_register' board.id %}"
+   class="btn btn-outline-info">시험점수 수정</a>
+
+
+{% else %}
+    아직 시험점수를 등록하지 않았습니다.
+<a href="{% url 'boards:subject_register' board.id %}"
+   class="btn btn-outline-info">나의 시험점수 공유</a>
+{% endif %}

@@ -5,7 +5,7 @@ from django.utils import timezone  # 시간입력을 위해.
 from _datetime import datetime,timedelta  # 시간데이터 활용을 위해
 from django.contrib import messages  # 넌필드 오류를 반환하기 위한 것
 
-from .forms import PostingForm, AnswerForm, CommentForm
+from .forms import PostingForm, AnswerForm, CommentForm, ScoreForm
 from .models import * #모델을 불러온다.
 from django.db.models import Q, Count  # 검색을 위함. filter에서 OR조건으로 조회하기 위한 함수.(장고제공)
 
@@ -197,4 +197,60 @@ def comment_delete(request, comment_id):
     #return HttpResponse(json.dumps({}))
     #return redirect('boards:detail', posting_id=comment.answer.posting.id)
 
+from .models import Subject
+def subject_create(request, board_id):
+    '''시험과목을 올린다.'''
+    board = get_object_or_404(Board, pk=board_id)
+    context = {}
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        box = request.POST.getlist('subject')
+        print(box)
+        for tag in box:
+            if not tag:
+                continue
+            else:
+                tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
+                tag_, created = Subject.objects.get_or_create(base_exam=board, name=tag)  # 과목 생성.
+        return redirect('boards:board_detail', board_id=board_id)  # 작성이 끝나면 작성한 글로 보낸다.
+    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
+        form = PostingForm()
+    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
+    return render(request, 'boards/score/subject_create.html', context)
 
+def subject_register(request, board_id):
+    '''시험점수를 등록한다.'''
+    board = get_object_or_404(Board, pk=board_id)
+    context = {'board' : board}
+    students = Student.objects.filter(admin=request.user)  # student모델에서 바로 학교를 찾기 어려워서;;
+    target_student = None  # 시험 주관기관에 해당하는 학생프로필이 있는지 찾기 위해.
+    for student in students:
+        if student.homeroom.school == board.school:
+            target_student = student
+            break  # 찾았으면 순회 탈출.
+
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        form = ScoreForm(request.POST)
+        if form.is_valid():
+            box = request.POST.getlist('subject_score')
+            test_code = request.POST.get('test_code')
+            profile, created = Exam_profile.objects.get_or_create(master=request.user, base_exam=board)  # 하나의 프로필만 단들게끔.
+            profile.test_code = test_code
+            if target_student.student_code:  # 이미 등록되어 있는 학생계정이 있다면 다른 코드는 입력하지 못하게.
+                profile.test_code = target_student.student_code
+                messages.error(request, '이미 등록된 정보가 있어 다른 코드는 입력할 수 없습니다.')
+            profile.modify_num += 1  # 수정 할때마다 추가.
+            profile.save()
+            subjects = Subject.objects.filter(base_exam=board)
+            for i, subject in enumerate(subjects):
+                score = box[i]
+                tag_, created = Score.objects.get_or_create(user=profile, base_subject=subject)  # 점수는 과목당 하나만 개설하게끔.
+                tag_.score = score
+                tag_.save()
+                if target_student != None:
+                    pass
+
+            return redirect('boards:board_detail', board_id=board_id)  # 작성이 끝나면 작성한 글로 보낸다.
+    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
+        form = ScoreForm()
+    context['student'] = target_student
+    return render(request, 'boards/score/subject_register.html', context)

@@ -35,5 +35,8 @@ urlpatterns = [
 
     # report
     path('report_user/', base_views.report_user, name='report_user'),
+    # score_share
+    path('score/subject_create/<int:board_id>/', subject_create, name='subject_create'),
+    path('score/subject_register/<int:board_id>/', subject_register, name='subject_register'),
 
 ]

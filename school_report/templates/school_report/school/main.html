@@ -8,30 +8,56 @@ test학교 메인
     학교마스터 : {{school.master}}
 </div>
 
-{% if user.teacher.school != school %}
-<div>
-    <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기</a>
-</div>
-{% else%}
+{% if teacher %}
+    어서오세요, {{ teacher.name }} 선생님~!
     (학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)
     <a href="{% url 'school_report:classroom_create' school.id %}">교과교실 생성</a>
-    {% if school.master == user %}
-        <a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
-    {% endif %}
+
+            {% if school.master == user %}
+                <a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
+            <a href="{% url 'school_report:student_assignment' school.id %}">전체 학생명단 관리</a>
+            {% endif %}
+
+    <h4 class="my-3 border-bottom pb-2">학급 목록</h4>
+    {% include "school_report/homeroom/list.html" %}
+
+    <h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
+    {% include "school_report/classroom/list.html" %}
+
+{% else%}
+    <div>
+        <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기</a>
+    </div>
+
 {% endif %}
 
-<h4 class="my-3 border-bottom pb-2">학급 목록</h4>
-{% include "school_report/homeroom/list.html" %}
+<h6>학생메뉴</h6>
+{% if student %}
+    어서오세요, {{ student.name }}님~!
+<h4 class="my-3 border-bottom pb-2">하위시험 목록</h4>
+<table class="table table-hover" id="exam_table">
+    <thead>
+    <tr class="table-info">
+        <th>시험명</th>
+        <th>작성자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if exam_list %}
+    {% for exam in exam_list %}
+    <tr>
+        <td><a href="{% url 'boards:board_detail' exam.id %}">{{exam.board_name}}</a></td>
+        <th>{{exam.author}}</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
 
-
-<h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
-{% include "school_report/classroom/list.html" %}
-
-
-
-
-
-
-
+{% else %}
+<div>
+    <h1><a href="{% url 'school_report:student_code_input' school.id %}">학생 인증하기</a></h1>
+</div>
+{% endif %}
 
 {% endblock content%}

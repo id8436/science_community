@@ -1,0 +1,43 @@
+{% extends "boards/score/section.html" %}
+
+{% block content %}
+<script>
+let count = 2;
+    const add_textbox = () => {
+        const box = document.getElementById("box");
+        const newP = document.createElement('p');
+        newP.innerHTML = "제 " + count + "과목 : <input type='text' placeholder='과목명' name='subject'>";
+        box.appendChild(newP);
+        count += 1
+    }
+    const remove = (obj) => {
+        document.getElementById('box').removeChild(obj.parentNode);
+    }
+</script>
+
+<div class="container">
+간단한 작업이고, 혼란을 방지하기 위해 수정은 불가합니다. 실수 없이 작성하시기 바랍니다.
+<form method="post" enctype="multipart/form-data" class="post-form my-3" >
+    {% csrf_token %}
+    <div class="form-group">
+        <div id="box" name="box">
+            제 1과목 : <input type='text' placeholder='과목명' name="subject">
+            <input type="button" class="btn btn-outline-info btn-sm" value="입력칸 추가" onclick="add_textbox()">
+        </div>
+
+    </div>
+    <input type="submit" class="btn btn-primary submit" value='등록'>
+</form>
+</div>
+
+<script type='text/javascript'>
+$(document).ready(function(){
+    $(".submit").on('click', function() {
+        if(confirm("제출합니까? 추후 수정은 불가합니다.")) {
+            location.href = $(this).data('uri');
+        }
+    });
+});
+</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
+
+{% endblock content%}

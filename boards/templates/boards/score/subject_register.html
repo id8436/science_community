@@ -1,0 +1,44 @@
+{% extends "boards/score/section.html" %}
+
+{% block content %}
+{% include "form_errors.html" %}
+
+
+<div class="container">
+본인의 시험점수를 등록해주세요~
+<form method="post" enctype="multipart/form-data" class="post-form my-3" onsubmit="return confirm('제출합니까? 허위작성 시 불이익을 받을 수 있습니다.')">
+    {% csrf_token %}
+    <div class="form-group">
+        <label>수험번호</label> ex)10402
+    <input type="text" class="form-control" name="test_code" id="test_code" placeholder="본인의 수험번호를 정확히 기입."
+    {% if student.student_code %}
+           value="{{student.student_code|default_if_none:''}}" readonly{%endif%}>
+
+    <table class="table table-hover" id="score_table">
+    <thead>
+    <tr class="thead-dark">
+        <th>과목</th>
+        <th>점수</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for subject in board.subject_set.all %}
+    <tr>
+        <td>
+            제 {{forloop.counter}}과목 {{subject}}
+        </td>
+        <td>
+            <input type='number' placeholder='점수' name="subject_score">
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+
+    </div>
+    <input type="submit" class="btn btn-primary submit" value='등록'>
+</form>
+</div>
+
+
+{% endblock content%}

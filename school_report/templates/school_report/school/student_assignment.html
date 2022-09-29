@@ -1,0 +1,63 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+{{ school }}의 학생 명단을 등록합니다.
+# 여기다 폼으로 한명한명 등록하게 해볼까?
+<div>주의!</div>
+<li>한 학생을 여러 클래스에 등록하고 싶다면 해당 학생의 정보를 한 행 더 추가해주세요~</li>
+<div>여러 학생 한번에 등록하기.</div>
+<a href="{% url 'school_report:school_student_download_excel_form' school.id %}">양식 다운 받기</a>
+
+<a>서식 올리기.</a>
+<form action="{% url 'school_report:school_student_upload_excel_form' school.id %}" method="POST" enctype="multipart/form-data"
+onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 갱신됩니다. 진행할까요?')">
+        <input type="file" name="uploadedFile" value="파일을 선택해주세요.">
+        {% csrf_token %}
+        <input type="submit" value="엑셀파일 올리기">
+</form>
+인증한 학생명단
+<table class="table table-hover" id="resistered_table">
+    <thead>
+    <tr class="table-info">
+        <th>학생코드</th>
+        <th>이름</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if student_list_resistered %}
+    {% for student in student_list_resistered %}
+    <tr>
+        <td>{{student.student_code}}</td>
+        <th>{{teacher.name}}</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+미등록 명단
+<table class="table table-hover" id="board_table">
+    <thead>
+    <tr class="table-info">
+        <th>학생코드</th>
+        <th>이름</th>
+        <th>학생인증코드</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if student_list_unresistered %}
+    {% for student in student_list_unresistered %}
+    <tr>
+        <td>{{student.student_code}}</td>
+        <th>{{student.name}}</th>
+        <th>{{student.code}}</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+
+
+{% endblock content%}

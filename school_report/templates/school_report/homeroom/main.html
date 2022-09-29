@@ -8,15 +8,13 @@
 
 {% if user.teacher.school == homeroom.school %}
     <div>교사메뉴.
-        <a href="{% url 'school_report:student_assignment' homeroom.id %}">학생명단 관리하기</a>
+        <a href="{% url 'school_report:homeroom_student_assignment' homeroom.id %}">학생명단 관리하기</a>
     </div>
         <a href="{% url 'school_report:announcement_create' homeroom.id %}">공지 등록</a>
 {% elif user.student.school == homeroom.school %}
 어서와요~ 학생메뉴입니당.
 {% else %}
-    <div>
-        <a href="{% url 'school_report:student_code_input' homeroom.id %}">학생 인증하기</a>
-    </div>
+
 {% endif %}
 
 <h5>공지목록</h5>

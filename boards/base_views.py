@@ -311,7 +311,8 @@ def report_user(request):
     user_nickname = request.POST.get('report_user')
     reported_user = get_object_or_404(get_user_model(), nickname=user_nickname)
     '''기본적으로 posting_create와 동일.'''  # + usernickname으로 추가하는 것 추가.
-    board = get_object_or_404(Board, id=50)  # 건의 게시판 pk는 50.
+    print('---------------테스트용')
+    board = get_object_or_404(Board, id=23)  # 건의 게시판 pk는 23.
     context = {}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         form = PostingForm(request.POST)  # 폼을 불러와 내용입력을 받는다.\
@@ -369,3 +370,4 @@ def board_delete(request, board_id):
     board.delete()
     # 게시판으로 돌리자.
     return redirect('boards:board_list', category.id)
+

@@ -26,7 +26,7 @@
     </div>
 </div>
        <label>신고대상</label>
-   <input class="form-control" name="report_user" id="report_user" value="{{ form.report_user.value|default_if_none:'' }}">
+   <input class="form-control" name="report_user" id="report_user" value="{{ form.report_user.value|default_if_none:'' }}" readonly>
 
         <label>제목</label>
     <input type="text" class="form-control" name="subject" id="subject"
@@ -38,7 +38,7 @@
 
     <label>관련링크</label>
     <input type="text" class="form-control" name="source" id="source"
-    value = "{{ form.source.value|default_if_none:'' }}" placeholder="신고 관련 링크를 기입해주세요~">
+    value = "{{ form.source.value|default_if_none:'' }}" placeholder="신고 관련 링크를 기입해주세요~" readonly>
 
     </div>
     <input type="submit" class="btn btn-primary" value='등록'>

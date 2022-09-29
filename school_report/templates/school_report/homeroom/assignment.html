@@ -5,7 +5,7 @@
 {{ homeroom }}의 학생 명단을 등록합니다.(담임교사만 등록 가능하고, 이외 열람만 가능합니다.)
 
 <div>한번에 등록하기.</div>
-<a href="{% url 'school_report:homeroom_download_excel_form' %}">양식 다운 받기</a>
+<a href="{% url 'school_report:homeroom_download_excel_form' homeroom.id %}">양식 다운 받기</a>
 
 <a>서식 올리기.</a>
 <form action="{% url 'school_report:homeroom_upload_excel_form' homeroom.id %}" method="POST" enctype="multipart/form-data">
@@ -18,7 +18,7 @@
 <table class="table table-hover" id="student_list">
     <thead>
     <tr class="table-info">
-        <th>번호</th>
+        <th>학생코드</th>
         <th>이름</th>
     </tr>
     </thead>
@@ -26,7 +26,7 @@
     {% if resistered %}
     {% for student in resistered %}
     <tr>
-        <td>{{student.number}}</td>
+        <td>{{student.student_code}}</td>
         <td>{{student.name}}</td>
     </tr>
     {% endfor %}
@@ -38,7 +38,7 @@
 <table class="table table-hover" id="board_table">
     <thead>
     <tr class="table-info">
-        <th>번호</th>
+        <th>학생코드</th>
         <th>이름</th>
         <th>가입코드</th>
     </tr>
@@ -47,7 +47,7 @@
     {% if unresistered %}
     {% for student in unresistered %}
     <tr>
-        <td>{{student.number}}</td>
+        <td>{{student.student_code}}</td>
         <td>{{student.name}}</td>
         <td>{{ student.code }}</td>
     </tr>

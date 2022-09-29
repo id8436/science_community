@@ -25,17 +25,9 @@ class Subject(models.Model):
         unique_together = (
             ('name', 'base_exam')
         )
-class Exam_profile(models.Model):
-    '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
-    master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='exam_user')
-    name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
 
-class Score(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # 유저에 직접 담자.
-    test_code = models.IntegerField()  # 수험번호.
-    base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
-    score = models.IntegerField()  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
-    real_score = models.IntegerField()
+
+
 
 class Answer(models.Model):  # 세부내용은 필요에 따라..
     posting = models.ForeignKey(Exam, on_delete=models.CASCADE)
