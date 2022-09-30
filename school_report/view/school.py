@@ -191,7 +191,7 @@ def school_student_upload_excel_form(request, school_id):
     if request.method == "POST":
         school = get_object_or_404(models.School, pk=school_id)
         context['school'] = school
-        check.Check_teacher(request, school).in_school_and_redirect_to_school(request, school)  # 학교에 소속된 교사인지 검증.
+        check.Check_teacher(request, school).in_school_and_redirect_to_school()  # 학교에 소속된 교사인지 검증.
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
