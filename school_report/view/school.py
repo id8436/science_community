@@ -208,21 +208,23 @@ def school_student_upload_excel_form(request, school_id):
 
         if request.user == school.master:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
-                student_code = data[0]
-                name = data[1]
-                to_homeroom = data[2]
+                student_code = str(data[0])
+                name = str(data[1])
+                to_homeroom = str(data[2])
                 student, created = models.Student.objects.get_or_create(school=school, student_code=student_code, name=name)
                 if created:
                     student.code = random.randint(100000, 999999)  # 코드 지정.
                     student.save()
 
-                # 학급정보가 있다면 그냥 만들어버리기.
-                if to_homeroom != None:
+                # 학급정보가 있다면 만들어버리기.
+                if to_homeroom == 'None':
+                    pass
+                else:
                     try:
                         homeroom = models.Homeroom.objects.get(name=data[2])  # 서버에러로 인식한다.
                         student.homeroom.add(homeroom)
                     except:
-                        messages.error(request, "등록되지 않은 학급을 지정하였습니다."+student_code+'학생. 등록되지 않은 학급 '+to_homeroom)
+                        messages.error(request, "등록되지 않은 학급을 지정하였습니다." + student_code +'학생. 등록되지 않은 학급 ' + to_homeroom)
 
 
     return redirect('school_report:student_assignment', school_id=school_id)  # 필요에 따라 렌더링.
