@@ -4,6 +4,7 @@
         <th>주관기관</th><th>시험명</th>
         <th>관심</th>
         <th>작성자</th>
+        <th>공식체크여부</th>
     </tr>
     </thead>
     <tbody>
@@ -17,7 +18,7 @@
         </td>
         <td>{{ board.interest_count }}</td>
         <td>{{ board.author.nickname }}</td>
-
+        <td>{%if board.official_check%}공식{%else%}X{%endif%}</td>
     </tr>
     {% endfor %}
     {% endif %}

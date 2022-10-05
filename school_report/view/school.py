@@ -25,6 +25,7 @@ def main(request, school_id):
     context['student'] = student
     # 시험문제목록.
     category = Board_category.objects.get(id=6)
+    context['category'] = category  # 게시판 생성 때 카테고리 아이디도 필요해서.
     exam_list = Board.objects.filter(school=school, category=category)
     context['exam_list'] = exam_list
     return render(request, 'school_report/school/main.html', context)
@@ -191,7 +192,11 @@ def school_student_upload_excel_form(request, school_id):
     if request.method == "POST":
         school = get_object_or_404(models.School, pk=school_id)
         context['school'] = school
-        check.Check_teacher(request, school).in_school_and_redirect_to_school()  # 학교에 소속된 교사인지 검증.
+        if request.user == school.master:
+            pass
+        else:
+            messages.error(request, '이 기능은 관리자만이 가능합니다.')
+            return check.Check_teacher(request, school).redirect_to_school()  # 학교에 소속된 교사인지 검증.
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
@@ -206,25 +211,24 @@ def school_student_upload_excel_form(request, school_id):
             # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
 
-        if request.user == school.master:
-            for data in work_sheet_data:  # 행별로 데이터를 가져온다.
-                student_code = str(data[0])
-                name = str(data[1])
-                to_homeroom = str(data[2])
-                student, created = models.Student.objects.get_or_create(school=school, student_code=student_code, name=name)
-                if created:
-                    student.code = random.randint(100000, 999999)  # 코드 지정.
-                    student.save()
+        for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+            student_code = str(data[0])
+            name = str(data[1])
+            to_homeroom = str(data[2])
+            student, created = models.Student.objects.get_or_create(school=school, student_code=student_code, name=name)
+            if created:
+                student.code = random.randint(100000, 999999)  # 코드 지정.
+                student.save()
 
-                # 학급정보가 있다면 만들어버리기.
-                if to_homeroom == 'None':
-                    pass
-                else:
-                    try:
-                        homeroom = models.Homeroom.objects.get(name=data[2])  # 서버에러로 인식한다.
-                        student.homeroom.add(homeroom)
-                    except:
-                        messages.error(request, "등록되지 않은 학급을 지정하였습니다." + student_code +'학생. 등록되지 않은 학급 ' + to_homeroom)
+            # 학급정보가 있다면 만들어버리기.
+            if to_homeroom == 'None':
+                pass
+            else:
+                try:
+                    homeroom = models.Homeroom.objects.get(name=data[2])  # 서버에러로 인식한다.
+                    student.homeroom.add(homeroom)
+                except:
+                    messages.error(request, "등록되지 않은 학급을 지정하였습니다. 학급 생성 먼저!\n" + student_code +'학생. 등록되지 않은 학급 ' + to_homeroom)
 
 
     return redirect('school_report:student_assignment', school_id=school_id)  # 필요에 따라 렌더링.

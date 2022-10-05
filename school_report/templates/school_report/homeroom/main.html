@@ -2,7 +2,7 @@
 {% block content %}
 홈룸메인
 {{homeroom}}
-
+<br>소속학교 : <a href="{% url 'school_report:school_main' homeroom.school.id %}">{{homeroom.school}}</a><br>
 
 
 
@@ -16,6 +16,12 @@
 {% else %}
 
 {% endif %}
+
+
+<h5>하위 교과교실</h5>
+    {% with homeroom.classroom_set.all as classroom_list %}
+        {% include "school_report/classroom/list.html" %}
+    {% endwith %}
 
 <h5>공지목록</h5>
 <table class="table table-hover" id="student_list">

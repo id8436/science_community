@@ -92,6 +92,7 @@ class AnnoIndividual(models.Model):
     to_student = models.ForeignKey('Student', on_delete=models.CASCADE)  # 각 개별 학생에게 전달되게끔.
     content = models.TextField(default=None, null=True, blank=True)  # 공지 내용.
     check = models.BooleanField(default=False)  # 확인 했는지 여부.
+    check_date = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return self.to_student.name
 

@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 from .. import models  # 모델 호출.
 from ..forms import HomeroomForm, AnnouncementForm
@@ -124,19 +126,25 @@ def announcement_create(request, homeroom_id):
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/homeroom/announcement_create.html', context)
 
-
 def announcement_detail(request, posting_id):
     context = {}
     posting = get_object_or_404(models.Announcement, pk=posting_id)
     context['posting'] = posting
     homeroom = posting.homeroom
     context['homeroom'] = homeroom
-    annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
-    context['annoIndividual_list'] = annoIndividual_list  # 이건 나중에 없애도 될듯.
-    student = get_object_or_404(models.Student, admin=request.user, homeroom=homeroom)  # 학생객체 가져와서...
-    # 해당 반 학생이 아니면 404가 뜸.
-    individual_announcement = get_object_or_404(models.AnnoIndividual, to_student=student, base_announcement=posting)
-    context['individual_announcement'] = individual_announcement
+
+    student = check.Check_student(request, homeroom).in_homeroom_and_none()
+    # 학생과 교사 가르기.
+    if student:
+        # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별공지 하나가 늘게끔.
+        individual_announcement, created = models.AnnoIndividual.objects.get_or_create(to_student=student, base_announcement=posting)
+        context['individual_announcement'] = individual_announcement
+    elif posting.author == request.user:
+        annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
+        context['annoIndividual_list'] = annoIndividual_list  # 이건 나중에 없애도 될듯.
+    else:
+        return check.Check_student(request, homeroom).redirect_to_homeroom()
+    #individual_announcement = get_object_or_404(models.AnnoIndividual, )
     return render(request, 'school_report/homeroom/announcement/detail.html', context)
 
 def announcement_modify(request, posting_id):
@@ -172,22 +180,25 @@ def announcement_delete(request, posting_id):
     posting.delete()
     return redirect('school_report:homeroom_main', homeroom_id=homeroom.id)
 
-def individual_download_excel_from(request, homeroom_id):
+def individual_download_excel_from(request, announcement_id):
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
     ws['A1'] = '번호'
     ws['B1'] = '이름'
     ws['C1'] = '공지내용'
-
-    homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
+    announcement = get_object_or_404(models.Announcement, pk=announcement_id)
+    homeroom = announcement.homeroom
     student_list = models.Student.objects.filter(homeroom=homeroom)
-    student_list = student_list.order_by('number')
+    student_list = student_list.order_by('student_code')
     for i, student in enumerate(student_list):
         row = str(i+2)
         number_col = 'A' + row
         name_col = 'B' + row
-        ws[number_col] = student.number
+        content_col = 'C' + row
+        ws[number_col] = student.student_code
         ws[name_col] = student.name
+        indianno = models.AnnoIndividual.objects.get(to_student=student, base_announcement=announcement)
+        ws[content_col] = indianno.content
 
     response = HttpResponse(content_type="application/vnd.ms-excel")
     response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
@@ -195,7 +206,7 @@ def individual_download_excel_from(request, homeroom_id):
 
     return response
 
-def individual_announcement_create(request, announcement_id):
+def individual_upload_excel_form(request, announcement_id):
     context = {}
     if request.method == "POST":
         announcement = get_object_or_404(models.Announcement, pk=announcement_id)
@@ -216,10 +227,12 @@ def individual_announcement_create(request, announcement_id):
 
         if request.user == announcement.author:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+                name = str(data[1])
+                content = str(data[2])
                 homeroom = announcement.homeroom
-                student = get_object_or_404(models.Student, name=data[1], homeroom=homeroom)
+                student = get_object_or_404(models.Student, name=name, homeroom=homeroom)
                 individual, created = models.AnnoIndividual.objects.get_or_create(to_student=student, base_announcement=announcement)
-                individual.content = data[2]
+                individual.content = content
                 individual.save()
 
     return redirect('school_report:announcement_detail', posting_id=announcement_id)  # 필요에 따라 렌더링.
@@ -231,6 +244,7 @@ def announcement_check(request, announcement_id):
     student_owner = announcement.to_student.admin
     if request.user == student_owner:  # 당사자만 체크 가능.
         announcement.check = True
+        announcement.check_date = datetime.datetime.now()
         announcement.save()
         messages.info(request, '공지 확인하였습니다~')
     else:

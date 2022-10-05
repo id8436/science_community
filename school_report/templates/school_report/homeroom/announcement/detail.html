@@ -44,35 +44,67 @@ $(document).ready(function(){
 </script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
 
 
-    <a href="{% url 'school_report:individual_excel_form' homeroom.id %}">개별공지용 form 다운받기.</a>
+    <a href="{% url 'school_report:individual_excel_form' posting.id %}">개별공지용 form 다운받기.</a>
         <div>서식 올리기.</div>
-    <form action="{% url 'school_report:individual_announcement_create' posting.id %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'school_report:individual_upload_excel_form' posting.id %}" method="POST" enctype="multipart/form-data">
             <input type="file" name="uploadedFile">
             {% csrf_token %}
             <input type="submit" value="개별공지용 form 올리기.">
     </form>
         {% if annoIndividual_list %}
-        {% for annoIndividual in annoIndividual_list %}
-            {{annoIndividual}}
-            {{annoIndividual.content}}
-            {{annoIndividual.check}}
-    {%endfor%}{%endif%}{%endif%}
 
+    <table class="table table-hover" id="submit_list">
+    <thead>
+    <tr class="table-info">
+        <th>학번</th>
+        <th>이름</th>
+        <th>확인여부</th>
+        <th>확인시간</th>
+        <th>개별공지내용</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for annoIndividual in annoIndividual_list %}
+    <tr>
+        <td>{{annoIndividual.to_student.student_code}}</td>
+        <td>{{annoIndividual.to_student.name}}</td>
+        {% if annoIndividual.check %}
+        <td>제출</td>
+        <td>{{annoIndividual.check_date|date:'m.d H:i'}}</td>
+        {% elif annoIndividual.read %}
+        <td class="table-secondary" colspan="2">읽음</td>
+        {% else %}
+        <td class="table-danger" colspan="2">미열람</td>
+        {% endif %}
+        <td>{{annoIndividual.content}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+    {%endif%}
+
+
+        {% if individual_announcement %}
     <div>
+
         공지확인.
             {% if individual_announcement.check %}
                 이미 확인한 공지입니다~
             {% else %}
                 확인하세요~
-            <a class="announcement_check" href="{% url 'school_report:announcement_check' individual_announcement.id %}">확인 check!</a>
+                <a class="announcement_check" data-uri="{% url 'school_report:announcement_check' individual_announcement.id %}">확인 check!</a>
             {%endif%}
-        {{individual_announcement.to_student}}
-        {% if individual_announcement.content %}
-            {{individual_announcement.content}}
-        {% else %}
-            전체공지입니다.
-         {% endif %}
-    </div>
+            {{individual_announcement.to_student}}
+            {% if individual_announcement.content %}
+                {{individual_announcement.content}}
+            {% else %}
+                전체공지입니다.
+            {% endif %}
+
+    </div>{% endif %}
+
+
     <script type='text/javascript'>
     $(document).ready(function(){
         $(".announcement_check").on('click', function() {

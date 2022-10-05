@@ -45,7 +45,7 @@ $(document).ready(function(){
 <table class="table table-hover" id="submit_list">
     <thead>
     <tr class="table-info">
-        <th>번호</th>
+        <th>학번</th>
         <th>이름</th>
         <th>상태</th>
         <th>제출시각</th>
@@ -55,7 +55,7 @@ $(document).ready(function(){
     <tbody>
     {% for annoIndividual in submit_list %}
     <tr>
-        <td>{{annoIndividual.to_student.number}}</td>
+        <td>{{annoIndividual.to_student.student_code}}</td>
         <td>{{annoIndividual.to_student.name}}</td>
         {% if annoIndividual.check %}
         <td>제출</td>
@@ -75,20 +75,10 @@ $(document).ready(function(){
 
 
 
-{% if is_teacher %}
-{% else %}
-<script type='text/javascript'>
-    $(document).ready(function(){
-        $(".announcement_check").on('click', function() {
-        if(confirm("한번 확인하면 취소 못하니, 신중히 확인하세요~!")) {
-            location.href = $(this).data('uri');
-        }
-    });
-});
-</script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
-
+{% if individual_announcement %}
 <div>
     {{individual_announcement.to_student}}
+
         {% if individual_announcement.check %}
             <h5 class="border-bottom">제출 과제 확인</h5>
 
@@ -100,7 +90,7 @@ $(document).ready(function(){
             </div>
         </div>
             </div>
-    <a href="{% url 'school_report:homework_resubmit' individual_announcement.id %}" class="homework_submit btn btn-primary">수정 제출하기</a>
+    <a data-uri="{% url 'school_report:homework_resubmit' individual_announcement.id %}" class="homework_submit btn btn-primary">수정 제출하기</a>
 <script type='text/javascript'>
     $(document).ready(function(){
         $(".homework_submit").on('click', function() {
@@ -116,15 +106,15 @@ $(document).ready(function(){
             {% include "form_errors.html" %}
             <h5 class="my-3 border-bottom pb-2">과제 제출</h5>
             <!-- 폼 처리-->
-            <form method="post" enctype="multipart/form-data" class="post-form my-3" >
+            <form method="post" enctype="multipart/form-data" class="post-form my-3" onsubmit="return confirm('한번 확인하면 취소 못하니, 신중히 확인하세요~!')">
                 {% csrf_token %}
                 <div class="form-group">
                 <textarea type="text" class="form-control" name="content" id="content"
-                    placeholder="내용을 입력해주세요~">{{ form.content }}</textarea>
+                    placeholder="내용을 입력해주세요~">{{ individual_announcement.content|default_if_none:'' }}</textarea>
                 </div>
                 <input type="submit" class="btn btn-primary" value='제출'>
             </form>
-        {%endif%}
+{%endif%}
 
 
 </div>

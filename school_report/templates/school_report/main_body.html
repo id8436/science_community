@@ -14,7 +14,7 @@
     {% endwith %}
     {%endif%}
 
-    <br>관리중인 교과교실
+    <br>하위 교과교실
     {% with teacher.classroom_set.all as classroom_list %}
         {% include "school_report/classroom/list.html" %}
     {% endwith %}

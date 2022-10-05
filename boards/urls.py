@@ -38,5 +38,7 @@ urlpatterns = [
     # score_share
     path('score/subject_create/<int:board_id>/', subject_create, name='subject_create'),
     path('score/subject_register/<int:board_id>/', subject_register, name='subject_register'),
+    path('score/subject_download_excel_form/<int:board_id>/', subject_download_excel_form, name='subject_download_excel_form'),
+    path('score/subject_upload_excel_form/<int:board_id>/', subject_upload_excel_form, name='subject_upload_excel_form'),
 
 ]

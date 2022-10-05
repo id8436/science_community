@@ -3,7 +3,7 @@ from .. import models  # 모델 호출.
 from ..forms import ClassroomForm, HomeworkForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
+from . import check
 @login_required()
 def create(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
@@ -97,31 +97,37 @@ def homework_detail(request, posting_id):
     posting = get_object_or_404(models.Homework, pk=posting_id)
     context['posting'] = posting
     classroom = posting.classroom
+    student = check.Check_student(request, classroom.homeroom).in_classroom_and_none()
+
     if request.method == 'POST':  # 과제를 제출한 경우.
-        homework_submit = get_object_or_404(models.HomeworkSubmit, base_homework=posting, to_student=request.user.student)
+        homework_submit = get_object_or_404(models.HomeworkSubmit, base_homework=posting, to_student=student)
         content = request.POST.get('content')
         homework_submit.content = content
         homework_submit.check = True  # 제출표시
         homework_submit.save()
         return redirect('school_report:homework_detail', posting.id)  # 작성이 끝나면 작성한 글로 보낸다.
-    else:
-        if request.user.teacher.school == classroom.school:  # 교사계정이 있다면 건너뛰게.
-            context['is_teacher'] = True
-            pass
-        else:
-            form, crated = models.HomeworkSubmit.objects.get_or_create(base_homework=posting, to_student=request.user.student)  # 해당 모델의 내용을 가져온다!
-            # 태그를 문자열화 하여 form과 함께 담는다.
-            context['form'] = form
-    if request.user == posting.author:  # 작성자가 제출여부 볼 수 있다.
+
+    # form, created = models.HomeworkSubmit.objects.get_or_create(base_homework=posting, to_student=student)  # 해당 모델의 내용을 가져온다!
+    # # 태그를 문자열화 하여 form과 함께 담는다.
+    # context['form'] = form
+
+    # 위 작동에 문제 없으면 아래 지우자.
+    #student = get_object_or_404(models.Student, admin=request.user, homeroom=classroom.homeroom)  # 학생객체 가져와서...
+
+    # 학생과 교사 가르기.
+    if student:
+        # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별공지 하나가 늘게끔.
+        individual_announcement, created = models.HomeworkSubmit.objects.get_or_create(to_student=student, base_homework=posting)
+        individual_announcement.read = True
+        individual_announcement.save()
+        context['individual_announcement'] = individual_announcement
+    elif posting.author == request.user:
         context['classroom'] = classroom
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
         context['submit_list'] = submit_list
-    student = get_object_or_404(models.Student, admin=request.user, homeroom=classroom.homeroom)  # 학생객체 가져와서...
-    individual_announcement = get_object_or_404(models.HomeworkSubmit, to_student=student,
-                                                base_homework=posting)
-    individual_announcement.read = True
-    individual_announcement.save()
-    context['individual_announcement'] = individual_announcement
+    else:
+        return check.Check_student(request, classroom.homeroom).redirect_to_classroom()  # 리다이렉트용.
+
     return render(request, 'school_report/classroom/homework/detail.html', context)
 
 def homework_resubmit(request, submit_id):

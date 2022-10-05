@@ -6,5 +6,5 @@ register = template.Library()
 def show_exam_profile(context):
     user = context['request'].user
     base_exam = context['board']
-    exam_profile = Exam_profile.objects.filter(master=user, base_exam=base_exam)[0]
+    exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=base_exam)
     return {'exam_profile':exam_profile, 'board':base_exam}

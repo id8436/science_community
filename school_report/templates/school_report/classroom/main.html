@@ -2,7 +2,7 @@
 {% block content %}
 클래스룸 메인
 {{classroom}}
-
+<br>기초 학급 : <a href="{% url 'school_report:homeroom_main' classroom.homeroom.id %}">{{classroom.homeroom}}</a><br>
 <a href="{% url 'school_report:homework_create' classroom.id %}">과제 생성</a>
 <h5>과제목록</h5>
 <table class="table table-hover" id="student_list">

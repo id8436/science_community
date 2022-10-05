@@ -16,6 +16,9 @@ class Board(models.Model):
 
     # - 점수공유에 대한 기능.
     school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)  # 주관단체
+    official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부.
+    official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                               related_name='official_teacher')  # 시험점수를 입력한 사람을 기록하기 위해.
     test_code_min = models.IntegerField(null=True, blank=True)  # 수험번호의 최소
     test_code_max = models.IntegerField(null=True, blank=True)  # 수험번호의 최대. 생태교란자를 파악하기 위함.
     association = models.ForeignKey('Board', on_delete=models.SET_NULL, null=True, blank=True, related_name='associated_exam')  # 연관실험.(시간연속성)
@@ -40,6 +43,7 @@ class Subject(models.Model):
     '''시험 하위 과목'''  # form에서 컴마로 구분되게 하면 어떨까? 태그 기입하듯.
     base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)  # 과목명.
+    sj_code = models.IntegerField(null=True, blank=True)  # 과목코드.
     def __str__(self):
         return self.name
     class Meta:

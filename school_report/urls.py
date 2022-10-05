@@ -34,9 +34,9 @@ urlpatterns = [
     path('homeroom/posting/detail/<int:posting_id>/', homeroom.announcement_detail, name='announcement_detail'),
     path('homeroom/posting/modify/<int:posting_id>/', homeroom.announcement_modify, name='announcement_modify'),
     path('homeroom/posting/delete/<int:posting_id>/', homeroom.announcement_delete, name='announcement_delete'),
-    path('homeroom/individual_excel_form/<int:homeroom_id>/', homeroom.individual_download_excel_from, name='individual_excel_form'),
-    path('homeroom/individual_announcement_create/<int:announcement_id>/', homeroom.individual_announcement_create,
-         name='individual_announcement_create'),
+    path('homeroom/individual_excel_form/<int:announcement_id>/', homeroom.individual_download_excel_from, name='individual_excel_form'),
+    path('homeroom/individual_announcement_create/<int:announcement_id>/', homeroom.individual_upload_excel_form,
+         name='individual_upload_excel_form'),
     path('homeroom/announcement_check/<int:announcement_id>/', homeroom.announcement_check, name='announcement_check'),
 
     # 교과교실 관련.

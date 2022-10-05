@@ -2,11 +2,11 @@
 
 {% block content %}
 <script>
-let count = 2;
+let count = 1;
     const add_textbox = () => {
         const box = document.getElementById("box");
         const newP = document.createElement('p');
-        newP.innerHTML = "제 " + count + "과목 : <input type='text' placeholder='과목명' name='subject'>";
+        newP.innerHTML = "추가 " + count + "과목 : <input type='text' placeholder='과목명' name='subject'>" + "  과목코드 : <input type='text' placeholder='과목코드' name='sj_code'>";
         box.appendChild(newP);
         count += 1
     }
@@ -15,13 +15,31 @@ let count = 2;
     }
 </script>
 
+{% if subjects %}
 <div class="container">
-간단한 작업이고, 혼란을 방지하기 위해 수정은 불가합니다. 실수 없이 작성하시기 바랍니다.
+간단한 작업이고, 혼란을 방지하기 위해 실수 없이 작성하시기 바랍니다.
+<table class="table table-hover" id="posting_table">
+    <thead>
+    <tr class="thead-dark">
+        <th>과목</th>
+        <th>과목코드</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for posting in subjects %}
+    <tr>
+        <td>{{ posting.name }}</td>
+        <td>{{ posting.sj_code }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table> {% endif %}
+
+
 <form method="post" enctype="multipart/form-data" class="post-form my-3" >
     {% csrf_token %}
     <div class="form-group">
         <div id="box" name="box">
-            제 1과목 : <input type='text' placeholder='과목명' name="subject">
             <input type="button" class="btn btn-outline-info btn-sm" value="입력칸 추가" onclick="add_textbox()">
         </div>
 

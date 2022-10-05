@@ -23,6 +23,11 @@ test학교 메인
 
     <h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
     {% include "school_report/classroom/list.html" %}
+    <h4 class="my-3 border-bottom pb-2">하위시험 목록</h4>
+{% with exam_list as board_list %}
+    {% include "boards/score/board_list_body.html" %}
+{% endwith %}
+
 
 {% else%}
     <div>
