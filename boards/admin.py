@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Posting, Tag, Board, Board_name, Board_category, Exam_profile, Score
+from .models import *
 
 class BoardAdmin(admin.ModelAdmin):
     list_display = ('id', 'board_name',)
