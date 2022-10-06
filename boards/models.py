@@ -10,6 +10,7 @@ class Board(models.Model):
                                related_name='board_author')
     text_1 = models.ManyToManyField('Comment', blank=True, related_name='+')  # 한 줄 코멘트 다는 용도. 혹은 컨텐츠.
     text_2 = models.ManyToManyField('Comment', blank=True, related_name='+')
+    text_3 = models.ManyToManyField('Comment', blank=True, related_name='+')
 
     interest_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='board_interest_users')
     interest_count = models.IntegerField(default=0)
