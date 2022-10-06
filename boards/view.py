@@ -197,7 +197,7 @@ def comment_delete(request, comment_id):
     #return HttpResponse(json.dumps({}))
     #return redirect('boards:detail', posting_id=comment.answer.posting.id)
 
-from .models import Subject
+from .models import Subjects
 def subject_create(request, board_id):
     '''시험과목을 올린다.'''
     board = get_object_or_404(Board, pk=board_id)
