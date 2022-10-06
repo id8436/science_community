@@ -50,18 +50,30 @@ class Subject(models.Model):
         unique_together = (
             ('name', 'base_exam')
         )
+        ordering = ['sj_code']  # 기본 정렬.
 class Score(models.Model):
     user = models.ForeignKey('Exam_profile', on_delete=models.CASCADE)  # 프로파일을 생성해 담자.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
     score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
     real_score = models.IntegerField(null=True, blank=True)
+def create_random_name(length):
+    import string
+    import random
+    length = length  # 10자리
+    string_pool = string.ascii_letters + string.digits # 대소문자
+    result = ""  # 결과 값
+    for i in range(length):
+        result += random.choice(string_pool)  # 랜덤한 문자열 하나 선택
+    return result
+
 class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='exam_user')
     base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
     test_code = models.TextField(blank=False)  # 수험번호.
     modify_num = models.IntegerField(default=-1, null=True, blank=True)  # 시험점수 수정횟수 지정.
-    name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
+    name = models.CharField(max_length=10, default=create_random_name(10))  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
+
 
 class Posting(models.Model):
     #- 게시판으로서의 기능.

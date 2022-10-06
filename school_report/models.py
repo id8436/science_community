@@ -75,6 +75,7 @@ class Student(models.Model):
         unique_together = (
             ('school', 'student_code')
         )
+        ordering = ['student_code']
 class Announcement(models.Model):
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.
     classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.

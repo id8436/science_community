@@ -236,7 +236,7 @@ def subject_register(request, board_id):
             profile.test_code = test_code
             if target_student:  # 이미 등록되어 있는 학생계정이 있다면 다른 코드는 입력하지 못하게.
                 profile.test_code = target_student.student_code
-                messages.error(request, '이미 등록된 정보가 있어 다른 코드는 입력할 수 없습니다.')
+                # messages.error(request, '이미 등록된 정보가 있어 다른 코드는 입력할 수 없습니다.')
             profile.modify_num += 1  # 수정 할때마다 추가.
             profile.save()
             subjects = Subject.objects.filter(base_exam=board)
@@ -306,14 +306,14 @@ def subject_upload_excel_form(request, board_id):
             student_code = str(data[0])
             name = str(data[1])
             try:
-                student, created = Student.objects.get_or_create(school=school, student_code=student_code, name=name)
+                student = Student.objects.get(school=school, student_code=student_code, name=name)
             except Exception as e:
                 print(e)
-                messages.error(request, '학생정보에 이상이 있습니다.')
+                messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
                 return redirect('boards:board_detail', board_id=board_id)
 
             user = student.admin  # 계정 소유자.
-            exam_profile = Exam_profile.objects.get(master=user, base_exam=board)  # 시험용 프로필.
+            exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
             for i, subject in enumerate(subject_list):
                 score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
                 score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.
