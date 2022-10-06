@@ -10,6 +10,6 @@ def show_exam_profile(context):
     return_dict['board'] = base_exam
     exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=base_exam)
     return_dict['exam_profile'] = exam_profile
-    if base_exam.subject_set.exists():
-        return_dict['registered'] = True
+    # if base_exam.subject_set.exists():
+    #     return_dict['registered'] = True
     return return_dict
