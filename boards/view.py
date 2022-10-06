@@ -197,7 +197,7 @@ def comment_delete(request, comment_id):
     #return HttpResponse(json.dumps({}))
     #return redirect('boards:detail', posting_id=comment.answer.posting.id)
 
-from .models import Subjectss
+from .models import Subject
 def subject_create(request, board_id):
     '''시험과목을 올린다.'''
     board = get_object_or_404(Board, pk=board_id)
@@ -210,11 +210,11 @@ def subject_create(request, board_id):
                 continue
             else:
                 tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
-                tag_, created = Subjectss.objects.get_or_create(base_exam=board, name=tag, sj_code=sj_code[i])  # 과목 생성.
+                tag_, created = Subject.objects.get_or_create(base_exam=board, name=tag, sj_code=sj_code[i])  # 과목 생성.
         return redirect('boards:board_detail', board_id=board_id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = PostingForm()
-        subjects = Subjectss.objects.filter(base_exam=board)  # 해당 보드에 해당하는 것을 가져온다.
+        subjects = Subject.objects.filter(base_exam=board)  # 해당 보드에 해당하는 것을 가져온다.
         subjects = subjects.order_by('sj_code')  # 과목코드로 정렬.
         context['subjects'] = subjects
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
@@ -239,7 +239,7 @@ def subject_register(request, board_id):
                 # messages.error(request, '이미 등록된 정보가 있어 다른 코드는 입력할 수 없습니다.')
             profile.modify_num += 1  # 수정 할때마다 추가.
             profile.save()
-            subjects = Subjectss.objects.filter(base_exam=board)
+            subjects = Subject.objects.filter(base_exam=board)
             for i, subject in enumerate(subjects):
                 score = box[i]
                 tag_, created = Score.objects.get_or_create(user=profile, base_subject=subject)  # 점수는 과목당 하나만 개설하게끔.
@@ -298,7 +298,7 @@ def subject_upload_excel_form(request, board_id):
         subject_list = []  # 과목을 담을 리스트. 객체가 담긴다.
         for i in range(len(subject_info)-2):
             subject_name = subject_info[i+2]
-            subject, created = Subjectss.objects.get_or_create(base_exam=board, name=subject_name)
+            subject, created = Subject.objects.get_or_create(base_exam=board, name=subject_name)
             subject_list.append(subject)
 
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
