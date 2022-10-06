@@ -50,11 +50,11 @@ class Subject(models.Model):
         unique_together = (
             ('name', 'base_exam')
         )
-# class Score(models.Model):
-#     user = models.ForeignKey('Exam_profile', on_delete=models.CASCADE)  # 프로파일을 생성해 담자.
-#     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
-#     score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
-#     real_score = models.IntegerField(null=True, blank=True)
+class Score(models.Model):
+    user = models.ForeignKey('Exam_profile', on_delete=models.CASCADE)  # 프로파일을 생성해 담자.
+    base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
+    score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
+    real_score = models.IntegerField(null=True, blank=True)
 class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='exam_user')
