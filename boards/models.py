@@ -57,7 +57,7 @@ class Score(models.Model):
     real_score = models.IntegerField(null=True, blank=True)
 class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
-    #master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='exam_user')
+    master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='exam_user')
     base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
     test_code = models.TextField(blank=False)  # 수험번호.
     modify_num = models.IntegerField(default=-1, null=True, blank=True)  # 시험점수 수정횟수 지정.
