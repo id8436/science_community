@@ -41,7 +41,7 @@ class Board_category(models.Model):
         return self.name
 class Subject(models.Model):
     '''시험 하위 과목'''  # form에서 컴마로 구분되게 하면 어떨까? 태그 기입하듯.
-    base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
+    base_exam = models.ForeignKey('Board', null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)  # 과목명.
     sj_code = models.IntegerField(null=True, blank=True)  # 과목코드.
     def __str__(self):
