@@ -10,14 +10,13 @@ class Board(models.Model):
                                related_name='board_author')
     text_1 = models.ManyToManyField('Comment', blank=True, related_name='+')  # 한 줄 코멘트 다는 용도. 혹은 컨텐츠.
     text_2 = models.ManyToManyField('Comment', blank=True, related_name='+')
-    text_3 = models.ManyToManyField('Comment', blank=True, related_name='+')
 
     interest_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='board_interest_users')
     interest_count = models.IntegerField(default=0)
 
     # - 점수공유에 대한 기능.
     school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)  # 주관단체
-    #official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
+    official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
     official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
                                related_name='official_teacher')  # 시험점수를 입력한 사람을 기록하기 위해.
     test_code_min = models.IntegerField(null=True, blank=True)  # 수험번호의 최소
