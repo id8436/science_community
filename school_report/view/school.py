@@ -230,7 +230,7 @@ def school_student_upload_excel_form(request, school_id):
                     student.homeroom.add(homeroom)
                 except:
                     messages.error(request, "등록되지 않은 학급을 지정하였습니다. 학급 생성 먼저!\n" + student_code +'학생. 등록되지 않은 학급 ' + to_homeroom)
-
+        messages.info(request, '반영 완료.')
 
     return redirect('school_report:student_assignment', school_id=school_id)  # 필요에 따라 렌더링.
 

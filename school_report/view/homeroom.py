@@ -103,6 +103,7 @@ def upload_excel_form(request, homeroom_id):
                 if created:
                     student.code = random.randint(100000, 999999)  # 코드 지정.
                 student.save()
+            messages.info(request,'반영 완료.')
 
     return redirect('school_report:homeroom_student_assignment', homeroom_id=homeroom_id)
 
