@@ -96,8 +96,12 @@ def upload_excel_form(request, homeroom_id):
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 student_code = data[0]
                 name = data[1]
-                student = models.Student.objects.get(name=name, student_code=student_code, school=homeroom.school)
+                student, created = models.Student.objects.get_or_create(school=homeroom.school,
+                                                                        student_code=student_code,
+                                                                        name=name)
                 student.homeroom.add(homeroom)
+                if created:
+                    student.code = random.randint(100000, 999999)  # 코드 지정.
                 student.save()
 
     return redirect('school_report:homeroom_student_assignment', homeroom_id=homeroom_id)
