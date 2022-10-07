@@ -96,7 +96,7 @@ def upload_excel_form(request, homeroom_id):
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 student_code = data[0]
                 name = data[1]
-                student, created = models.Student.objects.get_or_create(name=name, student_code=student_code, school=homeroom.school)
+                student = models.Student.objects.get(name=name, student_code=student_code, school=homeroom.school)
                 student.homeroom.add(homeroom)
                 student.save()
 
