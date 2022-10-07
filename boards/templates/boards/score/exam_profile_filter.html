@@ -25,7 +25,7 @@
 {% if board.official_check %}
 공식 점수가 등록되었습니다. 점수 등록자 : {{board.official_teacher}}
 
-{% elif board.subject_set.exists %}
+{% elif exam_profile.score_set.exists %}
 
 시험점수 공유함. {{exam_profile.modify_num}}회 수정함.
 <a href="{% url 'boards:subject_register' board.id %}"
