@@ -97,9 +97,9 @@ def upload_excel_form(request, homeroom_id):
                 student_code = data[0]
                 name = data[1]
                 student, created = models.Student.objects.get_or_create(school=homeroom.school,
-                                                                        student_code=student_code,
-                                                                        name=name)
+                                                                        student_code=student_code)
                 student.homeroom.add(homeroom)
+                student.name = name
                 if created:
                     student.code = random.randint(100000, 999999)  # 코드 지정.
                 student.save()

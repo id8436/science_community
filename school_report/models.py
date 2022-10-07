@@ -24,8 +24,8 @@ class Homeroom(models.Model):
         return self.name
 
 class Classroom(models.Model):
-    school = models.ForeignKey('School', on_delete=models.PROTECT)  # 학교 아래 귀속시키기 위함.
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.PROTECT)  # 학생명단을 가져올 홈룸.
+    school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.
+    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
     subject = models.CharField(max_length=10)  # 과목명
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
     name = models.CharField(max_length=25)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯?

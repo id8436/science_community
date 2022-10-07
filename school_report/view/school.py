@@ -215,10 +215,11 @@ def school_student_upload_excel_form(request, school_id):
             student_code = str(data[0])
             name = str(data[1])
 
-            student, created = models.Student.objects.get_or_create(school=school, student_code=student_code, name=name)
+            student, created = models.Student.objects.get_or_create(school=school, student_code=student_code)
+            student.name = name
             if created:
                 student.code = random.randint(100000, 999999)  # 코드 지정.
-                student.save()
+            student.save()
 
             # 학급정보가 있다면 만들어버리기.
             if len(data) >= 2:
