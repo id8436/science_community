@@ -131,8 +131,16 @@ def subject_answer_info_form_upload(request, subject_id):
             messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
             return redirect('boards:board_detail', board_id=board.id)
 
-        user = student.admin  # 계정 소유자.
-        exam_profile = Exam_profile.objects.get(master=user, base_exam=board)  # 시험용 프로필.
+        if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
+            user = student.admin  # 계정 소유자.
+            exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+        else:
+            exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
+        if created:
+            from boards.templatetags.board_filter import create_random_name
+            exam_profile.name = create_random_name(10)
+            exam_profile.save()
+
         score = Score.objects.get(user=exam_profile, base_subject=subject)
         user_answer = []  # 사용자의 답을 담기 위한 리스트.
         for i in range(len(data)-2):

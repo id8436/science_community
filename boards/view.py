@@ -310,7 +310,6 @@ def subject_upload_excel_form(request, board_id):
             try:
                 student = Student.objects.get(school=school, student_code=student_code, name=name)
             except Exception as e:
-                print(e)
                 messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
                 return redirect('boards:board_detail', board_id=board_id)
 
