@@ -1,0 +1,57 @@
+{% extends "school_report/section.html" %}
+{% block content %}
+
+
+<h4>시험 자체의 통계</h4>
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="posting_table">
+    <thead>
+    <tr class="thead-dark">
+        <th>과목</th>
+        <th>평균</th>
+        <th>분산</th>
+        <th>표준편차</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for key, item in subject_data.items %}
+    <tr>
+        <td>{{key}}</td>
+        {% for data in item %}
+        <td>{{data}}</td>
+        {%endfor%}
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>
+
+<h4>자신의 점수</h4>
+<table class="table table-hover" id="score_table">
+<thead>
+<tr class="thead-dark">
+    <th>과목</th>
+    <th>내 점수</th>
+    <th>표준점수</th>
+</tr>
+</thead>
+<tbody>
+{% for key, item in self_data.items %}
+<tr>
+    <td>
+        제 {{forloop.counter}}과목 : {{key}}
+    </td>
+    {% for data in item %}
+    <td>{{data}}</td>
+    {% endfor %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+
+</div>
+{% endblock content%}
+

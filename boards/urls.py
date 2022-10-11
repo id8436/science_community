@@ -1,8 +1,9 @@
 from django.urls import path
 from .view import *  #해당 앱의 뷰를 불러온다.
 from . import base_views
-app_name = 'boards' #이름공간을 위한, 인덱싱을 위한 변수이다. 이걸 작성하면 인덱스는 '앱이름:인덱스'로 바뀐다.
+from .views import score_share
 
+app_name = 'boards' #이름공간을 위한, 인덱싱을 위한 변수이다. 이걸 작성하면 인덱스는 '앱이름:인덱스'로 바뀐다.
 urlpatterns = [
     # Checks 일반적으로 Ajax로 구현.
     path('posting/like/<int:posting_id>/', posting_like, name='posting_like'),
@@ -35,10 +36,20 @@ urlpatterns = [
 
     # report
     path('report_user/', base_views.report_user, name='report_user'),
+
     # score_share
     path('score/subject_create/<int:board_id>/', subject_create, name='subject_create'),
     path('score/subject_register/<int:board_id>/', subject_register, name='subject_register'),
     path('score/subject_download_excel_form/<int:board_id>/', subject_download_excel_form, name='subject_download_excel_form'),
     path('score/subject_upload_excel_form/<int:board_id>/', subject_upload_excel_form, name='subject_upload_excel_form'),
+    path('score/subject_answer_info_form_download/<int:subject_id>/', score_share.subject_answer_info_form_download,
+         name='subject_answer_info_form_download'),
+    path('score/subject_answer_info_form_upload/<int:subject_id>/', score_share.subject_answer_info_form_upload,
+         name='subject_answer_info_form_upload'),
+    path('score/show_answer/<int:score_id>/', score_share.show_answer,name='show_answer'),
+
+    # result
+    path('score/result/<int:board_id>/', score_share.result_main, name='exam_result'),
 
 ]
+

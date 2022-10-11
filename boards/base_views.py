@@ -125,6 +125,7 @@ def board_list(request, category_id):
     context['category'] = category
     get_categroy_name(category=category, context=context)
     return render(request, 'boards/base/board/board_list.html', context)
+@login_required()
 def board_detail(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     category = board.category

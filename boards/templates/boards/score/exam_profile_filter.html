@@ -1,11 +1,13 @@
 {% if exam_profile %}
 
+
     <table class="table table-hover" id="score_table">
     <thead>
     <tr class="thead-dark">
         <th>과목</th>
         <th>내 점수</th>
         <th>실제 점수</th>
+        <th>내 답안 보기</th>
     </tr>
     </thead>
     <tbody>
@@ -16,6 +18,7 @@
         </td>
         <td>{{score.score}}</td>
         <td>{{score.real_score}}</td>
+        <td><a href="{% url 'boards:show_answer' score.id %}">보기</a></td>
     </tr>
     {% endfor %}
     </tbody>
@@ -33,7 +36,15 @@
 
 {% else %}
 
+{% if not board.subject_set.exist %}
+    <h1 class="text-white bg-danger">작성자가 시험과목을 등록하지 않은 상태입니다.</h1>
+    <a href="{% url 'boards:subject_create' board.id  %}" class="btn btn-primary">시험과목 등록</a>
+{% else %}
+<a href="{% url 'boards:subject_create' board.id  %}" class="btn btn-primary">시험과목 수정</a>
+{% endif %}
+
     아직 시험점수를 등록하지 않았습니다.
 <a href="{% url 'boards:subject_register' board.id %}"
    class="btn btn-outline-info">나의 시험점수 공유</a>
 {% endif %}
+<a href="{% url 'boards:exam_result' board.id %}">시험 통계 보기</a>

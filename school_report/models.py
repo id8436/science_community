@@ -60,9 +60,9 @@ class Teacher(models.Model):
 
 
 class Student(models.Model):
-    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='student_user')
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='student_user')
     school = models.ForeignKey('School', on_delete=models.CASCADE)
-    homeroom = models.ManyToManyField('Homeroom')
+    homeroom = models.ManyToManyField('Homeroom', null=True, blank=True,)
     #number = models.IntegerField()  # 학생번호. 지우자.
     student_code = models.CharField(max_length=20, null=True, blank=True)  # 학생 인증코드.(학번 등)
     name = models.CharField(max_length=10)  # 학생 이름.

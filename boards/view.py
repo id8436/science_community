@@ -233,6 +233,9 @@ def subject_register(request, board_id):
             test_code = request.POST.get('test_code')
             profile, created = Exam_profile.objects.get_or_create(master=request.user, base_exam=board)  # 하나의 프로필만 단들게끔.
             profile.test_code = test_code
+            if created:
+                from boards.templatetags.board_filter import create_random_name
+                profile.name = create_random_name(10)
             if target_student:  # 이미 등록되어 있는 학생계정이 있다면 다른 코드는 입력하지 못하게.
                 profile.test_code = target_student.student_code
                 # messages.error(request, '이미 등록된 정보가 있어 다른 코드는 입력할 수 없습니다.')
@@ -312,7 +315,7 @@ def subject_upload_excel_form(request, board_id):
                 return redirect('boards:board_detail', board_id=board_id)
 
             user = student.admin  # 계정 소유자.
-            exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+            exam_profile = Exam_profile.objects.get(master=user, base_exam=board)  # 시험용 프로필.
             for i, subject in enumerate(subject_list):
                 score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
                 score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.
@@ -322,3 +325,4 @@ def subject_upload_excel_form(request, board_id):
                 board.save()
 
     return redirect('boards:board_detail', board_id=board_id)
+

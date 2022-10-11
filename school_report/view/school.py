@@ -222,7 +222,7 @@ def school_student_upload_excel_form(request, school_id):
             student.save()
 
             # 학급정보가 있다면 만들어버리기.
-            if len(data) >= 2:
+            if len(data) < 2:
                 pass
             else:
                 to_homeroom = str(data[2])
