@@ -66,7 +66,7 @@ class Exam_profile(models.Model):
     base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
     test_code = models.TextField(blank=False)  # 수험번호.
     modify_num = models.IntegerField(default=-1, null=True, blank=True)  # 시험점수 수정횟수 지정.
-    name = models.CharField(max_length=1)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
+    name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
 
 
 class Posting(models.Model):

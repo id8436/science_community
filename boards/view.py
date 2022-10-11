@@ -315,7 +315,11 @@ def subject_upload_excel_form(request, board_id):
                 return redirect('boards:board_detail', board_id=board_id)
 
             user = student.admin  # 계정 소유자.
-            exam_profile = Exam_profile.objects.get(master=user, base_exam=board)  # 시험용 프로필.
+            exam_profile,created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+            if created:
+                from boards.templatetags.board_filter import create_random_name
+                exam_profile.name = create_random_name(10)
+                exam_profile.save()
             for i, subject in enumerate(subject_list):
                 score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
                 score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.
