@@ -315,7 +315,7 @@ def subject_upload_excel_form(request, board_id):
                 return redirect('boards:board_detail', board_id=board_id)
 
             user = student.admin  # 계정 소유자.
-            exam_profile,created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+            exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
             if created:
                 from boards.templatetags.board_filter import create_random_name
                 exam_profile.name = create_random_name(10)
