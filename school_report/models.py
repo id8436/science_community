@@ -60,7 +60,7 @@ class Teacher(models.Model):
 
 
 class Student(models.Model):
-    #admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='student_user')
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='student_user')
     school = models.ForeignKey('School', on_delete=models.CASCADE)
     homeroom = models.ManyToManyField('Homeroom')
     #number = models.IntegerField()  # 학생번호. 지우자.
