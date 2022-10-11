@@ -219,6 +219,10 @@ def school_student_upload_excel_form(request, school_id):
             student.name = name
             if created:
                 student.code = random.randint(100000, 999999)  # 코드 지정.
+                exam_profiles = student.exam_profile_set.all()
+                for profile in exam_profiles:
+                    profile.master = student.admin
+                    profile.save()  # 시험등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
             student.save()
 
             # 학급정보가 있다면 만들어버리기.
