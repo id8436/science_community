@@ -314,10 +314,10 @@ def subject_upload_excel_form(request, board_id):
                 messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
                 return redirect('boards:board_detail', board_id=board_id)
 
-            try:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
+            if student.admin:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
                 user = student.admin  # 계정 소유자.
                 exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
-            except:
+            else:
                 exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
             if created:
                 from boards.templatetags.board_filter import create_random_name
