@@ -56,7 +56,7 @@ class Score(models.Model):
     user = models.ForeignKey('Exam_profile', on_delete=models.CASCADE)  # 프로파일을 생성해 담자.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
     score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
-    real_score = models.IntegerField(null=True, blank=True)
+    real_score = models.IntegerField(default=None)
     answer = models.TextField(null=True, blank=True)  # 시험에서의 응답을 담기 위한 것. Json으로 받는다.
 
 

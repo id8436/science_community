@@ -6,10 +6,20 @@
 {{board.school}}에 귀속된 시험입니다.
 
 
+{% if not board.subject_set.exists %}
+    <h1 class="text-white bg-danger">작성자가 시험과목을 등록하지 않은 상태입니다.</h1>
+    <a href="{% url 'boards:subject_create' board.id  %}" class="btn btn-primary">시험과목 등록</a>
+{% else %}
+<a href="{% url 'boards:subject_create' board.id  %}" class="btn btn-primary">시험과목 수정</a>
+{% endif %}
 
+
+<div class="card my-3">
+    <div class="card-body">
 {% load exam_score_filter %}
 {% teacher_manu %}
-
+    </div>
+</div>
 
 <div class="card my-3">
     <div class="card-body">

@@ -16,9 +16,9 @@ from custom_account.views import notification_add
 import numpy
 
 def calculate_score(score_list):
-    average = numpy.mean(score_list)
-    variation = numpy.var(score_list)
-    std = numpy.std(score_list)
+    average = numpy.mean(score_list).round(2)
+    variation = numpy.var(score_list).round(2)
+    std = numpy.std(score_list).round(2)
     return [average, variation, std]
 def result_main(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
@@ -28,15 +28,20 @@ def result_main(request, board_id):
     for subject in subject_list:
         score_list = []
         scores = subject.score_set.all()  # 과목 내의 점수들을 가져오고,
-        if subject.score_set.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
-            for score in scores:
-                score_list.append(score.real_score)
-        else:
-            for score in scores:
-                score_list.append(score.score)
-        # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
-        info = calculate_score(score_list)  # 해당 과목의 평균, 분산, 표준편차를 얻는다.
-        subject_data[subject] = info  # 교과와 교과정보를 한데 담아 보낸다.
+        try:  # 점수가 등록되지 않는 과목들이 있는 경우.
+            if scores.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
+                for score in scores:
+                    score_list.append(score.real_score)
+            else:
+                for score in scores:
+                    score_list.append(score.score)
+            # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
+            info = calculate_score(score_list)  # 해당 과목의 평균, 분산, 표준편차를 얻는다.
+            info.append(max(score_list))  # 최고점
+            info.append(min(score_list))
+            subject_data[subject] = info  # 교과와 교과정보를 한데 담아 보낸다.
+        except:
+            messages.error(request, str(subject)+'는 등록된 점수가 없습니다.')
     context['subject_data'] = subject_data
 
     # 프로필 가져오기.
