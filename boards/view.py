@@ -321,7 +321,8 @@ def subject_upload_excel_form(request, board_id):
             if created:
                 from boards.templatetags.board_filter import create_random_name
                 exam_profile.name = create_random_name(10)
-                exam_profile.save()
+            exam_profile.test_code = student_code  # 공식점수를 등록하며 코드를 정렬한다.
+            exam_profile.save()
             for i, subject in enumerate(subject_list):
                 score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
                 score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.

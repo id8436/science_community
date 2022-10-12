@@ -258,6 +258,7 @@ def student_code_input(request, school_id):
             messages.error(request, '코드 해당계정이 없습니다.')
     return render(request, 'school_report/school/student_code_input.html', context)
 
+@login_required()
 def student_code_confirm(request, student_id):
     student = get_object_or_404(models.Student, pk=student_id)
     context={'student':student}

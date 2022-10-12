@@ -18,4 +18,6 @@ admin.site.register(Tag, TagAdmin)
 
 admin.site.register(Exam_profile)
 admin.site.register(Score)
+admin.site.register(Subject)
+
 # Register your models here.
