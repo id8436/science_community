@@ -41,7 +41,7 @@ def result_main(request, board_id):
             info.append(min(score_list))
             subject_data[subject] = info  # 교과와 교과정보를 한데 담아 보낸다.
         except:
-            messages.error(request, str(subject)+'는 등록된 점수가 없습니다.')
+            messages.error(request, str(subject)+'에 대해 등록된 점수가 없습니다.')
     context['subject_data'] = subject_data
 
     # 프로필 가져오기.
