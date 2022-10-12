@@ -133,12 +133,11 @@ def subject_answer_info_form_upload(request, subject_id):
         try:
             student = Student.objects.get(school=school, student_code=student_code)
         except Exception as e:
-            messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
+            messages.error(request, '수험자 정보에 이상이 있습니다. 수험자를 기관에 먼저 등록하세요.')
             return redirect('boards:board_detail', board_id=board.id)
 
         if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
             user = student.admin  # 계정 소유자.
-            print(user)
             exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
         else:
             exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)

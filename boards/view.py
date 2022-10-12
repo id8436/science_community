@@ -300,7 +300,12 @@ def subject_upload_excel_form(request, board_id):
         subject_list = []  # 과목을 담을 리스트. 객체가 담긴다.
         for i in range(len(subject_info)-2):
             subject_name = subject_info[i+2]
-            subject, created = Subject.objects.get_or_create(base_exam=board, name=subject_name)
+            try:
+                subject = Subject.objects.get(base_exam=board, name=subject_name)  # 기존에 제작된 과목만.
+            # 과목을 만들게 했더니.. 엑셀 잘못올리면 수많은 잘못된 과목이 생성되어서;;
+            except:
+                messages.error(request,'과목 등록이 먼저 이루어져야 합니다. 과목명을 점검하세요.')
+                return redirect('boards:board_detail', board_id=board_id)
             subject_list.append(subject)
 
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
