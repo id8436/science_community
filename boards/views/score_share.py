@@ -160,8 +160,10 @@ def subject_answer_info_form_upload(request, subject_id):
             exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
         if created:
             from boards.templatetags.board_filter import create_random_name
-            exam_profile.name = create_random_name(10)
-            exam_profile.save()
+            exam_profile.name = create_random_name(10)  # 새로 생성되었다면 이름 배정조치.
+        exam_profile.student = student  # 프로필에 관련 정보를 담아줘야지~!
+        exam_profile.test_code = student_code
+        exam_profile.save()
 
         score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)  # 점수 생성.
         user_answer = []  # 사용자의 답을 담기 위한 리스트.

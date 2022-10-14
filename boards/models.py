@@ -63,7 +63,6 @@ class Score(models.Model):
         unique_together = (
             ('user', 'base_subject')
         )
-
 class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='exam_user')
