@@ -170,14 +170,20 @@ def school_student_download_excel_form(request, school_id):
     ws['A1'] = '학번'
     ws['B1'] = '이름'
     ws['C1'] = '넣을 학급(띄어쓰기 없음)'
+    ws['D1'] = '가입인증코드(없으면 랜덤 6개)'
     students = school.student_set.all()  # 학교에 속한 학생.
-    a = 'A'  # 번호쓰는 라인.
+    a = 'A'  # 학번쓰는 라인.
     b = 'B'  # 이름쓰는 라인.
-    c = 'C'  # 학번쓰는 라인.
+    c = 'C'  # 학번쓰는 라인.(안씀)
+    d = 'D'  # 코드 쓰는 라인.
     for i, student in enumerate(students):
         num = str(i + 2)
         ws[a + num] = student.student_code
         ws[b + num] = student.name
+        if student.obtained:
+            ws[d + num] = '등록함'
+        else:
+            ws[d + num] = student.code  # 가입인증코드.
     response = HttpResponse(content_type="application/vnd.ms-excel")
     response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
     wb.save(response)
@@ -218,16 +224,16 @@ def school_student_upload_excel_form(request, school_id):
             student, created = models.Student.objects.get_or_create(school=school, student_code=student_code)
             student.name = name
             if created:
-                student.code = random.randint(100000, 999999)  # 코드 지정.
                 exam_profiles = student.exam_profile_set.all()
                 for profile in exam_profiles:
                     profile.master = student.admin
                     profile.save()  # 시험등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
-            student.save()
 
             # 학급정보가 있다면 만들어버리기.
-            if len(data) < 2:
-                pass
+            print(len(data))
+            if len(data) < 3:
+                # 2개 데이터만 들어온 경우로, 코드정보가 없으면 랜덤으로 배정.
+                student.code = random.randint(100000, 999999)  # 코드 지정.
             else:
                 to_homeroom = str(data[2])
                 if to_homeroom != 'None':
@@ -236,6 +242,15 @@ def school_student_upload_excel_form(request, school_id):
                         student.homeroom.add(homeroom)
                     except:
                         messages.error(request, "등록되지 않은 학급을 지정하였습니다. 학급 생성 먼저!\n" + student_code +'학생. 등록되지 않은 학급 ' + to_homeroom)
+                # 코드정보가 있으면 대입한다.
+                if (len(data) < 4) or (student.obtained):  # 코드 등록필요가 없다면...
+                    pass
+                else:
+                    if data[3] == None:  # 내용이 없는 경우가 있음.
+                        student.code = random.randint(100000, 999999)  # 코드 지정.
+                    else:
+                        student.code = data[3]
+            student.save()
         messages.info(request, '반영 완료.')
 
     return redirect('school_report:student_assignment', school_id=school_id)  # 필요에 따라 렌더링.
@@ -244,6 +259,11 @@ def school_student_upload_excel_form(request, school_id):
 def student_code_input(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
+    if check.Check_student(request,school).in_school_and_none():
+        pass
+    else:
+        messages.error(request, '이미 이 기관에 인증되었습니다.')
+        return redirect('school_report:school_main', school_id=school_id)
     if request.method == 'POST':  # 포스트로 요청이 들어온다면...
         code = request.POST.get('code')
         try:

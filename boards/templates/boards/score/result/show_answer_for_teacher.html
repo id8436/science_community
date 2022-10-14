@@ -1,0 +1,48 @@
+{% extends "school_report/section.html" %}
+{% block content %}
+
+
+   <style>
+
+table#jb-table thead { position: sticky; top: 0; z-index: 1; }
+table#jb-table th:first-child,
+table#jb-table td:first-child { position: sticky; left: 0; }
+table#jb-table tfoot { position: sticky; bottom: 0; }
+    </style>
+
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="jb-table">
+    <thead class="table-dark">
+    <tr>
+        <th>문항</th>
+        <th>점수</th>
+        {% for i in right_answer%}
+        <td>{{forloop.counter}}번</td>
+        {%endfor%}
+    </tr>
+    <tr>
+        <th>정답></th>
+        <th></th>
+        {% for answer in right_answer %}
+        <td>{{answer}}</td>
+        {% endfor %}
+    </tr>
+    </thead>
+    <tbody>
+        {%for key, info in student_answer_info.items%}
+    <tr>
+        <td class="table-dark">{{key}}</td>
+        <td>{{info.0}}</td>
+            {%for answer in info.1%}
+            <td>{{answer}}</td>
+            {%endfor%}
+    </tr>{%endfor%}
+    </tbody>
+    </table>
+    </div></div>
+
+
+{% endblock content%}

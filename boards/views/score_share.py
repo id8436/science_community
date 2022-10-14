@@ -154,10 +154,12 @@ def subject_answer_info_form_upload(request, subject_id):
         score.answer = json.dumps(user_answer)
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
     messages.info(request,'등록 성공')
+    board.official_check = True
 
     return redirect('boards:board_detail', board_id=board.id)
 
 def show_answer(request, score_id):
+    # 나중에 과목별로 답변을 보게 하면 좋겠네. 한번에 볼 수 있게.
     score = Score.objects.get(id=score_id)
     if request.user == score.user.master:  # 당사자일 때에만 읽게 한다.
         context = {}
@@ -172,3 +174,30 @@ def show_answer(request, score_id):
     else:
         messages.error(request, '자신의 정답만 확인할 수 있습니다.')
     return redirect('boards:board_detail', board_id=score.base_subject.base_exam.id)
+
+def show_answer_for_teacher(request, subject_id):
+    subject = Subject.objects.get(id=subject_id)
+    if check.Check_teacher(request, subject.base_exam.school).in_school_and_none():
+        pass
+    else:
+        messages.error(request, '꼼수 쓰지 마라.')
+        return redirect('boards:board_detail', board_id=subject.base_exam.id)
+    scores = subject.score_set.all()
+    decoder = json.decoder.JSONDecoder()  # 디코더객체 설정.
+    context = {}
+    # 정답 담기.
+    right_answer = decoder.decode(subject.right_answer)
+    context['right_answer'] = right_answer
+    # 학생정보 담기.
+    student_answer_info = {}
+    for score in scores:
+        try:  # 외부인이 계정 없이 임의로 등록한 거라면... 학생계정에 매칭이 되지 않는다. 그냥 무시.
+            student = score.user.student.student_code
+            answer = decoder.decode(score.answer)  # 답을 리스트로.
+            info = [score.real_score, answer]  # 개별 점수와 정답정보를 담는다.
+            student_answer_info[student] = info  # 사전 안에 리스트로 담는다.
+        except:
+            pass
+    context['student_answer_info'] = student_answer_info
+    return render(request, 'boards/score/result/show_answer_for_teacher.html', context)
+

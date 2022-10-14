@@ -46,10 +46,12 @@ urlpatterns = [
          name='subject_answer_info_form_download'),
     path('score/subject_answer_info_form_upload/<int:subject_id>/', score_share.subject_answer_info_form_upload,
          name='subject_answer_info_form_upload'),
-    path('score/show_answer/<int:score_id>/', score_share.show_answer,name='show_answer'),
 
     # result
     path('score/result/<int:board_id>/', score_share.result_main, name='exam_result'),
+    path('score/show_answer/<int:score_id>/', score_share.show_answer, name='show_answer'),
+    path('score/show_answer_for_teacher/<int:subject_id>/', score_share.show_answer_for_teacher, name='show_answer_for_teacher'),
+
 
 ]
 

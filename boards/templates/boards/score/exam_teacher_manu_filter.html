@@ -12,7 +12,7 @@
         <input type="submit" value="엑셀 파일 올리기">
 </form>
 
-<h4>개별응답 올리기</h4>
+<h4 class="border-bottom py-2">개별응답 올리기</h4>
 <table class="table table-hover" id="score_table">
     <thead>
     <tr class="thead-dark">
@@ -27,6 +27,7 @@
     <tr>
         <td>
             제 {{forloop.counter}}과목 : {{subject.name}}
+            {%if subject.base_exam.official_check%}<a href="{%url 'boards:show_answer_for_teacher' subject.id%}">응답보기</a>{%endif%}
         </td>
         <td>{{subject.score_set.count}}명</td>
         <td><a href="{%url 'boards:subject_answer_info_form_download' subject.id %}">다운</a></td>
