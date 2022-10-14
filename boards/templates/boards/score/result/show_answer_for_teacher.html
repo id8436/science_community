@@ -24,6 +24,13 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
         {%endfor%}
     </tr>
     <tr>
+        <th>배점></th>
+        <th></th>
+        {% for distribution in distributions %}
+        <td>{{distribution}}</td>
+        {% endfor %}
+    </tr>
+    <tr>
         <th>정답></th>
         <th></th>
         {% for answer in right_answer %}

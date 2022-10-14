@@ -44,8 +44,8 @@ class Subject(models.Model):
     base_exam = models.ForeignKey('Board', null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)  # 과목명.
     sj_code = models.IntegerField(null=True, blank=True)  # 과목코드.
-    right_answer = models.TextField(null=True, blank=True)  # 정답은 Json으로 받아 저장한다.
-    distribution = models.TextField(null=True, blank=True)  # 위와 동일하게 저장.
+    right_answer = models.TextField(default=None)  # 정답은 Json으로 받아 저장한다.
+    distribution = models.TextField(default=None)  # 위와 동일하게 저장.
     def __str__(self):
         return self.name
     class Meta:

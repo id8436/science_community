@@ -207,6 +207,10 @@ def show_answer_for_teacher(request, subject_id):
     if subject.right_answer:
         right_answer = decoder.decode(subject.right_answer)
         context['right_answer'] = right_answer
+    # 배점 담기.
+    if subject.distribution:
+        distributions = decoder.decode(subject.distribution)
+        context['distributions'] = distributions
     # 학생정보 담기.
     student_answer_info = {}
     for score in scores:
