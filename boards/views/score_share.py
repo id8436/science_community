@@ -143,6 +143,8 @@ def subject_answer_info_form_upload(request, subject_id):
 
     work_sheet_data = work_sheet_data[3:]  # 1~3번째 행은 버린다.(메타데이터)
     for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+        if data[0] == None:  # 위의 행을 비우고 올린 경우가 있다. 이런 경우엔 지나가주자.
+            continue
         student_code = str(data[0])
         try:
             student = Student.objects.get(school=school, student_code=student_code)
@@ -167,9 +169,15 @@ def subject_answer_info_form_upload(request, subject_id):
             user_answer.append(answer)
         score.answer = json.dumps(user_answer)
         # 점수 계산.
-        for right, answer, distribution in zip(right_answer_list, user_answer, distribution_list):
-            if right == answer:
-                score.score += distribution
+        try:  # 배점정보가 있을 때.
+            test = distribution_list[0]
+            result_score = 0
+            for right, answer, distribution in zip(right_answer_list, user_answer, distribution_list):
+                if right == answer:
+                     result_score += float(distribution)
+            score.score = result_score
+        except:
+            pass
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
     messages.info(request, '등록 성공')
     board.official_check = True
