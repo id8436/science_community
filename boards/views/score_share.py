@@ -72,10 +72,12 @@ def subject_answer_info_form_download(request, subject_id):
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
     ws['A1'] = subject.name
-    ws['A2'] = '학번↓'
+    ws['A3'] = '학번↓'
     ws['B1'] = '문항번호->'
-    ws['B2'] = '문항정답->'
-    ws['B3'] = '이 열은 비우기'
+    ws['B2'] = '배점->'
+    ws['B3'] = '문항정답->'
+    ws['B4'] = '이 열은 비우기'
+    ws.column_dimensions['B'].width = 10
     # 색 채우기
     black_fill = PatternFill(fill_type='solid', fgColor=Color('000000'))
     yellow_fill = PatternFill(fill_type='solid', fgColor=Color('ffff99'))
@@ -86,9 +88,14 @@ def subject_answer_info_form_download(request, subject_id):
         cell.fill = yellow_fill
     for cell in ws["2:2"]:
         cell.fill = red_fill
+    for cell in ws["3"]:
+        cell.fill = yellow_fill
+    for cell in ws["A:A"]:
+        cell.fill = yellow_fill
     for i in range(10):  # 과목명을 가장 첫행에 기입해넣는다.
-        ws.cell(row=1, column=i + 3).value = i+1
-        ws.cell(row=2, column=i + 3).value = 0
+        ws.cell(row=1, column=i + 3).value = i+1  # 문항번호.
+        ws.cell(row=2, column=i + 3).value = 0  # 문항배점칸.
+        ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
 
     response = HttpResponse(content_type="application/vnd.ms-excel")
     response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
@@ -119,15 +126,22 @@ def subject_answer_info_form_upload(request, subject_id):
         # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
 
     # 과목객체에 정답정보 담기.
-    answer_info = work_sheet_data[1]  # 2행은 정답정보.
+    answer_info = work_sheet_data[2]  # 3행은 정답정보.
     right_answer_list = []
     for i in range(len(answer_info)-2):
         answer = answer_info[i+2]
         right_answer_list.append(answer)  # 정답 순서대로 담는다.
     subject.right_answer = json.dumps(right_answer_list)
-    subject.save()  # 정답정보를 담고 저장.
+    # 배점정보 담기.
+    distribution_info = work_sheet_data[1]  # 2행은 배점정보.
+    distribution_list = []
+    for i in range(len(distribution_info)-2):
+        distribution = distribution_info[i+2]
+        distribution_list.append(distribution)  # 정답 순서대로 담는다.
+    subject.distribution = json.dumps(distribution_list)
+    subject.save()  # 정보를 담고 저장.
 
-    work_sheet_data = work_sheet_data[2:]  # 1,2번째 행은 버린다.
+    work_sheet_data = work_sheet_data[3:]  # 1~3번째 행은 버린다.(메타데이터)
     for data in work_sheet_data:  # 행별로 데이터를 가져온다.
         student_code = str(data[0])
         try:
@@ -152,8 +166,12 @@ def subject_answer_info_form_upload(request, subject_id):
             answer = data[i+2]
             user_answer.append(answer)
         score.answer = json.dumps(user_answer)
+        # 점수 계산.
+        for right, answer, distribution in zip(right_answer_list, user_answer, distribution_list):
+            if right == answer:
+                score.score += distribution
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
-    messages.info(request,'등록 성공')
+    messages.info(request, '등록 성공')
     board.official_check = True
 
     return redirect('boards:board_detail', board_id=board.id)
