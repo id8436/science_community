@@ -104,7 +104,7 @@ def subject_answer_info_form_upload(request, subject_id):
     if check.Check_teacher(request, school).in_school_and_none() and request.method == "POST":
         pass
     else:
-        return check.Check_teacher(request,school).redirect_to_school()
+        return check.Check_teacher(request, school).redirect_to_school()
     uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
     wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
     work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
@@ -177,6 +177,7 @@ def show_answer(request, score_id):
 
 def show_answer_for_teacher(request, subject_id):
     subject = Subject.objects.get(id=subject_id)
+    context = {}
     if check.Check_teacher(request, subject.base_exam.school).in_school_and_none():
         pass
     else:
@@ -184,10 +185,10 @@ def show_answer_for_teacher(request, subject_id):
         return redirect('boards:board_detail', board_id=subject.base_exam.id)
     scores = subject.score_set.all()
     decoder = json.decoder.JSONDecoder()  # 디코더객체 설정.
-    context = {}
     # 정답 담기.
-    right_answer = decoder.decode(subject.right_answer)
-    context['right_answer'] = right_answer
+    if subject.right_answer:
+        right_answer = decoder.decode(subject.right_answer)
+        context['right_answer'] = right_answer
     # 학생정보 담기.
     student_answer_info = {}
     for score in scores:
