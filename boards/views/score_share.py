@@ -141,6 +141,7 @@ def subject_answer_info_form_upload(request, subject_id):
     subject.distribution = json.dumps(distribution_list)
     subject.save()  # 정보를 담고 저장.
 
+    # 학생 정보 저장.
     work_sheet_data = work_sheet_data[3:]  # 1~3번째 행은 버린다.(메타데이터)
     for data in work_sheet_data:  # 행별로 데이터를 가져온다.
         if data[0] == None:  # 위의 행을 비우고 올린 경우가 있다. 이런 경우엔 지나가주자.
