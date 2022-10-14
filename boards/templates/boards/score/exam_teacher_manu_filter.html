@@ -5,11 +5,11 @@
 <div class="card my-3">
     <div class="card-body">
 <a href="{% url 'boards:subject_download_excel_form' board.id  %}">점수만 올릴 양식 다운받기.</a>
-<br>점수입력 양식 올리기.
+<br>점수만 입력하기.
 <form action="{% url 'boards:subject_upload_excel_form' board.id %}" method="POST" enctype="multipart/form-data">
         <input type="file" name="uploadedFile">
         {% csrf_token %}
-        <input type="submit" value="엑셀 파일 올리기">
+        <input type="submit" value="점수 양식 올리기">
 </form>
 
 <h4 class="border-bottom py-2">개별응답 올리기</h4>

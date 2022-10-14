@@ -227,8 +227,12 @@ def show_answer_for_teacher(request, subject_id):
     for score in scores:
         try:  # 외부인이 계정 없이 임의로 등록한 거라면... 학생계정에 매칭이 되지 않는다. 그냥 무시.
             student = score.user.student.student_code
-            answer = decoder.decode(score.answer)  # 답을 리스트로.
-            info = [score.real_score, answer]  # 개별 점수와 정답정보를 담는다.
+            info = [score.real_score]
+            try:  # 정답에 대한 정보가 없으면 에러 난다.
+                answer = decoder.decode(score.answer)  # 답을 리스트로.
+                info.append(answer)  # 개별 점수와 정답정보를 담는다.
+            except:
+                pass
             student_answer_info[student] = info  # 사전 안에 리스트로 담는다.
         except:
             pass
