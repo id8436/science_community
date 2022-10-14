@@ -150,7 +150,7 @@ def subject_answer_info_form_upload(request, subject_id):
         try:
             student = Student.objects.get(school=school, student_code=student_code)
         except Exception as e:
-            messages.error(request, '수험자 정보에 이상이 있습니다. 수험자를 기관에 먼저 등록하세요.')
+            messages.error(request, str(student_code) +'수험자 정보에 이상이 있습니다. 수험자를 기관에 먼저 등록하세요.')
             return redirect('boards:board_detail', board_id=board.id)
 
         if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
@@ -178,7 +178,7 @@ def subject_answer_info_form_upload(request, subject_id):
             for right, answer, distribution in zip(right_answer_list, user_answer, distribution_list):
                 if right == answer:
                      result_score += float(distribution)
-            score.score = result_score
+            score.real_score = result_score
         except:
             pass
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
