@@ -194,9 +194,10 @@ def show_answer(request, score_id):
         context = {}
         decoder = json.decoder.JSONDecoder()  # 디코더객체 설정.
         subject = score.base_subject
+        distribution = decoder.decode(subject.distribution)
         right_answer = decoder.decode(subject.right_answer)
         user_anser = decoder.decode(score.answer)
-        context['right_answer'] = zip(right_answer, user_anser)  # 이중for문을 위하여~
+        context['answer_info'] = zip(distribution, right_answer, user_anser)  # 이중for문을 위하여~
         #context['user_answer'] = decoder.decode(score.answer)
         context['subject'] = score.base_subject
         return render(request, 'boards/score/result/show_answer.html', context)

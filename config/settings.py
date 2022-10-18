@@ -31,6 +31,7 @@ ALLOWED_HOSTS = secret.ALLOWED_HOSTS
 # Application definition
 
 INSTALLED_APPS = [
+'channels','chat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -170,3 +171,14 @@ EMAIL_HOST_USER = secret.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = secret.EMAIL_HOST_PASSWORD
 # 클릭재킹 방지설정 변경(이게 필요한건지 모르겠어서 일단 주석처리 해둠.)
 #X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# redis와 연결 설정.
+ASGI_APPLICATION = "config.asgi.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}

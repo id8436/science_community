@@ -24,6 +24,7 @@ urlpatterns = [
     path('boards/', include('boards.urls')),
     path('item_pool/', include('item_pool.urls')),
     path('school_report/', include('school_report.urls')),
+    path('chat/', include('chat.urls')),
 ]
 
 # 미디어 파일을 위한 url
