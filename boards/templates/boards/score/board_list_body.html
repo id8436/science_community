@@ -11,9 +11,11 @@
     {% if board_list %}
     {% for board in board_list %}
     <tr>
-        <td><a href="{% url 'boards:board_detail' board.id %}" class="to_detail">{{ board.school }}</a></td>
+        <td><a href="{% url 'boards:board_detail' board.id %}" {% include "custom_account/login_modal_in_html.html" %}>
+            {{ board.school }}</a></td>
         <td>
-            <a href="{% url 'boards:board_detail' board.id %}" class="to_detail">{{ board.board_name }}</a>
+            <a href="{% url 'boards:board_detail' board.id %}" {% include "custom_account/login_modal_in_html.html" %}>
+            {{ board.board_name }}</a>
             <span>{{ board.posting_set.all.count }}</span>
         </td>
         <td>{{ board.interest_count }}</td>
