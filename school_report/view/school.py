@@ -297,7 +297,7 @@ def student_code_confirm(request, student_id):
             exam_profiles = student.exam_profile_set.all()
             for profile in exam_profiles:  # 교사 점수등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
                 # 기존에 마스터 계정이 있던 경우엔 연결해서 옮기고 임시 학생프로필을 지워준다.
-                new_pro, created = Exam_profile.objects.get_or_created(master=request.user, base_exam=profile.base_exam)
+                new_pro, created = Exam_profile.objects.get_or_create(master=request.user, base_exam=profile.base_exam)
                 new_pro.test_code = profile.test_code
                 new_pro.student = profile.student
                 new_pro.modify_num = profile.modify_num
