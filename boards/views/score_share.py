@@ -176,12 +176,12 @@ def subject_answer_info_form_upload(request, subject_id):
         if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
             user = student.admin  # 계정 소유자.
             exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+            exam_profile.student = student
         else:
             exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
         if created:
             from boards.templatetags.board_filter import create_random_name
             exam_profile.name = create_random_name(10)  # 새로 생성되었다면 이름 배정조치.
-        exam_profile.student = student  # 프로필에 관련 정보를 담아줘야지~!
         exam_profile.test_code = student_code
         exam_profile.save()
 
