@@ -188,6 +188,7 @@ def subject_answer_info_form_upload(request, subject_id):
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
     messages.info(request, '등록 성공')
     board.official_check = True
+    board.save()
 
     return redirect('boards:board_detail', board_id=board.id)
 
