@@ -124,7 +124,15 @@ def subject_answer_info_form_upload(request, subject_id):
             row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
         work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
         # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
+    # meta data.
+    meta = work_sheet_data[0]
+    if subject.name == meta[0]:
+        pass
+    else:
+        messages.error(request,'과목정보가 다릅니다.')
+        return redirect('boards:board_detail', board_id=board.id)
 
+    answer_info = work_sheet_data[2]  # 3행은 정답정보.
     # 과목객체에 정답정보 담기.
     answer_info = work_sheet_data[2]  # 3행은 정답정보.
     right_answer_list = []
@@ -188,6 +196,7 @@ def subject_answer_info_form_upload(request, subject_id):
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
     messages.info(request, '등록 성공')
     board.official_check = True
+    board.official_teacher = request.user
     board.save()
 
     return redirect('boards:board_detail', board_id=board.id)
