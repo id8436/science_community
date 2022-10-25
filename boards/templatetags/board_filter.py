@@ -18,10 +18,9 @@ def show_exam_profile(context):
     user = context['request'].user
     base_exam = context['board']
     return_dict['board'] = base_exam
-    exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=base_exam)
-    if created:
-        exam_profile.name = create_random_name(10)
-    return_dict['exam_profile'] = exam_profile
-    # if base_exam.subject_set.exists():
-    #     return_dict['registered'] = True
+    try:
+        exam_profile = Exam_profile.objects.get(master=user, base_exam=base_exam)
+        return_dict['exam_profile'] = exam_profile
+    except:
+        pass
     return return_dict

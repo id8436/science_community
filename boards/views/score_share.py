@@ -15,6 +15,14 @@ from custom_account.models import Notification
 from custom_account.views import notification_add
 import numpy
 
+def profile_create(request, board_id):
+    base_exam = get_object_or_404(Board, pk=board_id)
+    exam_profile, created = Exam_profile.objects.get_or_create(master=request.user, base_exam=base_exam)
+    if created:
+        from boards.templatetags.board_filter import create_random_name
+        exam_profile.name = create_random_name(10)
+    return redirect('boards:board_detail', board_id=base_exam.id)
+
 def calculate_score(score_list):
     average = numpy.mean(score_list).round(2)
     variation = numpy.var(score_list).round(2)
@@ -129,7 +137,7 @@ def subject_answer_info_form_upload(request, subject_id):
     if subject.name == meta[0]:
         pass
     else:
-        messages.error(request,'과목정보가 다릅니다.')
+        messages.error(request,'과목정보가 다릅니다. 등록하고자 한 과목:' + subject.name + ', 등록한 과목:'+str(meta[0]))
         return redirect('boards:board_detail', board_id=board.id)
 
     answer_info = work_sheet_data[2]  # 3행은 정답정보.

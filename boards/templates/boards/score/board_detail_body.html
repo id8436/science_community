@@ -14,12 +14,10 @@
 {% endif %}
 
 
-<div class="card my-3">
-    <div class="card-body">
+
 {% load exam_score_filter %}
 {% teacher_manu %}
-    </div>
-</div>
+
 
 <div class="card my-3">
     <div class="card-body">
@@ -64,7 +62,7 @@
 
 
 <a href="{% url 'boards:posting_create' board.id %}" {%include "custom_account/login_modal_in_html.html"%}
-   class="btn btn-outline-info">시험 관련글 등록</a>
+   class="btn btn-outline-info">시험 관련 글쓰기</a>
 
     </div>
 </div>
