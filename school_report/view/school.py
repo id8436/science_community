@@ -267,7 +267,7 @@ def student_code_input(request, school_id):
     if request.method == 'POST':  # 포스트로 요청이 들어온다면...
         code = request.POST.get('code')
         try:
-            student = models.Student.objects.get(school=school, code=code)
+            student = models.Student.objects.filter(school=school, code=code)[0]
             if student.obtained == True:
                 messages.error(request, '이미 누군가 등록한 프로필입니다.')
                 return render(request, 'school_report/school/student_code_input.html', context)

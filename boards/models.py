@@ -59,8 +59,8 @@ class Score(models.Model):
     score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
     real_score = models.IntegerField(default=None, null=True, blank=True)  # 생성 후 입력해서 null이 필요하다.
     answer = models.TextField(null=True, blank=True)  # 시험에서의 응답을 담기 위한 것. Json으로 받는다.
-    def __str__(self):
-        return self.user.student.name
+    # def __str__(self):
+    #     return self.user
     # class Meta:
     #     unique_together = (
     #         ('user', 'base_subject')
@@ -73,6 +73,7 @@ class Exam_profile(models.Model):
     test_code = models.TextField(blank=False)  # 수험번호.
     modify_num = models.IntegerField(default=-1, null=True, blank=True)  # 시험점수 수정횟수 지정.
     name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
+    # 하위모델로 score가 있어 함께 조작해주어야 한다.
     def __str__(self):
         return self.student.name
     # class Meta:
