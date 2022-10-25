@@ -291,7 +291,6 @@ def student_code_confirm(request, student_id):
             student.save()
             request.user.student = student  # 계정에 등록.
             request.user.save()
-            messages.info(request, '인증에 성공하였습니다.')
             ## 기존에 시험 관련한 프로필이 있다면 연결해주어야 한다.
             from boards.models import Exam_profile
             exam_profiles = student.exam_profile_set.all()
@@ -303,10 +302,13 @@ def student_code_confirm(request, student_id):
                 new_pro.modify_num = profile.modify_num
                 new_pro.name = profile.name
                 new_pro.save()
+                for score in profile.score_set.all():  # 스코어도 옮겨주어야지.
+                    score.user = new_pro
+                    score.save()
                 profile.delete()  # 옮기고 난 후엔 지워준다.
+            messages.info(request, '인증에 성공하였습니다.')
             return redirect('school_report:school_main', school_id=student.school.id)
         else:
             messages.error(request, '코드가 안맞는데요;')
             return render(request, 'school_report/school/student_code_confirm.html', context)
-
     return render(request, 'school_report/school/student_code_confirm.html', context)

@@ -59,10 +59,10 @@ class Score(models.Model):
     score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
     real_score = models.IntegerField(default=None, null=True, blank=True)  # 생성 후 입력해서 null이 필요하다.
     answer = models.TextField(null=True, blank=True)  # 시험에서의 응답을 담기 위한 것. Json으로 받는다.
-    class Meta:
-        unique_together = (
-            ('user', 'base_subject')
-        )
+    # class Meta:
+    #     unique_together = (
+    #         ('user', 'base_subject')
+    #     )
 class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='exam_user')
