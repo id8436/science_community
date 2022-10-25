@@ -130,7 +130,7 @@ def subject_answer_info_form_upload(request, subject_id):
     right_answer_list = []
     for i in range(len(answer_info)-2):
         answer = answer_info[i+2]
-        if answer == 'null':
+        if answer == None:
             answer = 0
         right_answer_list.append(answer)  # 정답 순서대로 담는다.
     subject.right_answer = json.dumps(right_answer_list)
@@ -139,7 +139,7 @@ def subject_answer_info_form_upload(request, subject_id):
     distribution_list = []
     for i in range(len(distribution_info)-2):
         distribution = distribution_info[i+2]
-        if distribution == 'null':
+        if distribution == None:
             distribution = 0
         distribution_list.append(distribution)  # 정답 순서대로 담는다.
     subject.distribution = json.dumps(distribution_list)
