@@ -259,10 +259,11 @@ def school_student_upload_excel_form(request, school_id):
 def student_code_input(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
-    if check.Check_student(request,school).in_school_and_none():
+    student = check.Check_student(request,school).in_school_and_none()
+    if student != None:
         pass
     else:
-        messages.error(request, '이미 이 기관에 인증되었습니다.')
+        messages.error(request, '이미 이 기관에 인증되었습니다.' + str(student.name))
         return redirect('school_report:school_main', school_id=school_id)
     if request.method == 'POST':  # 포스트로 요청이 들어온다면...
         code = request.POST.get('code')
