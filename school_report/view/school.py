@@ -263,7 +263,7 @@ def student_code_input(request, school_id):
     if student != None:
         pass
     else:
-        messages.error(request, '이미 이 기관에 인증되었습니다.' + str(student.name))
+        messages.error(request, '이미 이 기관에 인증되었습니다.' + str(student.student_code))
         return redirect('school_report:school_main', school_id=school_id)
     if request.method == 'POST':  # 포스트로 요청이 들어온다면...
         code = request.POST.get('code')
