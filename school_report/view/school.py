@@ -260,7 +260,7 @@ def student_code_input(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
     student = check.Check_student(request,school).in_school_and_none()
-    if student != None:
+    if student == None:
         pass
     else:
         messages.error(request, '이미 이 기관에 인증되었습니다.' + str(student.student_code))
