@@ -41,8 +41,8 @@ class User(AbstractBaseUser):
     is_notification = models.BooleanField(default=False)
 
     # 학교기능 관련.
-    teacher = models.OneToOneField(Teacher, default=None, blank=True, null=True, on_delete=models.SET_NULL)  # 연결된 교사프로필
-    student = models.OneToOneField(Student, default=None, blank=True, null=True, on_delete=models.SET_NULL, related_name='connected_student')  # 연결된 학생프로필
+    #teacher = models.OneToOneField(Teacher, default=None, blank=True, null=True, on_delete=models.SET_NULL)  # 연결된 교사프로필
+    #student = models.OneToOneField(Student, default=None, blank=True, null=True, on_delete=models.SET_NULL, related_name='connected_student')  # 연결된 학생프로필
     def __str__(self):
         # if self.identifier ==None:
         #     return self.username

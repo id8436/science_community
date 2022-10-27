@@ -126,8 +126,8 @@ def teacher_code_confirm(request, teacher_id):
             teacher.obtained = True
             teacher.code = None
             teacher.save()
-            request.user.teacher = teacher  # 계정에 등록.
-            request.user.save()  # 이것도 저장 해주어야 해.
+            # request.user.teacher = teacher  # 계정에 등록.
+            # request.user.save()  # 이것도 저장 해주어야 해.
             messages.info(request, '인증에 성공하였습니다.')
             return redirect('school_report:main')
         else:
@@ -290,14 +290,16 @@ def student_code_confirm(request, student_id):
             student.obtained = True
             student.code = None
             student.save()
-            request.user.student = student  # 계정에 등록.
-            request.user.save()
+            #request.user.student = student  # 계정에 등록. 이거 없어도 될듯. 필요없어진 기능.
+            #request.user.save()
             ## 기존에 시험 관련한 프로필이 있다면 연결해주어야 한다.
             from boards.models import Exam_profile
             exam_profiles = student.exam_profile_set.all()
             for profile in exam_profiles:  # 교사 점수등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
                 # 기존에 마스터 계정이 있던 경우엔 연결해서 옮기고 임시 학생프로필을 지워준다.
                 new_pro, created = Exam_profile.objects.get_or_create(master=request.user, base_exam=profile.base_exam)
+                if new_pro == profile:  # 같은 경우엔 넘어가자. 보통 이런 경우는 없는데.. 부정접근의 경우 발생한다.
+                    continue
                 new_pro.test_code = profile.test_code
                 new_pro.student = profile.student
                 new_pro.modify_num = profile.modify_num

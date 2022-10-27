@@ -92,7 +92,8 @@ def upload_excel_form(request, homeroom_id):
             work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
             # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
-        if request.user.teacher == homeroom.master:
+        teacher = check.Check_teacher(request, homeroom).in_homeroom_and_none()
+        if teacher != None:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 student_code = data[0]
                 name = data[1]

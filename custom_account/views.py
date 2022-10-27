@@ -73,8 +73,6 @@ from django.contrib.auth.decorators import login_required #로그인이 있어�
 
 @login_required()
 def profile(request):
-
-
     # 연결된 소셜계정 정보.
     #print(dir(request.user.user_set.all()[1].socialaccount_set.all().first()))
     #print(request.user.user_set.all()[1].socialaccount_set.all())

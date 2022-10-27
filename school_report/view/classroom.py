@@ -11,7 +11,8 @@ def create(request, school_id):
     homeroom_list = school.homeroom_set.all()  # 학교 하위의 학급들.
     context['homeroom_list'] = homeroom_list
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        if school != request.user.teacher.school:  # 같아야 진행.
+        teacher = check.Check_teacher(request, school).in_school_and_none()
+        if teacher == None:
             messages.error(request, "학교에 등록된 교사가 아닙니다.")
             context['form'] = ClassroomForm(request.POST)
             return render(request, 'school_report/classroom/create.html', context)
@@ -21,7 +22,7 @@ def create(request, school_id):
             homeroom_list = request.POST.getlist('homeroom_list')
             for homeroom_id in homeroom_list:  # 받은 데이터에 해당하는 걸 넣는다.
                 homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
-                classroom = models.Classroom.objects.get_or_create(subject=subject, master=request.user.teacher, school=school, homeroom=homeroom)
+                classroom = models.Classroom.objects.get_or_create(subject=subject, master=teacher, school=school, homeroom=homeroom)
             return redirect('school_report:school_main', school_id=school.id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = ClassroomForm()

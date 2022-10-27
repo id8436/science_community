@@ -23,6 +23,11 @@
 
 </head>
 <body>
+<!-- 소셜계정을 판단하는 필터. -->
+{% load custom_tags %}
+{% check_social %}
+
+
 
 {% include "navbar.html" %}
 {% block section %}{% endblock section %}  <!-- 앱별 section 내용을 담기 위한 공간. -->
