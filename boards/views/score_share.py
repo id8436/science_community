@@ -95,7 +95,7 @@ def result_main(request, board_id):
 
 
         ## 본인의 점수를 담았으니, 각종 작업 수행.
-        score = info['score'][0]
+        score = info['score']
         # 자신의 점수를 담는다.
         subject_score_data.append(score)
         # 표준점수 계산
