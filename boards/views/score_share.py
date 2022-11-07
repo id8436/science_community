@@ -104,8 +104,8 @@ def result_main(request, board_id):
         std_score = (score - mean) / std
         subject_score_data.append(std_score)
         # 랭크데이터 계산
-        rank = info['rank'][0]
-        same_count = info['same_rank'][0]
+        rank = info['rank']
+        same_count = info['same_rank']
         rank_test = "상위 {}%({}명)".format(rank, same_count)
         subject_score_data.append(rank_test)
 
