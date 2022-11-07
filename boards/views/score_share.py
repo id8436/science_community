@@ -14,6 +14,7 @@ from school_report.view import check
 from custom_account.models import Notification
 from custom_account.views import notification_add
 import numpy
+import pandas as pd
 
 def profile_create(request, board_id):
     base_exam = get_object_or_404(Board, pk=board_id)
@@ -27,53 +28,98 @@ def calculate_score(score_list):
     average = numpy.mean(score_list).round(2)
     variation = numpy.var(score_list).round(2)
     std = numpy.std(score_list).round(2)
-    return [average, variation, std]
+    max_score = max(score_list)  # 최고점
+    min_score = min(score_list)
+    return [average, variation, std, max_score, min_score]
+def statistical_of_score(request, subject):
+    '''과목객체를 받아 통계데이터를 뱉어내는 함수.'''
+    context = {}
+    scores = subject.score_set.all()  # 과목 내의 점수들을 가져오고,
+    code_list = []  # 학생코드 담을 것.
+    score_list = [] # 점수 담을 것.
+    try:  # 점수가 등록되지 않는 과목들이 있는 경우.
+        if scores.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
+            for score in scores:
+                code = score.user.test_code
+                code_list.append(code)
+                score_list.append(score.real_score)
+        else:
+            for score in scores:
+                code = score.user.test_code
+                code_list.append(code)
+                score_list.append(score.score)
+    except:
+        messages.error(request, str(subject) + '에 대해 등록된 점수가 없습니다.')
+
+    # 동점자 수 구하기.
+    same_count = score_list.copy()
+    for i in range(len(score_list)):
+        origin_score = same_count[i]
+        same_count[i] = 0
+        for score in score_list:
+            if score == origin_score:
+                same_count[i] += 1
+
+    df = pd.DataFrame(code_list)
+    df['score'] = score_list
+    df['rank'] = df['score'].rank(method='min', ascending=False).astype(int)  # 소수점 없이 정수로 반환.
+    df['rank'] = round(df['rank'] / df['rank'].count() * 100, 2)  # 랭크를 백분율로 바꾼다.
+    df['same_rank'] = same_count
+    df.set_index(0, inplace=True)
+    print(df)
+    return df
 def result_main(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     context = {'board':board}
     subject_list = board.subject_set.filter(base_exam=board)  # 교과들을 불러와서...
-    subject_data = {}
+    subject_data = {}  # 탬플릿에 보낼 과목정보.
+    df_dict = {}  # 과목별 df를 모을 사전.
     for subject in subject_list:
-        score_list = []
-        scores = subject.score_set.all()  # 과목 내의 점수들을 가져오고,
-        try:  # 점수가 등록되지 않는 과목들이 있는 경우.
-            if scores.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
-                for score in scores:
-                    score_list.append(score.real_score)
-            else:
-                for score in scores:
-                    score_list.append(score.score)
-            # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
-            info = calculate_score(score_list)  # 해당 과목의 평균, 분산, 표준편차를 얻는다.
-            info.append(max(score_list))  # 최고점
-            info.append(min(score_list))
-            subject_data[subject] = info  # 교과와 교과정보를 한데 담아 보낸다.
-        except:
-            messages.error(request, str(subject)+'에 대해 등록된 점수가 없습니다.')
+        df = statistical_of_score(request, subject)
+        # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
+        subject_info = calculate_score(df['score'])  # 해당 과목의 평균, 분산, 표준편차 등 데이터를 얻는다.
+        subject_data[subject] = subject_info  # 교과와 교과정보를 한데 담아 보낸다.
+        df_dict[subject] = df  # 아래에서 쓰기 위해 일단 저장.
     context['subject_data'] = subject_data
 
     # 프로필 가져오기.
     exam_profile = Exam_profile.objects.get(master=request.user, base_exam=board)
     context['exam_profile'] = exam_profile
+    studnet_code = exam_profile.test_code
     self_data = {}
     for subject in subject_list:
         subject_score_data = []
-        scores = subject.score_set.filter(user=exam_profile, base_subject=subject)
-        for score in scores:
-            if score.real_score:
-                score_num = score.real_score
+        df = df_dict[subject]  # 불러오기.
+        info = df.loc[studnet_code]
+        print()
 
-            else:
-                score_num = score.score
-            subject_score_data.append(score_num)  # 자신의 점수를 담는다.
-            mean = subject_data[subject][0]
-            std = subject_data[subject][2]
-            std_score = (score_num - mean) / std
-            subject_score_data.append(std_score)
+
+        ## 본인의 점수를 담았으니, 각종 작업 수행.
+        score = info['score'][0]
+        # 자신의 점수를 담는다.
+        subject_score_data.append(score)
+        # 표준점수 계산
+        mean = subject_data[subject][0]
+        std = subject_data[subject][2]
+        std_score = (score - mean) / std
+        subject_score_data.append(std_score)
+        # 랭크데이터 계산
+        rank = info['rank'][0]
+        same_count = info['same_rank'][0]
+        rank_test = "상위 {}%({}명)".format(rank, same_count)
+        subject_score_data.append(rank_test)
+
         self_data[subject] = subject_score_data
     context['self_data'] = self_data
 
     return render(request, 'boards/score/result/main.html', context)
+def result_for_teacher(request, subject_id):
+    context = {}
+    subject = get_object_or_404(Subject, pk=subject_id)
+    df = statistical_of_score(request, subject)
+    context['dataframe'] = df
+
+    return render(request, 'boards/score/result/main_for_teacher.html', context)
 
 def subject_answer_info_form_download(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)

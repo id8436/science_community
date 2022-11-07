@@ -150,7 +150,9 @@ def board_name_adding(request, board):
             outstr += instr[i]
     board_name_, created = Board_name.objects.get_or_create(name=outstr)  # created엔 새로 만들어졌는지 여부가 True로 나오고, tag_엔 그 태그가 담긴다.
     board.board_name = board_name_
-    board.save()
+    # 뒤에서 board.save()가 나와야 한다.
+
+
 def school_adding(request, board):
     # try:
     instr = request.POST['school']
@@ -160,9 +162,7 @@ def school_adding(request, board):
             outstr += instr[i]
     school_name_, created = School.objects.get_or_create(name=outstr, year=request.POST['enter_year'])  # created엔 새로 만들어졌는지 여부가 True로 나오고, tag_엔 그 태그가 담긴다.
     board.school = school_name_
-    board.save()
-    # except:  # school로 받는 게 없는 경우.
-    #     pass
+    # 뒤에서 board.save()가 나와야 한다.
 @login_required()
 def board_create(request, category_id):
     category = get_object_or_404(Board_category, pk=category_id)
@@ -174,11 +174,14 @@ def board_create(request, category_id):
             board = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
             board.author = request.user  # 추가한 속성 author 적용
             board.category = category
-            board.save()
-            board_name_adding(request, board)  # 태그 추가 함수.
-            school_adding(request, board)  # 위와 동일.
-            board_interest(request, board.id)
-            return redirect('boards:board_list', category.id)  # 작성이 끝나면 목록화면으로 보낸다.
+            try:
+                board_name_adding(request, board)  # 태그 추가 함수.
+                school_adding(request, board)  # 위와 동일.
+                board.save()
+                board_interest(request, board.id)  # 저장 이후에 가능한 명령. 순서 바뀌면 404 뜬다.
+            except:
+                messages.error(request, '이미 등록된 학교와 연도 조합입니다.')
+        return redirect('boards:board_list', category_id)  # 작성이 끝나면 목록화면으로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = BoardForm(request.POST)
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.

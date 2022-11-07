@@ -78,7 +78,7 @@ class Exam_profile(models.Model):
         return self.student.name
     # class Meta:
     #     unique_together = (
-    #         ('student', 'base_exam')
+    #         ('test_code', 'base_exam')  # 근데, 이건 인증할 때 옮겨야 해서...참 어렵다;
     #     )
 
 class Posting(models.Model):

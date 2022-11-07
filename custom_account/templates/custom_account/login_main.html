@@ -21,16 +21,17 @@
 <body>
 <div class="container my-3">
     <div class="row">
-        <div class="col-4">
+            <h5>
+            {{request.user.socialaccount_set.first.get_provider_display}}의
+            '{{ request.user.socialaccount_set.first.get_provider_account }}'으로 연동을 진행하는 게 맞습니까?</h5>
             <h4>메인계정 로그인</h4>
                 <div class="col-8 text-left">
                     <span>또는 <a href="{% url 'custom_account:signup' %}">계정을 만드세요.</a></span>
                 </div>
+
             <li>소셜로그인 후 메인계정과 연동하여야 정상적인 이용이 가능합니다.</li>
             <li>아직 계정 연동을 풀 방법을 만들지 않았으니 신중히 연결해주세요.</li>
-        </div>
 
-    </div>
 
 {% include "errors.html" %}
 
@@ -51,5 +52,4 @@
         <button type="submit" class="btn btn-primary">로그인</button>
     </form>
 </div>
-
 </body>

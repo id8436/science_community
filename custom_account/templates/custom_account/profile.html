@@ -5,21 +5,23 @@
 
 연결된 계정
 {% for account in social_accounts %}
-    get_provider_display : {{ account.get_provider_display }}
+    get_provider_display : {{ account.get_provider_display }}<br>
+    get_provider_account : {{ account.get_provider_account }}
 <br><br>
 {% endfor %}
 
 <div>
     본계정 : {{ user.username}}
-    <a>본계정 비밀번호 바꾸기.</a>
+    <a>본계정 비밀번호 바꾸기.(미구현)</a>
 </div>
 
 <div>
 이메일 : {{user.email}}
 {% if user.email_check %}
+    (인증됨)
 {% else %}
- 이메일 인증이 안되어 있습니다.
-<a href="{% url 'custom_account:send_email_verify_code' %}">인증코드 보내기</a>
+    이메일 인증이 안되어 있습니다.
+    <a href="{% url 'custom_account:send_email_verify_code' %}">인증코드 보내기</a>
 {% endif %}
 </div>
 

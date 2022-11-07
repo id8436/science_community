@@ -29,13 +29,16 @@
     {% for subject in subjects %}
     <tr>
         <td>
+            <a href="{% url 'boards:result_for_teacher' subject.id %}">
             제 {{forloop.counter}}과목 : {{subject.name}}
-            {%if subject.base_exam.official_check%}<a href="{%url 'boards:show_answer_for_teacher' subject.id%}">응답보기</a>{%endif%}
+                {%if subject.base_exam.official_check%}</a>
+                <a href="{%url 'boards:show_answer_for_teacher' subject.id%}">응답보기</a>{%endif%}
         </td>
         <td>{{subject.score_set.count}}명</td>
         <td><a href="{%url 'boards:subject_answer_info_form_download' subject.id %}">다운</a></td>
         <td>
-            <form action="{% url 'boards:subject_answer_info_form_upload' subject.id %}" method="POST" enctype="multipart/form-data">
+            <form action="{% url 'boards:subject_answer_info_form_upload' subject.id %}" method="POST" enctype="multipart/form-data"
+            onsubmit="return confirm('답안정보를 입력하면 점수를 자동으로 계산합니다. 서술형은 반영되지 않으니, 점수를 따로 올려주세요~')">
             <input type="file" name="uploadedFile">
             {% csrf_token %}
             <input type="submit" value="파일 올리기">
@@ -45,9 +48,9 @@
     {% endfor %}
     </tbody>
 </table>
+
     </div>
 </div>
-
     </div>
 </div>
 {%endif%}
