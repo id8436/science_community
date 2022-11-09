@@ -1,0 +1,37 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+복리 계산기입니당
+
+<!-----에러처리---------------------------->
+{% if form.errors %}
+    <div class="alert alert-danger" role="alert">
+    {% for field in form %}<!--모든 필드를 뒤지며 에러를 찾는다.-->
+    {% if field.errors %}
+    <strong>{{ field.label }}</strong><!--에러가 난 필드의 라벨에 굵음 처리-->
+    {{ field.errors }}<!--어떤 에러인지 보여준다.-->
+    {% endif %}
+    {% endfor %}
+    </div>
+{% endif %}
+
+<form method="get" action="{% url 'utility:compound_interest' %}">
+    {% csrf_token %}
+    <label for="principal">얼마 넣을래?</label>
+    <input type="text" name="principal" id="principal"
+           value="{{ form.principal.value|default_if_none:'' }}">
+    <label for="interest_rate">이자율은?(단위는 %)</label>
+    <input type="text" name="interest_rate" id="interest_rate"
+           value="{{ form.interest_rate.value|default_if_none:'' }}">%
+    <label for="how_many">몇회 받아?</label>
+    <input type="text" name="how_many" id="how_many"
+           value="{{ form.how_many.value|default_if_none:'' }}">
+    <p><label for="additional">중간에 일정금액 투입해?</label>
+    (투입금은 이자가 쌓이는 때 넣는다고 가정.)
+    <input type="text" name="additional" id="additional"
+           value="{{ form.additional.value|default_if_none:'' }}"></p>
+    <p><input type="submit" value="Submit"></p>
+        <p>최종적으로 받는 금액은 {{result}}야.</p>
+</form>
+
+{% endblock content%}
