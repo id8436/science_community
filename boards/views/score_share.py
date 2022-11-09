@@ -31,6 +31,7 @@ def calculate_score(score_list):
     max_score = max(score_list)  # 최고점
     min_score = min(score_list)
     return [average, variation, std, max_score, min_score]
+
 def statistical_of_score(request, subject):
     '''과목객체를 받아 통계데이터를 뱉어내는 함수.'''
     context = {}
@@ -125,13 +126,32 @@ def subject_answer_info_form_download(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
-    ws['A1'] = subject.name
+    ws['A1'] = subject.name  # 과목명을 가장 첫행에 기입해넣는다.
     ws['A3'] = '학번↓'
     ws['B1'] = '문항번호->'
     ws['B2'] = '배점->'
     ws['B3'] = '문항정답->'
     ws['B4'] = '이 열은 비우기'
     ws.column_dimensions['B'].width = 10
+
+    for i in range(10):  # 기존 틀 생성.
+        ws.cell(row=1, column=i + 3).value = i+1  # 문항번호.
+        ws.cell(row=2, column=i + 3).value = 0  # 문항배점칸.
+        ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
+
+    # 기존 입력 데이터 반영.
+    answers = json.loads(subject.right_answer)
+    for i, answer in enumerate(answers):
+        ws.cell(row=3, column=i+3).value = answer
+    distributions = json.loads(subject.distribution)
+    for i, distribution in enumerate(distributions):
+        ws.cell(row=2, column=i+3).value = distribution
+    scores = subject.score_set.all()
+    for i, score in enumerate(scores):
+        ws.cell(row=4 + i, column=1).value = score.user.test_code  # 학번 반영.
+        for j, answer in enumerate(answers):
+            ws.cell(row=4+i, column=j+3).value = answer  # 학생의 답 써넣기.
+
     # 색 채우기
     black_fill = PatternFill(fill_type='solid', fgColor=Color('000000'))
     yellow_fill = PatternFill(fill_type='solid', fgColor=Color('ffff99'))
@@ -146,10 +166,7 @@ def subject_answer_info_form_download(request, subject_id):
         cell.fill = yellow_fill
     for cell in ws["A:A"]:
         cell.fill = yellow_fill
-    for i in range(10):  # 과목명을 가장 첫행에 기입해넣는다.
-        ws.cell(row=1, column=i + 3).value = i+1  # 문항번호.
-        ws.cell(row=2, column=i + 3).value = 0  # 문항배점칸.
-        ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
+
 
     response = HttpResponse(content_type="application/vnd.ms-excel")
     response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
