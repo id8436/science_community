@@ -1,0 +1,28 @@
+<script>
+window.onload = function () {
+
+//Better to construct options first and then pass it as a parameter
+var options = {
+	title: {
+		text: "{{subject}}"
+	},
+    axisY: {
+		title: "급간 학생수",
+		suffix: "명",
+		},
+	data: [
+	{
+		// Change type to "doughnut", "line", "splineArea", etc.
+		type: "column",
+		dataPoints: [
+            {% for level, count in data_dict.items %}
+                { label: "{{level}}",  y: {{count}}  },
+            {% endfor %}
+		]
+	}
+	]
+};
+
+$("#{{forloop.counter}}_chart").CanvasJSChart(options);
+}
+</script>

@@ -34,7 +34,6 @@ def calculate_score(score_list):
 
 def statistical_of_score(request, subject):
     '''과목객체를 받아 통계데이터를 뱉어내는 함수.'''
-    context = {}
     scores = subject.score_set.all()  # 과목 내의 점수들을 가져오고,
     code_list = []  # 학생코드 담을 것.
     score_list = [] # 점수 담을 것.
@@ -67,7 +66,6 @@ def statistical_of_score(request, subject):
     df['rank'] = round(df['rank'] / df['rank'].count() * 100, 2)  # 랭크를 백분율로 바꾼다.
     df['same_rank'] = same_count
     df.set_index(0, inplace=True)
-    print(df)
     return df
 def result_main(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
@@ -75,13 +73,29 @@ def result_main(request, board_id):
     subject_list = board.subject_set.filter(base_exam=board)  # 교과들을 불러와서...
     subject_data = {}  # 탬플릿에 보낼 과목정보.
     df_dict = {}  # 과목별 df를 모을 사전.
+    subject_chart = {}
     for subject in subject_list:
         df = statistical_of_score(request, subject)
         # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
         subject_info = calculate_score(df['score'])  # 해당 과목의 평균, 분산, 표준편차 등 데이터를 얻는다.
         subject_data[subject] = subject_info  # 교과와 교과정보를 한데 담아 보낸다.
         df_dict[subject] = df  # 아래에서 쓰기 위해 일단 저장.
+
+        # 통계데이터 만들기
+        max = subject_info[3]
+        min = subject_info[4]
+        interval_size = 10
+        n = (max-min)/ interval_size
+        data_dict = {}
+        for i in range(interval_size):
+            ceriterion_min = round(min + n*i, 2)
+            ceriterion_max = round(min + n*(i+1), 2)
+            interval_count = df.loc[(df['score'] > ceriterion_min) & (df['score'] <= ceriterion_max)].shape[0]  # 해당구간 데이터 세기.
+            key_text = '{}초과, {}이하'.format(ceriterion_min, ceriterion_max)
+            data_dict[key_text] = interval_count
+        subject_chart[subject] = data_dict
     context['subject_data'] = subject_data
+    context['subject_chart'] = subject_chart
 
     # 프로필 가져오기.
     exam_profile = Exam_profile.objects.get(master=request.user, base_exam=board)
@@ -92,8 +106,6 @@ def result_main(request, board_id):
         subject_score_data = []
         df = df_dict[subject]  # 불러오기.
         info = df.loc[studnet_code]
-        print()
-
 
         ## 본인의 점수를 담았으니, 각종 작업 수행.
         score = info['score']
@@ -112,6 +124,12 @@ def result_main(request, board_id):
 
         self_data[subject] = subject_score_data
     context['self_data'] = self_data
+
+    # 통계데이터 얻기.
+    # for subject in subject_list:
+    #     subject_score_data = []
+    #     df = df_dict[subject]
+    #     n =
 
     return render(request, 'boards/score/result/main.html', context)
 def result_for_teacher(request, subject_id):

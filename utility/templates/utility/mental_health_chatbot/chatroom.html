@@ -1,0 +1,49 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+
+<h2>멘탈케어 챗봇룸</h2>
+<h6>발화에 대한 대답 데이터셋에서 등록된 발화 중 가장 비슷한 것을 찾아 해당하는 대답에 연결. 굉장히 초보적인 모델이다.</h6>
+<h6>채팅룸 구현(프론트)과 봇의 발화(백엔드)를 구현하기 위해 만들어본다..</h6>
+
+<textarea id="chat-log" cols="100" rows="20"></textarea><br>
+<input id="chat-message-input" type="text" size="100"><br>
+<input id="chat-message-submit" type="button" value="Send">
+
+<script>
+        const roomName = "health_chatbot";
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/mental_health_chatbot/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').value += (data.message + '\n');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+
+
+{% endblock content%}
