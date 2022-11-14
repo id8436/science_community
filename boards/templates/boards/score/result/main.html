@@ -30,11 +30,7 @@
     </table>
     </div>
 
-<!--  그래프용  -->
-    <!--<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>-->
-    <!--<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>-->
-    {% load static %}
-    <script src="{% static 'for chart/jquery.canvasjs.min.js' %}"></script>
+
 <h4>자신의 점수</h4>
 <table class="table table-hover" id="score_table">
 <thead>
@@ -63,7 +59,11 @@
 
 </div>
 
-
+<!--  그래프용  -->
+    <!--<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>-->
+    <!--<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>-->
+    {% load static %}
+    <script type="text/javascript" src="{% static 'for chart/jquery.canvasjs.min.js' %}"></script>
 {% for subject, data_dict in subject_chart.items %}
  <div id="{{subject}}_chart" style="height: 300px; width: 100%;"></div>
     {%include "boards/score/result/canvas.html"%}
