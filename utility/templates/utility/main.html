@@ -2,8 +2,42 @@
 
 {% block content %}
 
-<a href="{% url 'utility:compound_interest' %}">compound_interest</a>
-<a href="{% url 'chat:index' %}">chat_lobby</a>
-<a href="{% url 'utility:mental_health_chatroom' %}">mental_health_chatbot</a>
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="table">
+    <thead>
+    <tr class="thead-dark">
+        <th>프로젝트</th>
+        <th>코멘트</th>
+        <th>완성일자</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><a href="{% url 'utility:compound_interest' %}">compound_interest</a></td>
+            <td>복리계산기.</td>
+            <td>21.12.30</td>
+        </tr>
+        <tr>
+            <td><a href="{% url 'chat:index' %}">chat_lobby</a></td>
+            <td>방 이름을 입력해서 채팅.(channel 공식 메뉴얼을 따라)</td>
+            <td>22.10.30</td>
+        </tr>
+        <tr>
+            <td><a href="{% url 'utility:mental_health_chatroom' %}">mental_health_chatbot</a></td>
+            <td>심리상담 챗봇을 채팅처럼 구현.</td>
+            <td>22.11.10</td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+</div>
+
+
+
+
+
 
 {% endblock content%}
