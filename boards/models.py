@@ -61,7 +61,7 @@ class Score(models.Model):
     answer = models.TextField(null=True, blank=True)  # 시험에서의 응답을 담기 위한 것. Json으로 받는다.
     # def __str__(self):
     #     return self.user
-    # class Meta:
+    # class Meta:  # 학생 인증할 때 옮기는 데... 유니크 제한이 방해가 된다.
     #     unique_together = (
     #         ('user', 'base_subject')
     #     )
@@ -78,7 +78,7 @@ class Exam_profile(models.Model):
         return self.student.name
     # class Meta:
     #     unique_together = (
-    #         ('test_code', 'base_exam')  # 근데, 이건 인증할 때 옮겨야 해서...참 어렵다;
+    #         ('test_code', 'base_exam')  # 근데, 이건 학생 인증할 때 옮겨야 해서...참 어렵다;
     #     )
 
 class Posting(models.Model):

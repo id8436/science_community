@@ -66,6 +66,7 @@
     <!--<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>-->
     {% load static %}
     <script type="text/javascript" src="{% static 'for chart/jquery.canvasjs.min.js' %}"></script>
+
 {% for subject, data_dict in subject_chart.items %}
  <div id="{{forloop.counter}}_chart" style="height: 300px; width: 100%;"></div>
     {%include "boards/score/result/canvas.html"%}

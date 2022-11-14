@@ -1,0 +1,20 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+
+<form method="post"  enctype="multipart/form-data" class="post-form my-3">
+{% csrf_token %}
+
+    <div class="form-group">
+        <label><h4>번역할 것</h4></label>
+    <input type="text" class="form-control" name="korean" id="korean"
+                       value="{{ korean|default_if_none:'' }}" placeholder="번역하고 싶은 한국어를 입력하세요~">
+
+    <input type="submit" class="btn btn-primary" value='등록'>
+    </div>
+</form>
+
+<h4>번역결과</h4>
+<div>{{ translation }}</div>
+
+{% endblock content%}

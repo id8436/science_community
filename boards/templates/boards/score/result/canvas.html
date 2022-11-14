@@ -1,5 +1,5 @@
 <script>
-window.onload = function () {
+window.addEventListener('load', function() {
 
 //Better to construct options first and then pass it as a parameter
 var options = {
@@ -24,5 +24,5 @@ var options = {
 };
 
 $("#{{forloop.counter}}_chart").CanvasJSChart(options);
-}
+})
 </script>

@@ -67,6 +67,8 @@ def statistical_of_score(request, subject):
     df['same_rank'] = same_count
     df.set_index(0, inplace=True)
     return df
+
+@login_required()
 def result_main(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     context = {'board':board}
@@ -105,10 +107,16 @@ def result_main(request, board_id):
     for subject in subject_list:
         subject_score_data = []
         df = df_dict[subject]  # 불러오기.
-        info = df.loc[studnet_code]
-
+        # 누군가 잘못하여 여러 학번 코드가 중복되는 경우를 방지하기 위해 그냥 호출..
+        score_object = Score.objects.filter(user=exam_profile, base_subject=subject)
+        score_object = score_object[0]
+        if score_object.real_score != None:
+            score = score_object.real_score
+        else:
+            score = score_object.score
         ## 본인의 점수를 담았으니, 각종 작업 수행.
-        score = info['score']
+        info = df.loc[df['score'] == score]
+        info = info.iloc[0]
         # 자신의 점수를 담는다.
         subject_score_data.append(score)
         # 표준점수 계산
@@ -164,11 +172,14 @@ def subject_answer_info_form_download(request, subject_id):
     distributions = json.loads(subject.distribution)
     for i, distribution in enumerate(distributions):
         ws.cell(row=2, column=i+3).value = distribution
+
     scores = subject.score_set.all()
     for i, score in enumerate(scores):
         ws.cell(row=4 + i, column=1).value = score.user.test_code  # 학번 반영.
-        for j, answer in enumerate(answers):
-            ws.cell(row=4+i, column=j+3).value = answer  # 학생의 답 써넣기.
+        # 학생 응답 쓰기.
+        indi_answers = score.answer
+        for j, indi_answer in enumerate(indi_answers):
+            ws.cell(row=4+i, column=j+3).value = indi_answer  # 학생의 답 써넣기.
 
     # 색 채우기
     black_fill = PatternFill(fill_type='solid', fgColor=Color('000000'))
