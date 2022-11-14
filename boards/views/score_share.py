@@ -73,7 +73,7 @@ def result_main(request, board_id):
     subject_list = board.subject_set.filter(base_exam=board)  # 교과들을 불러와서...
     subject_data = {}  # 탬플릿에 보낼 과목정보.
     df_dict = {}  # 과목별 df를 모을 사전.
-    subject_chart = {}
+    subject_chart = {}  # 차트를 그릴 데이터를 담을 사전.
     for subject in subject_list:
         df = statistical_of_score(request, subject)
         # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.

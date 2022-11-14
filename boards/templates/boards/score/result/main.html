@@ -65,7 +65,7 @@
 
 
 {% for subject, data_dict in subject_chart.items %}
- <div id="{{forloop.counter}}_chart" style="height: 300px; width: 100%;"></div>
+ <div id="{{subject}}_chart" style="height: 300px; width: 100%;"></div>
     {%include "boards/score/result/canvas.html"%}
 {% endfor %}
 
