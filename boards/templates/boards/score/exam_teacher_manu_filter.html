@@ -31,7 +31,7 @@
         <td>
             <a href="{% url 'boards:result_for_teacher' subject.id %}">
             제 {{forloop.counter}}과목 : {{subject.name}}
-                {%if subject.base_exam.official_check%}</a>
+                {%if subject.official_check%}</a>
                 <a href="{%url 'boards:show_answer_for_teacher' subject.id%}">응답보기</a>{%endif%}
         </td>
         <td>{{subject.score_set.count}}명</td>

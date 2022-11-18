@@ -232,6 +232,7 @@ def subject_answer_info_form_upload(request, subject_id):
         messages.error(request,'과목정보가 다릅니다. 등록하고자 한 과목:' + subject.name + ', 등록한 과목:'+str(meta[0]))
         return redirect('boards:board_detail', board_id=board.id)
 
+    #### 교과 자체에 대한 정보.
     answer_info = work_sheet_data[2]  # 3행은 정답정보.
     # 과목객체에 정답정보 담기.
     answer_info = work_sheet_data[2]  # 3행은 정답정보.
@@ -251,6 +252,8 @@ def subject_answer_info_form_upload(request, subject_id):
             distribution = 0
         distribution_list.append(distribution)  # 정답 순서대로 담는다.
     subject.distribution = json.dumps(distribution_list)
+    subject.official_check = True  # 공식 점수가 올라갔음을 의미.
+    subject.official_teacher = request.user  # 공식 점수의 등록자.
     subject.save()  # 정보를 담고 저장.
 
     # 학생 정보 저장.
@@ -295,9 +298,6 @@ def subject_answer_info_form_upload(request, subject_id):
             pass
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
     messages.info(request, '등록 성공')
-    board.official_check = True
-    board.official_teacher = request.user
-    board.save()
 
     return redirect('boards:board_detail', board_id=board.id)
 

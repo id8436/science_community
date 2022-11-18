@@ -5,7 +5,7 @@
     <tr class="thead-dark">
         <th>과목</th>
         <th>내 점수</th>
-        <th>실제 점수</th>
+        <th>실제 점수</th><th>공식 등록자</th>
         <th>내 답안 보기</th>
     </tr>
     </thead>
@@ -16,7 +16,7 @@
             제 {{forloop.counter}}과목 : {{score.base_subject}}
         </td>
         <td>{{score.score}}</td>
-        <td>{{score.real_score}}</td>
+        <td>{{score.real_score}}</td><td>{{score.base_subject.official_teacher}}</td>
         <td>{%if score.answer%}
             <a href="{% url 'boards:show_answer' score.id %}">보기</a>{%else%}
             등록안됨{%endif%}
@@ -28,23 +28,14 @@
 {% endif %}
 
 {% if not exam_profile %}
-해당 시험 관련 프로필이 없습니다.
-<a href="{% url 'boards:profile_create' board.id  %}" class="btn btn-light">프로필 만들기</a>
-<br>
-{% endif %}
-
-{% if board.official_check %}
-    공식 점수가 등록되었습니다. 점수 등록자 : {{board.official_teacher}}<br>
-<a href="{% url 'boards:subject_register' board.id %}"
-       class="btn btn-outline-info">시험점수 수정</a>
+    해당 시험 관련 프로필이 없습니다.
+    아직 시험점수를 등록하지 않았습니다.<br>
+    <a href="{% url 'boards:subject_register' board.id %}"
+    class="btn btn-outline-info">나의 시험점수 공유</a>
 {% elif exam_profile.score_set.exists %}
     시험점수 공유함. {{exam_profile.modify_num}}회 수정함.<br>
     <a href="{% url 'boards:subject_register' board.id %}"
        class="btn btn-outline-info">시험점수 수정</a>
-{% else %}
-        아직 시험점수를 등록하지 않았습니다.<br>
-        <a href="{% url 'boards:subject_register' board.id %}"
-           class="btn btn-outline-info">나의 시험점수 공유</a>
 {% endif %}
 
 

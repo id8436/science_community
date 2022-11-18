@@ -16,9 +16,9 @@ class Board(models.Model):
 
     # - 점수공유에 대한 기능.
     school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)  # 주관단체
-    official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
-    official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
-                               related_name='official_teacher')  # 시험점수를 입력한 사람을 기록하기 위해.
+    # official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
+    # official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+    #                            related_name='official_teacher')  # 시험점수를 입력한 사람을 기록하기 위해.
     test_code_min = models.IntegerField(null=True, blank=True)  # 수험번호의 최소
     test_code_max = models.IntegerField(null=True, blank=True)  # 수험번호의 최대. 생태교란자를 파악하기 위함.
     association = models.ForeignKey('Board', on_delete=models.SET_NULL, null=True, blank=True, related_name='associated_exam')  # 연관실험.(시간연속성)
@@ -44,6 +44,10 @@ class Subject(models.Model):
     base_exam = models.ForeignKey('Board', null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)  # 과목명.
     sj_code = models.IntegerField(null=True, blank=True)  # 과목코드.
+
+    official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
+    official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                         related_name='official_teacher')  # 시험점수를 입력한 사람을 기록하기 위해.
     right_answer = models.TextField(null=True, blank=True)  # 정답은 Json으로 받아 저장한다.
     distribution = models.TextField(null=True, blank=True)  # 위와 동일하게 저장.
     def __str__(self):
@@ -67,6 +71,7 @@ class Score(models.Model):
     #     )
 class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
+    # 생성될 때 임의의 이름을 부여하는 함수도 같이 짜주어야 한다.
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='exam_user')
     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
     base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)

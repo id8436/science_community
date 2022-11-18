@@ -209,7 +209,9 @@ def subject_create(request, board_id):
                 continue
             else:
                 tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
-                tag_, created = Subject.objects.get_or_create(base_exam=board, name=tag, sj_code=sj_code[i])  # 과목 생성.
+                tag_, created = Subject.objects.get_or_create(base_exam=board, name=tag)  # 과목 생성.
+                tag_.sj_code = sj_code[i]
+                tag_.save()
         return redirect('boards:board_detail', board_id=board_id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = PostingForm()
@@ -243,8 +245,11 @@ def subject_register(request, board_id):
             profile.save()
             subjects = Subject.objects.filter(base_exam=board)
             for i, subject in enumerate(subjects):
-                score = box[i]
-                tag_, created = Score.objects.get_or_create(user=profile, base_subject=subject)  # 점수는 과목당 하나만 개설하게끔.
+                if box[i] == '':  # 데이터를 받는데, 점수 입력을 안하면 None으로 두게 하자.
+                    score = None
+                else:
+                    score = box[i]
+                tag_ = Score.objects.get(user=profile, base_subject=subject)  # 점수는 과목당 하나만 개설하게끔.
                 tag_.score = score
                 tag_.save()
                 if target_student != None:
@@ -307,6 +312,9 @@ def subject_upload_excel_form(request, board_id):
                 messages.error(request,'과목 등록이 먼저 이루어져야 합니다. 과목명을 점검하세요.')
                 return redirect('boards:board_detail', board_id=board_id)
             subject_list.append(subject)
+            subject.official_check = True  # 공식 점수가 올라갔음을 의미.
+            subject.official_teacher = request.user  # 공식 점수의 등록자.
+            subject.save()
 
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
         for data in work_sheet_data:  # 행별로 데이터를 가져온다.
@@ -333,9 +341,8 @@ def subject_upload_excel_form(request, board_id):
                 score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
                 score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.
                 score.save()
-                board.official_check = True  # 공식 점수가 올라갔음을 의미.
-                board.official_teacher = request.user
-                board.save()
+
+                # board.save()  # 공식 체크를 교과로 옮기면서 필요없어짐.
 
     return redirect('boards:board_detail', board_id=board_id)
 
