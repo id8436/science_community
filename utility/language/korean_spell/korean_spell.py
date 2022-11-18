@@ -17,7 +17,7 @@ def han_spell(text):
         data = json.loads(data)
     except:
         corrected_text = '없음.'
-        return cor_num, corrected_text  # 에러가 생기면 바로 반환해버린다.
+        return cor_num, corrected_text  # 에러가 생기면 바로 반환해버린다.(완벽하면 None이 반환됨.)
     # 5. 교정 내용 출력
     correction_datas = data['errInfo']
     corrected_text = text  # 흐흠, 어째서인지 이렇게 해도 복사가 된다. 편하네.

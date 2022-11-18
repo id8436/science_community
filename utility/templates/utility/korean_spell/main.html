@@ -1,7 +1,13 @@
 {% extends 'utility/common.html' %}
 
 {% block content %}
-엑셀 파일을 올리면 첫번째 시트에 대해서만 검사합니다.
+<h3>알리는 말</h3>
+<li>이 검사기는 <a href="http://speller.cs.pusan.ac.kr/">부산대학교 맞춤법 검사기의 기능을 불러와 사용하는 검사기입니다.</a></li>
+<li>블로그 <a href="https://hleecaster.com/speller-cs-pusan-ac-kr/">아무튼 워라벨의 '파이썬으로 부산대학교 한국어 맞춤법 검사기 사용하기'</a>포스팅을 참고하여 만들었습니다.</li>
+<h4>사용법</h4>
+<li>엑셀 파일을 올리면 첫번째 시트에 대해서만 검사합니다.</li>
+<li>틀린 부분에 마우스 커서를 올리고 있으면 교정 정보에 대해 볼 수 있습니다.</li>
+
 <form action="{% url 'utility:korean_spell_upload_excel_form' %}" method="POST" enctype="multipart/form-data">
         <input type="file" name="uploadedFile">
         {% csrf_token %}
