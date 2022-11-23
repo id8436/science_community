@@ -6,7 +6,9 @@ class School(models.Model):
     year = models.IntegerField()
     level = models.CharField(max_length=10)  # 초중고대, 대학원 + 기타.
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자. 마스터는 등록 안했다면 비게끔.
-    code = models.TextField()  # 학교 내에 클래스를 만들 권한을 주는 비밀코드.
+    school_code = models.CharField(max_length=20, null=True, blank=True)  # 나이스 api 이용을 위한 학교코드
+    education_office = models.CharField(max_length=20, null=True, blank=True)  # 나이스 api 이용을 위한 교육청코드
+
     def __str__(self):
         return self.name + str(self.year)
     class Meta:

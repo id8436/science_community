@@ -8,6 +8,7 @@ from . import check
 from django.http import HttpResponse
 import random
 from boards.models import Board, Board_category
+from .for_api import SchoolMealsApi
 
 def main(request, school_id):
     context = {}
@@ -17,6 +18,7 @@ def main(request, school_id):
     context['homeroom_list'] = homeroom_list
     classroom_list = school.classroom_set.all()
     context['classroom_list'] = classroom_list
+
     # 교사여부.
     teacher = check.Check_teacher(request, school).in_school_and_none()
     context['teacher'] = teacher
@@ -315,3 +317,23 @@ def student_code_confirm(request, student_id):
             messages.error(request, '코드가 안맞는데요;')
             return render(request, 'school_report/school/student_code_confirm.html', context)
     return render(request, 'school_report/school/student_code_confirm.html', context)
+
+def meal_info(request, school_id):
+    school = get_object_or_404(models.School, pk=school_id)
+    context = {}
+    # 급식정보
+    if school.school_code:  # 학교코드가 있어야 진행.
+        school_meal = SchoolMealsApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=school.school_code)
+        # 표에 넣기 위해 항목별로 차례대로 넣는다.
+        meal_data = {'일자': [], '식사': [], '메뉴': [], '칼로리': [], '영양정보': [], '재료정보': []}
+        for i in school_meal.get_data():
+            date = i['MLSV_YMD']
+            date = date[4:6] + '월' + date[6:] + '일'
+            meal_data['일자'].append(date)  # 급식일자.
+            meal_data['식사'].append(i['MMEAL_SC_NM'])  # 조,중,석식 분류.
+            meal_data['메뉴'].append(i['DDISH_NM'])  # 메뉴
+            meal_data['칼로리'].append(i['CAL_INFO'])  # 칼로리.
+            meal_data['영양정보'].append(i['NTR_INFO'])  # 영양정보
+            meal_data['재료정보'].append(i['ORPLC_INFO'])  # 재료정보
+        context['meal_data'] = meal_data
+    return render(request, 'school_report/school/meal_info.html', context)

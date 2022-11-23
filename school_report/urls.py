@@ -9,6 +9,8 @@ urlpatterns = [
     # 학교기능 관련.
     path('school/<int:school_id>/', school.main, name='school_main'),
     path('school/school_list/', school.list, name='school_list'),
+    path('meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
+
     #교사명단
     path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),
     path('school/download_excel_form/<int:school_id>/', school.download_excel_form, name='school_download_excel_form'),

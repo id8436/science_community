@@ -1,0 +1,35 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+<style>
+table td:hover {
+    background-color: rgba(0,0,0,.075);
+}</style>
+{% if meal_data %}
+<h3 class="my-3 border-bottom pb-2">가장 중요한 급식정보!</h3>
+<div class="table-responsive">
+<table class="table table-bordered" id="meal_table">
+    <thead>
+
+    </thead>
+    <tbody>
+    {% for key, info in meal_data.items %}
+    <tr>
+        <td class="table-info" width="85">{{key}}</td>
+        {% for this_meal in info %}
+        <td>{{this_meal|safe}}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+
+    </tbody>
+</table></div>
+{% else %}
+학교코드 혹은 시도교육청 코드가 잘못된 듯합니다. 학교 관리자에 문의하세요~
+{% endif %}
+
+<h5>알러지 코드</h5>
+1.난류, 2.우유, 3.메밀, 4.땅콩, 5.대두, 6.밀, 7.고등어, 8.게, 9.새우, 10.돼지고기, 11.복숭아, 12.토마토, 13.아황산염, 14.호두, 15.닭고기, 16.쇠고기, 17.오징어, 18.조개류(굴,전복,홍합 등)
+
+{% endblock content%}

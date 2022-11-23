@@ -8,6 +8,10 @@ test학교 메인
     학교마스터 : {{school.master}}
 </div>
 
+{% if school.school_code %}
+<a href="{% url 'school_report:meal_info' school.id %}">급식정보 보러 가기</a><br>
+{% endif %}
+
 {% if teacher %}
     어서오세요, {{ teacher.name }} 선생님~!
     (학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)

@@ -12,12 +12,12 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
 
 <div class="card my-3">
     <div class="card-body">
-
-    <table class="table table-hover" id="jb-table">
+    <!-- 테이블 명은 css로 행고정을 하기 위해 있는 것. -->
+    <table class="table table-hover sortable" id="jb-table">
     <thead class="table-dark">
     <tr>
-        <th>문항</th>
-        <th>점수</th>
+        <th onclick="sortTable(0)" style="cursor: pointer">문항</th>
+        <th onclick="sortTable_int(1)" style="cursor: pointer">점수</th>
         {% for i in right_answer%}
         <td>{{forloop.counter}}번</td>
         {%endfor%}
@@ -38,7 +38,7 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
     </tr>
     </thead>
     <tbody>
-        {%for key, info in student_answer_info.items%}
+        {%for key, info in student_answer_info.items %}
     <tr>
         <td class="table-dark">{{key}}</td>
         <td>{{info.0}}</td>
@@ -49,6 +49,127 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
     </tbody>
     </table>
     </div></div>
+
+<!-- 텍스트 정렬 -->
+<script>
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("jb-table");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc";
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    // i값으로 몇행부터 할지 정한다.
+    for (i = 3; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+</script>
+
+<!-- 숫자 정렬 -->
+<script>
+function sortTable_int(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("jb-table");
+  switching = true;
+  // Set the sorting direction to ascending:
+  dir = "asc";
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    // i값으로 몇행부터 할지 정한다.
+    for (i = 3; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      x = parseInt(x.innerHTML)
+      y = parseInt(y.innerHTML)
+        /* Check if the two rows should switch place,
+      based on the direction, asc or desc: */
+      if (dir == "asc") {
+        if (x > y) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x < y) {
+          // If so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    // 행을 바꾸는 동작.
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      // Each time a switch is done, increase this count by 1:
+      switchcount ++;
+    } else {
+      /* If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again. */
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+</script>
 
 
 {% endblock content%}
