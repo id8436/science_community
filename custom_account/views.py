@@ -81,9 +81,9 @@ def profile(request):
     for accounts in request.user.user_set.all():
         account = accounts.socialaccount_set.all().first()
         try:
-            social_provider.append(account.get_provider_display())
+            social_provider.append(account.get_provider_display())  # 공급자 없는 장고계정에선 get에러.
             try:
-                social_accounts.append(account.get_provider_account())  # 공급자에게서 사용자 정보를 얻지 못하는 경우.
+                social_accounts.append(account.get_provider_account().to_str())  # to_str로 계정정보를 받아오는데, 없으면 get 에러.
             except:
                 social_accounts.append('정보없음.')
         except:

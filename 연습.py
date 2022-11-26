@@ -34,4 +34,4 @@ base_info = info.create_list()
 #     base_list[perio].append(i_subject)
 #     perio += 1
 
-print(base_info)
+print(dir(SchoolTimetableApi))
