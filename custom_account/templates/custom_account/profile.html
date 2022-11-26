@@ -7,7 +7,9 @@
 {% for account in social_accounts %}
     {% if account.get_provider_display %}
         get_provider_display : {{ account.get_provider_display }}<br>
-        get_provider_account : ???<br><br>
+        get_provider_account :
+        {% if account.get_provider_account %}{{ account.get_provider_account }}
+        {%else%}제공된 정보 없음.{% endif %}<br><br>
     {% endif %}
 {% endfor %}
 
