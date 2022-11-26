@@ -4,13 +4,9 @@
 
 
 연결된 계정<br>
-{% for account in social_accounts %}
-    {% if account.get_provider_display %}
-        get_provider_display : {{ account.get_provider_display }}<br>
-        get_provider_account :
-        {% if account.get_provider_account %}{{ account.get_provider_account }}
-        {%else%}제공된 정보 없음.{% endif %}<br><br>
-    {% endif %}
+{% for account in social_account_info %}
+        get_provider_display : {{ account.0 }}<br>
+        get_provider_account : {{ account.1 }}<br><br>
 {% endfor %}
 
 <div>

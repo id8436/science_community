@@ -76,10 +76,20 @@ def profile(request):
     # 연결된 소셜계정 정보.
     #print(dir(request.user.user_set.all()[1].socialaccount_set.all().first()))
     #print(request.user.user_set.all()[1].socialaccount_set.all())
+    social_provider = []
     social_accounts = []
     for accounts in request.user.user_set.all():
-        social_accounts.append(accounts.socialaccount_set.all().first())
-    context = {'social_accounts': social_accounts}
+        account = accounts.socialaccount_set.all().first()
+        try:
+            social_provider.append(account.get_provider_display())
+            try:
+                social_accounts.append(account.get_provider_account())  # 공급자에게서 사용자 정보를 얻지 못하는 경우.
+            except:
+                social_accounts.append('정보없음.')
+        except:
+            pass
+    social_account_info = list(zip(social_provider, social_accounts))
+    context = {'social_account_info': social_account_info}
 
     return render(request, 'custom_account/profile.html', context)
 
