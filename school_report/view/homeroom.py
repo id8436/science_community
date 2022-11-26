@@ -256,3 +256,29 @@ def announcement_check(request, announcement_id):
     else:
         messages.error(request, '본인의 공지만 체크할 수 있습니다.')
     return redirect('school_report:announcement_detail', posting_id=announcement.base_announcement.id)
+
+from .for_api import SchoolTimetableApi
+def neis_timetable(request, homeroom_id):
+    homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
+    school = homeroom.school
+    context = {}
+    # 시간설정.
+    today = datetime.datetime.today()
+    day_num = datetime.timedelta(days=today.weekday() + 1)
+    sunday = today - day_num
+    a_day = datetime.timedelta(days=1)
+    date_list = []
+    for i in range(7):
+        adding_date = sunday + i * a_day
+        adding_date = adding_date.strftime('%m월 %d일')
+        date_list.append(adding_date)
+    day_list = ['(월)', '(화)', '(수)', '(목)', '(금)', '(토)', '(일)']
+    date_list = list(zip(date_list, day_list))
+    context['date_list'] = date_list
+    # 데이터 가져오기.
+    table = SchoolTimetableApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=school.school_code,
+                               GRADE=homeroom.grade, CLASS_NM=homeroom.cl_num, school_name=school.name)
+    table = table.create_list()  # 시간표정보 가져오기.
+    context['timetable'] = table
+
+    return render(request, 'school_report/homeroom/timetable.html', context)

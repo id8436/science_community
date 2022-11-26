@@ -17,14 +17,17 @@ class School(models.Model):
         )
 class Homeroom(models.Model):
     school = models.ForeignKey('School', on_delete=models.CASCADE)
-    #grade = models.IntegerField(null=True, blank=True)   # 학년
-    #cl_num = models.IntegerField(null=True, blank=True)  # 반
+    grade = models.IntegerField(null=True, blank=True)   # 학년
+    cl_num = models.IntegerField(null=True, blank=True)  # 반
     name = models.CharField(max_length=20, null=True, blank=True)  # 학년반 대신 학급명을 사용하는 경우.
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자.
     code = models.TextField()  # 비밀코드
     def __str__(self):
         return self.name
-
+    class Meta:
+        unique_together = (
+            ('school', 'grade', 'cl_num')
+        )
 class Classroom(models.Model):
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.

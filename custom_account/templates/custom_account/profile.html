@@ -3,11 +3,12 @@
 {% block content %}
 
 
-연결된 계정
+연결된 계정<br>
 {% for account in social_accounts %}
-    get_provider_display : {{ account.get_provider_display }}<br>
-    get_provider_account : {{ account.get_provider_account }}
-<br><br>
+    {% if account.get_provider_display %}
+        get_provider_display : {{ account.get_provider_display }}<br>
+        get_provider_account : {{ account.get_provider_account }}<br><br>
+    {% endif %}
 {% endfor %}
 
 <div>

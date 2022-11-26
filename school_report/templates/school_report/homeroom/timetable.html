@@ -1,0 +1,37 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+<style>
+table td:hover {
+    background-color: rgba(0,0,0,.075);
+}</style>
+{% if timetable %}
+<h3 class="my-3 border-bottom pb-2">우리반 시간표(neis정보)</h3>
+<div class="table-responsive">
+<table class="table table-bordered" id="meal_table">
+    <thead>
+        <tr>
+            <th class="table-info" style="text-align:center">일자</th>
+            {% for date in date_list %}
+            <th class="table-info" style="text-align:center">{{date.0}}{{date.1}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for key, info in timetable.items %}
+    <tr>
+        <th class="table-info" style="text-align:center">{{key}}</th>
+        {% for subject in info %}
+        <td style="text-align:center">{{subject|safe}}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+
+    </tbody>
+</table></div>
+{% else %}
+학교코드 혹은 시도교육청 코드가 잘못된 듯합니다. 학교 관리자에 문의하세요~
+{% endif %}
+
+{% endblock content%}

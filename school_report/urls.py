@@ -31,6 +31,7 @@ urlpatterns = [
     path('homeroom/student_assignment/<int:homeroom_id>/', homeroom.assignment, name='homeroom_student_assignment'),
     path('homeroom/download_excel_form/<int:homeroom_id>/', homeroom.download_excel_form, name='homeroom_download_excel_form'),
     path('homeroom/upload_excel_form/<int:homeroom_id>/', homeroom.upload_excel_form, name='homeroom_upload_excel_form'),
+    path('homeroom/neis_timetable/<int:homeroom_id>/', homeroom.neis_timetable, name='neis_timetable'),
     # 공지
     path('homeroom/announcement/create/<int:homeroom_id>/', homeroom.announcement_create, name='announcement_create'),
     path('homeroom/posting/detail/<int:posting_id>/', homeroom.announcement_detail, name='announcement_detail'),
