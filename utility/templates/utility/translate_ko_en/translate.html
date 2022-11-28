@@ -27,7 +27,14 @@
     </div>
 </form>
 
-<h4>번역결과</h4>
+<h4 class="my-3 border-bottom pb-2">번역결과</h4>
 <div>{{ translated_text }}</div>
+<br>
+<h6 class="my-3 border-bottom pb-2">영어로 번역하여 검증.</h6>
+<div>{{ verification_en }}</div>
+<br>
+<h6 class="my-3 border-bottom pb-2">영어를 다시 번역하기.</h6>
+<div>{{ verification_again }}</div>
+
 
 {% endblock content%}

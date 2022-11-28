@@ -9,10 +9,17 @@
 <li>엑셀 파일을 올리고 나면 돌아올 때까지 시간은 좀 걸립니다.</li>
 <li>틀린 부분에 마우스 커서를 올리고 있으면 교정 정보에 대해 볼 수 있습니다.</li>
 
+<h4 class="my-3 border-bottom pb-2">엑셀 양식으로 검사.(첫번째 시트만)</h4>
 <form action="{% url 'utility:korean_spell_upload_excel_form' %}" method="POST" enctype="multipart/form-data">
         <input type="file" name="uploadedFile">
         {% csrf_token %}
         <input type="submit" value="맞춤법 확인할 엑셀 올리기.">
+</form>
+<h4 class="my-3 border-bottom pb-2">간단 검사.</h4>
+<form action="{% url 'utility:korean_spell_upload_excel_form' %}" method="GET">
+        <input type="text" name="check_text">
+        {% csrf_token %}
+        <input type="submit" value="간단 맞춤법 확인하기.">
 </form>
 
 

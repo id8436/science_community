@@ -48,15 +48,16 @@ def main(request):
 
 
 def upload_excel_form(request):
+    context = {}
+    wrong_text = {}  # 틀린 정보와 수정내용을 담을 사전.
     if request.method == "POST":
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         sheetnames = wb.sheetnames
         work_sheet = wb[sheetnames[0]]  # 첫번째 워크시트를 사용한다.
 
-        context = {}
         # 엑셀 데이터를 처리한다.
-        wrong_text = {}
+
         for row in work_sheet.rows:  # 열을 순회한다.
             for cell in row:
                 cell = cell.value
@@ -66,5 +67,9 @@ def upload_excel_form(request):
                 if cor_num > 0:  # 수정이 있었다면 내용을 담는다.
                     wrong_text[cell] = corrected_text  # 잘못된 내용에 대한 정보를 추가.
         context['correct_info'] = wrong_text
-
+    if request.method == "GET":
+        check_text = request.GET["check_text"]
+        cor_num, corrected_text = han_spell(check_text)
+        wrong_text[check_text] = corrected_text
+        context['correct_info'] = wrong_text
     return render(request, 'utility/korean_spell/main.html', context)
