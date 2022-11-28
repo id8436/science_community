@@ -15,15 +15,17 @@ let count = 1;
     }
 </script>
 
-{% if subjects %}
+
 
 
 
 <form method="post" enctype="multipart/form-data" class="post-form my-3" onsubmit="return confirm('제출합니까? 허위작성 시 불이익을 받을 수 있습니다.')">
     {% csrf_token %}
     <div class="form-group">
+
         <div class="container">
 간단한 작업이고, 혼란을 방지하기 위해 실수 없이 작성하시기 바랍니다.
+            {% if subjects %}
 <table class="table table-hover" id="posting_table">
     <thead>
     <tr class="thead-dark">

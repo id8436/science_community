@@ -77,6 +77,8 @@ def result_main(request, board_id):
     df_dict = {}  # 과목별 df를 모을 사전.
     subject_chart = {}  # 차트를 그릴 데이터를 담을 사전.
     for subject in subject_list:
+        if subject.score_set.count() < 1:
+            continue  # 등록된 정보가 없으면 에러가 나니, 패스.
         df = statistical_of_score(request, subject)
         # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
         subject_info = calculate_score(df['score'])  # 해당 과목의 평균, 분산, 표준편차 등 데이터를 얻는다.
@@ -100,16 +102,24 @@ def result_main(request, board_id):
     context['subject_chart'] = subject_chart
 
     # 프로필 가져오기.
-    exam_profile = Exam_profile.objects.get(master=request.user, base_exam=board)
-    context['exam_profile'] = exam_profile
-    studnet_code = exam_profile.test_code
+    try:
+        exam_profile = Exam_profile.objects.get(master=request.user, base_exam=board)
+        context['exam_profile'] = exam_profile
+    except:  # 프로필이 없는 경우. 그냥 넘기게끔.
+        pass
+    #studnet_code = exam_profile.test_code
     self_data = {}
     for subject in subject_list:
+        if subject.score_set.count() < 1:
+            continue  # 등록된 정보가 없으면 에러가 나니, 패스.
         subject_score_data = []
         df = df_dict[subject]  # 불러오기.
         # 누군가 잘못하여 여러 학번 코드가 중복되는 경우를 방지하기 위해 그냥 호출..
-        score_object = Score.objects.filter(user=exam_profile, base_subject=subject)
-        score_object = score_object[0]
+        try:  # 프로필이 없는 경우에도 에러가 나니 넘기자.
+            score_object = Score.objects.filter(user=exam_profile, base_subject=subject)
+            score_object = score_object[0]
+        except:  # 프로필이 없는 경우. 그냥 넘기게끔.
+            continue
         if score_object.real_score != None:
             score = score_object.real_score
         else:
@@ -166,12 +176,14 @@ def subject_answer_info_form_download(request, subject_id):
         ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
 
     # 기존 입력 데이터 반영.
-    answers = json.loads(subject.right_answer)
-    for i, answer in enumerate(answers):
-        ws.cell(row=3, column=i+3).value = answer
-    distributions = json.loads(subject.distribution)
-    for i, distribution in enumerate(distributions):
-        ws.cell(row=2, column=i+3).value = distribution
+    if subject.right_answer:
+        answers = json.loads(subject.right_answer)
+        for i, answer in enumerate(answers):
+            ws.cell(row=3, column=i+3).value = answer
+    if subject.distribution:
+        distributions = json.loads(subject.distribution)
+        for i, distribution in enumerate(distributions):
+            ws.cell(row=2, column=i+3).value = distribution
 
     scores = subject.score_set.all()
     for i, score in enumerate(scores):

@@ -80,7 +80,10 @@ class Exam_profile(models.Model):
     name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
     # 하위모델로 score가 있어 함께 조작해주어야 한다.
     def __str__(self):
-        return self.student.name
+        try:
+            return self.student.name
+        except:
+            return self.master
     # class Meta:
     #     unique_together = (
     #         ('test_code', 'base_exam')  # 근데, 이건 학생 인증할 때 옮겨야 해서...참 어렵다;

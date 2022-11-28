@@ -261,7 +261,7 @@ from .for_api import SchoolTimetableApi
 def neis_timetable(request, homeroom_id):
     homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
     school = homeroom.school
-    context = {}
+    context = {'homeroom': homeroom}
     # 시간설정.
     today = datetime.datetime.today()
     day_num = datetime.timedelta(days=today.weekday() + 1)
