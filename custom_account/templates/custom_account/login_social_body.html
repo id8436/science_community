@@ -31,4 +31,19 @@
     </button></center>
 </form>
 
+
+
+{% static 'custom_account/social_login/google_login.png' as google_button %}
+{% static 'custom_account/social_login/google_login_hover.png' as google_button_hover %}
+<form method="post" action="/accounts/google/login/">
+    {% csrf_token %}
+    <center>
+    <button type="submit" class="btn btn-light">
+              <img src="{{ google_button }}"
+                 onmouseover="this.src='{{ google_button_hover }}'"
+                 onmouseleave="this.src='{{ google_button }}'"height="34">
+          </a>
+    </button></center>
+</form>
+
 <!--  프로바이더의 순서는 settings에 지정한 순서인 듯하다.  -->

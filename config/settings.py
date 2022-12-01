@@ -54,8 +54,8 @@ INSTALLED_APPS = [
 'allauth.socialaccount',  # 소셜 계정을 관리하기 위한 것.
 # 사용할 외부기능을 추가한다.
 'allauth.socialaccount.providers.naver',
-'allauth.socialaccount.providers.google',
 'allauth.socialaccount.providers.kakao',
+'allauth.socialaccount.providers.google',
 ]
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
