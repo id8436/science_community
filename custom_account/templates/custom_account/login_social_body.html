@@ -46,4 +46,18 @@
     </button></center>
 </form>
 
+
+<!-- 페이스북 로그인 버튼을 받기 위한 토대. javascript SDK.-->
+<div id="fb-root"></div>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/ko_KR/sdk.js#xfbml=1&version=v15.0&appId=917216392777410&autoLogAppEvents=1" nonce="VnITL3cb"></script>
+
+<form method="post" action="/accounts/facebook/login/">
+    {% csrf_token %}
+    <center>
+    <button type="submit" class="btn btn-light">
+                <!-- 위 javascript SCK와 연동하여 로그인버튼 호출.-->
+<div class="fb-login-button" data-width="" data-size="medium" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div>          </a>
+    </button></center>
+</form>
+
 <!--  프로바이더의 순서는 settings에 지정한 순서인 듯하다.  -->
