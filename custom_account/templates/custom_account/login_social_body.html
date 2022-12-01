@@ -7,7 +7,7 @@
 
 {% static 'custom_account/social_login/naver_login.png' as naver_button %}
 {% static 'custom_account/social_login/naver_login_hover.png' as naver_button_hover %}
-<form method="post" action="/accounts/naver/login/">
+<a href="{% provider_login_url 'facebook' method='js_sdk' %}">
     {% csrf_token %}
 <!--    <input type="hidden" name="next" value="{{request.path}}"> 이걸 쓰면 사용하던 페이지로 리다이렉트가 가능하지만, 메인페이지에서 social계정을 본계정으로 바꿔주어야 하기 때문에 본 페이지로 이동시킨다.-->
     <center>
@@ -16,7 +16,7 @@
                  onmouseover="this.src='{{ naver_button_hover }}'"
                  onmouseleave="this.src='{{ naver_button }}'"height="34">
     </button></center>
-</form>
+</a>
 
 {% static 'custom_account/social_login/kakao_login.png' as kakao_button %}
 {% static 'custom_account/social_login/kakao_login_hover.png' as kakao_button_hover %}
@@ -56,7 +56,8 @@
     <center>
     <button type="submit" class="btn btn-light">
                 <!-- 위 javascript SCK와 연동하여 로그인버튼 호출.-->
-<div class="fb-login-button" data-width="" data-size="medium" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div>          </a>
+<div class="fb-login-button" data-width="" data-size="medium" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div>
+
     </button></center>
 </form>
 
