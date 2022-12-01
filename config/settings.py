@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 'allauth.socialaccount.providers.facebook',
 ]
 SITE_ID = 1
+ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
