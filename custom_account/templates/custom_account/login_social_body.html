@@ -27,7 +27,6 @@
               <img src="{{ kakao_button }}"
                  onmouseover="this.src='{{ kakao_button_hover }}'"
                  onmouseleave="this.src='{{ kakao_button }}'"height="34">
-          </a>
     </button></center>
 </form>
 
@@ -42,7 +41,6 @@
               <img src="{{ google_button }}"
                  onmouseover="this.src='{{ google_button_hover }}'"
                  onmouseleave="this.src='{{ google_button }}'"height="34">
-          </a>
     </button></center>
 </form>
 
@@ -52,15 +50,14 @@
 <script async defer crossorigin="anonymous" src="https://connect.facebook.net/ko_KR/sdk.js#xfbml=1&version=v15.0&appId=917216392777410&autoLogAppEvents=1" nonce="VnITL3cb"></script>
 
 
-
-<a href="{% provider_login_url 'facebook' method='js_sdk' %}">
+<form method="post" action="/accounts/facebook/login/">
     {% csrf_token %}
     <center>
     <button type="submit" class="btn btn-light">
-                <!-- 위 javascript SCK와 연동하여 로그인버튼 호출.-->
-<div class="fb-login-button" data-width="" data-size="medium" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div>
+        <!-- 위 javascript SCK와 연동하여 로그인버튼 호출.-->
+        <div class="fb-login-button" data-width="" data-size="medium" data-button-type="login_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div>
 
     </button></center>
-</a>
+</form>
 
 <!--  프로바이더의 순서는 settings에 지정한 순서인 듯하다.  -->
