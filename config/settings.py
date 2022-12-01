@@ -57,9 +57,10 @@ INSTALLED_APPS = [
 'allauth.socialaccount.providers.kakao',
 'allauth.socialaccount.providers.google',
 'allauth.socialaccount.providers.facebook',
+'allauth.socialaccount.providers.instagram',
 ]
 SITE_ID = 1
-ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
+# ACCOUNT_DEFAULT_HTTP_PROTOCOL='https' 페이스북 로그인 시도하면서 이것저것 해본 건데, 없어도 될듯?(채팅기능 http로 작동하는지 확인해보자.)
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',

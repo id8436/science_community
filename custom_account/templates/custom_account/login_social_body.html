@@ -51,7 +51,19 @@
     {% csrf_token %}
     <center>
     <button type="submit" class="btn btn-light">
-              <img src="{{ google_button }}"
+              <img src="{{ facebook_button }}"
+                 onmouseover="this.src='{{ facebook_button_hover }}'"
+                 onmouseleave="this.src='{{ facebook_button }}'"height="34">
+    </button></center>
+</form>
+
+{% static 'custom_account/social_login/facebook_login.png' as facebook_button %}
+{% static 'custom_account/social_login/facebook_login_hover.png' as facebook_button_hover %}
+<form method="post" action="/accounts/instagram/login/">
+    {% csrf_token %}
+    <center>
+    <button type="submit" class="btn btn-light">
+              <img src="{{ facebook_button }}"
                  onmouseover="this.src='{{ facebook_button_hover }}'"
                  onmouseleave="this.src='{{ facebook_button }}'"height="34">
     </button></center>
