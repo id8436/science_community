@@ -57,16 +57,6 @@
     </button></center>
 </form>
 
-{% static 'custom_account/social_login/facebook_login.png' as facebook_button %}
-{% static 'custom_account/social_login/facebook_login_hover.png' as facebook_button_hover %}
-<form method="post" action="/accounts/instagram/login/">
-    {% csrf_token %}
-    <center>
-    <button type="submit" class="btn btn-light">
-              <img src="{{ facebook_button }}"
-                 onmouseover="this.src='{{ facebook_button_hover }}'"
-                 onmouseleave="this.src='{{ facebook_button }}'"height="34">
-    </button></center>
-</form>
+2022.12 기준 인스타그램은 로그인용으로 사용할 수 없다고 못박아둠.
 
 <!--  프로바이더의 순서는 settings에 지정한 순서인 듯하다.  -->
