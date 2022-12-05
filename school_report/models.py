@@ -9,6 +9,8 @@ class School(models.Model):
     school_code = models.CharField(max_length=20, null=True, blank=True)  # 나이스 api 이용을 위한 학교코드
     education_office = models.CharField(max_length=20, null=True, blank=True)  # 나이스 api 이용을 위한 교육청코드
 
+    # 각종 정보
+    site_account = models.ManyToManyField('Memo')
     def __str__(self):
         return self.name + str(self.year)
     class Meta:
@@ -125,3 +127,12 @@ class HomeworkSubmit(models.Model):
     submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
         return self.to_student.name
+
+class Memo(models.Model):
+    '''각종 모델에서 정보를 저장할 때 사용할 모델.'''
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='memo_author')
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True, null=True, blank=True)  # 모델수정.
+    text1 = models.TextField(null=True, blank=True)  # 서비스명,
+    text2 = models.TextField(null=True, blank=True)  # 아이디,
+    text3 = models.TextField(null=True, blank=True)  # 패스워드,

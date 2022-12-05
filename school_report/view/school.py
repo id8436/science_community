@@ -204,7 +204,7 @@ def school_student_upload_excel_form(request, school_id):
             pass
         else:
             messages.error(request, '이 기능은 관리자만이 가능합니다.')
-            return check.Check_teacher(request, school).redirect_to_school()  # 학교에 소속된 교사인지 검증.
+            return check.Check_teacher(request, school).redirect_to_school()
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
@@ -337,3 +337,37 @@ def meal_info(request, school_id):
             meal_data['재료정보'].append(i['ORPLC_INFO'])  # 재료정보
         context['meal_data'] = meal_data
     return render(request, 'school_report/school/meal_info.html', context)
+
+def school_account_info(request, school_id):
+    '''교내에서 공유하는 다양한 계정들에 대하여.'''
+    school = get_object_or_404(models.School, pk=school_id)
+    context = {'school': school}
+    Teacher = check.Check_teacher(request, school).in_school_and_none()
+    if Teacher != None:
+        pass
+    else:
+        messages.error(request, '학교에 등록된 교사만 열람할 수 있습니다.')
+        return check.Check_teacher(request, school).redirect_to_school()
+    account_data = school.site_account.all()
+    context['account_data'] = account_data
+    print(account_data)
+    return render(request, 'school_report/school/school_account_info.html', context)
+
+def school_account_info_create(request, school_id):
+    school = get_object_or_404(models.School, pk=school_id)
+    context = {'school': school}
+    Teacher = check.Check_teacher(request, school).in_school_and_none()
+    if Teacher != None:
+        pass
+    else:
+        messages.error(request, '학교에 등록된 교사만 열람할 수 있습니다.')
+        return check.Check_teacher(request, school).redirect_to_school()
+    if request.method == "POST":
+        sites = request.POST.getlist('site')
+        ids = request.POST.getlist('site_id')
+        passwords = request.POST.getlist('site_password')
+        for site, id, password in zip(sites, ids, passwords):
+            account_info = models.Memo.objects.create(author=request.user, text1=site, text2=id, text3=password)
+            school.site_account.add(account_info)
+        return redirect('school_report:school_account_info', school_id=school.id)
+    return render(request, 'school_report/school/school_account_info_create.html', context)

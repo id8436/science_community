@@ -1,0 +1,29 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+
+
+<h3 class="my-3 border-bottom pb-2">각종 계정 안내</h3>
+<a href="{% url 'school_report:school_account_info_create' school.id %}" class="btn btn-outline-info">계정 등록</a>
+<div class="table-responsive">
+<table class="table table-hover table-bordered" id="meal_table">
+    <thead>
+        <tr class="table-info">
+            <td>서비스</td>
+            <td>ID</td>
+            <td>PassWord</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for memo in account_data %}
+        <tr>
+            <td>{{ memo.text1 }}</td><td>{{ memo.text2 }}</td><td>{{ memo.text3 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table></div>
+
+
+
+{% endblock content%}
