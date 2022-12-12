@@ -14,6 +14,7 @@ from .view import posting_interest, board_interest
 from custom_account.views import notification_add  # 관심 게시판에 게시글을 작성하면 알림을 주기 위함.
 from django.core.paginator import Paginator  # 게시판리스트, 게시글리스트, 답변글리스트를 위한 페이지네이터.
 from django.contrib.auth import get_user_model  # 유저모델. 유저 신고에서 사용.
+from school_report.view import check
 
 def board_list_hidden(request, category):
     '''게시판 객체들을 페이지네이션을 가해 반환한다.'''
@@ -126,9 +127,18 @@ def board_list(request, category_id):
     get_categroy_name(category=category, context=context)
     return render(request, 'boards/base/board/board_list.html', context)
 
+
 def board_detail(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     category = board.category
+    # 교사게시판인 경우. 확인 후 리다이렉팅.
+    if category.name.split('_')[0] == 'teacher':
+        teacher = check.Check_teacher(request, board.school).in_school_and_none()
+        if teacher != None:
+            pass
+        else:
+            messages.error(request, '교사만 접근 가능합니다.')
+            check.Check_teacher(request, board.school).redirect_to_school()
     context_posting = posting_list_hidden(request, board_id)  # 하위 포스팅 가져오기.
     # ----- list함수와 같은 부분 -----
     context_board = board_list_hidden(request, category)
@@ -232,6 +242,14 @@ def get_categroy_name(category, context):
 def posting_detail_on_board(request, posting_id):
     posting = get_object_or_404(Posting, pk=posting_id)
     category = posting.board.category
+    # 교사게시판인 경우. 확인 후 리다이렉팅.
+    if category.name.split('_')[0] == 'teacher':
+        teacher = check.Check_teacher(request, posting.board.school).in_school_and_none()
+        if teacher != None:
+            pass
+        else:
+            messages.error(request, '교사만 접근 가능합니다.')
+            check.Check_teacher(request, posting.board.school).redirect_to_school()
     # ----- board_detail 함수와 같은 부분 -----
     board = posting.board
     context_posting = posting_list_hidden(request, board.id)

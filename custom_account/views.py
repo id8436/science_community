@@ -6,6 +6,11 @@ def login_test(request):
     return render(request, 'custom_account/login_social.html', {})
 
 def login_main(request):
+    try:  # 로그인을 안한 경우엔 is_social 속성이 없기 때문에 에러를 반환한다.
+        is_social = request.user.is_social
+    except:
+        messages.error(request, '잘못된 접근입니다.')
+        return redirect('main:show')
     if request.method == 'GET':
         return render(request, 'custom_account/login_main.html')
 

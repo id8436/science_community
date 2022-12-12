@@ -189,9 +189,10 @@ def subject_answer_info_form_download(request, subject_id):
     for i, score in enumerate(scores):
         ws.cell(row=4 + i, column=1).value = score.user.test_code  # 학번 반영.
         # 학생 응답 쓰기.
-        indi_answers = score.answer
-        for j, indi_answer in enumerate(indi_answers):
-            ws.cell(row=4+i, column=j+3).value = indi_answer  # 학생의 답 써넣기.
+        if score.answer != None:
+            indi_answers = score.answer
+            for j, indi_answer in enumerate(indi_answers):
+                ws.cell(row=4+i, column=j+3).value = indi_answer  # 학생의 답 써넣기.
 
     # 색 채우기
     black_fill = PatternFill(fill_type='solid', fgColor=Color('000000'))
@@ -214,7 +215,60 @@ def subject_answer_info_form_download(request, subject_id):
     wb.save(response)
 
     return response
+def subject_descriptive_info_form_download(request, subject_id):
+    '''객관식 입력 양식'''
+    subject = get_object_or_404(Subject, pk=subject_id)
+    wb = openpyxl.Workbook()
+    ws = wb.create_sheet('명단 form', 0)
+    ws['A1'] = subject.name  # 과목명을 가장 첫행에 기입해넣는다.
+    ws['A3'] = '학번↓'
+    ws['B1'] = '서술문항번호->'
+    ws['B2'] = '배점->'
+    ws['B3'] = '비우기->'
+    ws['B4'] = '이 열은 비우기'
+    ws.column_dimensions['B'].width = 10
 
+    for i in range(10):  # 기존 틀 생성.
+        ws.cell(row=1, column=i + 3).value = i+1  # 문항번호.
+        ws.cell(row=2, column=i + 3).value = 0  # 문항배점칸.
+        ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
+
+    # 기존 입력 데이터 반영.
+    if subject.descriptive_distribution:  # 배점정보 반영.
+        answers = json.loads(subject.descriptive_distribution)
+        for i, answer in enumerate(answers):
+            ws.cell(row=3, column=i+3).value = answer
+
+    scores = subject.score_set.all()
+    for i, score in enumerate(scores):
+        ws.cell(row=4 + i, column=1).value = score.user.test_code  # 학번 반영.
+        # 학생 응답 쓰기.(여기선 학생 객관식 점수.)
+        if score.descriptive != None:
+            indi_answers = score.descriptive
+            for j, indi_answer in enumerate(indi_answers):
+                ws.cell(row=4+i, column=j+3).value = indi_answer  # 학생의 답 써넣기.
+
+    # 색 채우기
+    black_fill = PatternFill(fill_type='solid', fgColor=Color('000000'))
+    yellow_fill = PatternFill(fill_type='solid', fgColor=Color('ffff99'))
+    red_fill = PatternFill(fill_type='solid', fgColor=Color('ff9999'))
+    for cell in ws["B"]:
+        cell.fill = black_fill
+    for cell in ws["1"]:
+        cell.fill = yellow_fill
+    for cell in ws["2:2"]:
+        cell.fill = red_fill
+    for cell in ws["3"]:
+        cell.fill = black_fill
+    for cell in ws["A:A"]:
+        cell.fill = yellow_fill
+
+
+    response = HttpResponse(content_type="application/vnd.ms-excel")
+    response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
+    wb.save(response)
+
+    return response
 
 def subject_answer_info_form_upload(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
@@ -312,7 +366,93 @@ def subject_answer_info_form_upload(request, subject_id):
     messages.info(request, '등록 성공')
 
     return redirect('boards:board_detail', board_id=board.id)
+def subject_descriptive_info_form_upload(request, subject_id):
+    '''객관식 점수 등록'''
+    subject = get_object_or_404(Subject, pk=subject_id)
+    board = subject.base_exam
+    school = subject.base_exam.school
+    if check.Check_teacher(request, school).in_school_and_none() and request.method == "POST":
+        pass
+    else:
+        return check.Check_teacher(request, school).redirect_to_school()
+    uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
+    wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
+    work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
 
+    # 엑셀 데이터를 리스트 처리한다.
+    work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
+    for row in work_sheet.rows:  # 열을 순회한다.
+        row_data = []  # 열 데이터를 담기 위한 리스트
+        for cell in row:
+            row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
+        work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
+        # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
+    # meta data.
+    meta = work_sheet_data[0]
+    if subject.name == meta[0]:
+        pass
+    else:
+        messages.error(request,'과목정보가 다릅니다. 등록하고자 한 과목:' + subject.name + ', 등록한 과목:'+str(meta[0]))
+        return redirect('boards:board_detail', board_id=board.id)
+
+    #### 교과 자체에 대한 정보.
+    ###### 필요없는 기능은 지웠음.
+    # 배점정보 담기.
+    distribution_info = work_sheet_data[1]  # 2행은 배점정보.
+    distribution_list = []
+    for i in range(len(distribution_info)-2):
+        distribution = distribution_info[i+2]
+        if distribution == None:
+            distribution = 0
+        distribution_list.append(distribution)  # 정답 순서대로 담는다.
+    subject.descriptive_distribution = json.dumps(distribution_list)
+    subject.official_check = True  # 공식 점수가 올라갔음을 의미.
+    subject.official_teacher = request.user  # 공식 점수의 등록자.
+    subject.save()  # 정보를 담고 저장.
+
+    # 학생 정보 저장.
+    work_sheet_data = work_sheet_data[3:]  # 1~3번째 행은 버린다.(메타데이터)
+    for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+        if data[0] == None:  # 위의 행을 비우고 올린 경우가 있다. 이런 경우엔 지나가주자.
+            continue
+        student_code = str(data[0])
+        try:
+            student = Student.objects.get(school=school, student_code=student_code)
+        except Exception as e:
+            messages.error(request, str(student_code) +'수험자 정보에 이상이 있습니다. 수험자를 기관에 먼저 등록하세요.')
+            return redirect('boards:board_detail', board_id=board.id)
+
+        if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
+            user = student.admin  # 계정 소유자.
+            exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+            exam_profile.student = student
+        else:
+            exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
+        if created:
+            from boards.templatetags.board_filter import create_random_name
+            exam_profile.name = create_random_name(10)  # 새로 생성되었다면 이름 배정조치.
+        exam_profile.test_code = student_code
+        exam_profile.save()
+
+        score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)  # 점수 생성.
+        user_answer = []  # 사용자의 답을 담기 위한 리스트.
+        for i in range(len(data)-2):
+            answer = data[i+2]
+            user_answer.append(answer)
+        score.descriptive = json.dumps(user_answer)  # 받은배점을 여기에 담는다.
+        # 점수 계산.
+        try:  # 배점정보가 있을 때.
+            test = distribution_list[0]
+            result_score = 0
+            for distribution in user_answer:
+                result_score += float(distribution)
+            score.descriptive_score = result_score
+        except:
+            pass
+        score.save()  # 해당 학생의 답변을 저장하고 닫는다.
+    messages.info(request, '등록 성공')
+
+    return redirect('boards:board_detail', board_id=board.id)
 def show_answer(request, score_id):
     # 나중에 과목별로 답변을 보게 하면 좋겠네. 한번에 볼 수 있게.
     score = Score.objects.get(id=score_id)

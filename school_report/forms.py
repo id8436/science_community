@@ -1,6 +1,10 @@
 from django import forms
 from .models import *
 
+class SchoolForm(forms.ModelForm):
+    class Meta:
+        model = School
+        fields = ['name', 'year', 'level', 'school_code', 'education_office']
 class HomeroomForm(forms.ModelForm):
     class Meta:
         model = Homeroom

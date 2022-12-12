@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 from .. import models  # 모델 호출.
-from ..forms import HomeroomForm
+from ..forms import HomeroomForm, SchoolForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import openpyxl
 from . import check
 from django.http import HttpResponse
 import random
-from boards.models import Board, Board_category
+from boards.models import Board, Board_category, Board_name
 from .for_api import SchoolMealsApi
 
 def main(request, school_id):
@@ -45,8 +45,59 @@ def list(request):
     context['board_list'] = school_list
     return render(request, 'school_report/school/list.html', context)
 
+def name_trimming(name):
+    instr = name
+    outstr = ''
+    for i in range(0, len(instr)):  # 문자열 내 공백 없애기.
+        if instr[i] != ' ':
+            outstr += instr[i]
+    return outstr
+
+@login_required()
+def school_create(request):
+    context = {}
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        form = SchoolForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
+        if form.is_valid():  # 문제가 없으면 다음으로 진행.
+            school = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
+            school.master = request.user  # 추가한 속성 author 적용
+            name = name_trimming(school.name)  # 이름에서 공백 제거해 적용.
+            school.name = name
+            # 게시판 생성 및 연동.
+            board_name = str(school.name) + " 교직원 게시판"
+            board_name = Board_name.objects.create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;;)
+            category = Board_category.objects.get(pk=7)  # 교직원게시판의 카테고리.
+            board = Board.objects.create(board_name=board_name, category=category, enter_year=school.year, author=request.user)
+            school.teacher_board_id = board.id  # 게시판 지정.
+            school.save()
+            return redirect('school_report:school_main', school_id=school.id)
+    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
+        form = SchoolForm()
+    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
+    return render(request, 'school_report/school/school_create.html', context)
+@login_required()
+def school_modify(request, school_id):
+    school = get_object_or_404(models.School, pk=school_id)
+    if request.user != school.master:
+        messages.error(request, '수정권한이 없습니다')
+        return redirect('school_report:school_main', school_id=school.id)
+    if request.method == "POST":
+        form = SchoolForm(request.POST, instance=school)  # 받은 내용을 객체에 담는다. instance에 제대로 된 걸 넣지 않으면 새로운 인스턴스를 만든다.
+        if form.is_valid():
+            school = form.save(commit=False)
+            name = name_trimming(school.name)  # 이름에서 공백 제거해 적용.
+            school.name = name
+            school.save()
+            return redirect('school_report:school_main', school_id=school.id)
+    else:  # GET으로 요청된 경우.
+        form = SchoolForm(instance=school)  # 해당 모델의 내용을 가져온다!
+        # 태그를 문자열화 하여 form과 함께 담는다.
+    context = {'form': form}
+    return render(request, 'school_report/school/school_create.html', context)
+
 @login_required()
 def download_excel_form(request, school_id):
+    '''교사 명단 폼.'''
     school = get_object_or_404(models.School, pk=school_id)
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
@@ -338,36 +389,3 @@ def meal_info(request, school_id):
         context['meal_data'] = meal_data
     return render(request, 'school_report/school/meal_info.html', context)
 
-def school_account_info(request, school_id):
-    '''교내에서 공유하는 다양한 계정들에 대하여.'''
-    school = get_object_or_404(models.School, pk=school_id)
-    context = {'school': school}
-    Teacher = check.Check_teacher(request, school).in_school_and_none()
-    if Teacher != None:
-        pass
-    else:
-        messages.error(request, '학교에 등록된 교사만 열람할 수 있습니다.')
-        return check.Check_teacher(request, school).redirect_to_school()
-    account_data = school.site_account.all()
-    context['account_data'] = account_data
-    print(account_data)
-    return render(request, 'school_report/school/school_account_info.html', context)
-
-def school_account_info_create(request, school_id):
-    school = get_object_or_404(models.School, pk=school_id)
-    context = {'school': school}
-    Teacher = check.Check_teacher(request, school).in_school_and_none()
-    if Teacher != None:
-        pass
-    else:
-        messages.error(request, '학교에 등록된 교사만 열람할 수 있습니다.')
-        return check.Check_teacher(request, school).redirect_to_school()
-    if request.method == "POST":
-        sites = request.POST.getlist('site')
-        ids = request.POST.getlist('site_id')
-        passwords = request.POST.getlist('site_password')
-        for site, id, password in zip(sites, ids, passwords):
-            account_info = models.Memo.objects.create(author=request.user, text1=site, text2=id, text3=password)
-            school.site_account.add(account_info)
-        return redirect('school_report:school_account_info', school_id=school.id)
-    return render(request, 'school_report/school/school_account_info_create.html', context)

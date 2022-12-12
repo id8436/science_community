@@ -7,16 +7,23 @@ test학교 메인
 <div>
     학교마스터 : {{school.master}}
 </div>
+{% if user == school.master %}
+<h3 class="my-3 border-bottom pb-2">기관 마스터 메뉴</h3>
+<a href="{% url 'school_report:school_modify' school.id %}">학교정보 수정하기</a><br>
+{% endif %}
+<div class="my-3 border-bottom pb-2"></div>
+
 
 {% if school.school_code %}
 <a href="{% url 'school_report:meal_info' school.id %}">급식정보 보러 가기</a><br>
 {% endif %}
 
-
 {% if teacher %}
+<h4 class="my-3 border-bottom pb-2">교직원 메뉴</h4>
     어서오세요, {{ teacher.name }} 선생님~!
     (학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)
-    <br><a href="{% url 'school_report:school_account_info' school.id %}">학교 각종 공유 계정 열람</a><br>
+    <br><a href="{% url 'boards:posting_list' school.teacher_board_id %}">교직원 게시판</a><br>
+    <a href="{% url 'school_report:homeroom_create' school.id %}">학급 생성</a>
     <a href="{% url 'school_report:classroom_create' school.id %}">교과교실 생성</a>
 
             {% if school.master == user %}
@@ -34,13 +41,12 @@ test학교 메인
     {% include "boards/score/board_list_body.html" %}
 {% endwith %}
 
-
 {% else%}
     <div>
         <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기</a>
     </div>
-
 {% endif %}
+
 
 <h6>학생메뉴</h6>
 {% if student %}
@@ -70,5 +76,21 @@ test학교 메인
     <h1><a href="{% url 'school_report:student_code_input' school.id %}">학생 인증하기</a></h1>
 </div>
 {% endif %}
+
+<!--테스트용 구글광고.-->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9484107006498284"
+     crossorigin="anonymous"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-9484107006498284"
+     data-ad-slot="6000466177"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+
 
 {% endblock content%}

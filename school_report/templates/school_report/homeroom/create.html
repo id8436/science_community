@@ -11,9 +11,13 @@
     <div class="form-group">
         <label>학교</label>
     <div type="text" class="form-control" name="school" id="school">{{school}}</div>
-        <label>학교 코드</label>
-    <input type="password" class="form-control" name="code" id="code"
-                       value="{{ form.code.value|default_if_none:'' }}" placeholder="학교 비밀코드를 입력하세요.">
+
+
+<h5 class="my-3 border-bottom pb-2">아래는 다 선택사항입니다.</h5>
+        그래도 식별을 위해서 학급이름을 넣든가, 학년, 반을 넣어주세요~
+        <label>학급 이름</label>
+    <input type="text" class="form-control" name="name" id="name"
+                       value="{{ form.name.value|default_if_none:'' }}" placeholder="학급의 이름으로 사용할 텍스트 입력.">
 
     <label>학년</label>
     <select class="form-select" id="grade" name="grade">

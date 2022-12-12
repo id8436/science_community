@@ -8,10 +8,10 @@ urlpatterns = [
 
     # 학교기능 관련.
     path('school/<int:school_id>/', school.main, name='school_main'),
+    path('school_create/', school.school_create, name='school_create'),
+    path('school_modify/<int:school_id>/', school.school_modify, name='school_modify'),
     path('school/school_list/', school.list, name='school_list'),
     path('meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
-    path('school_account_info/<int:school_id>/', school.school_account_info, name='school_account_info'),
-    path('school_account_info_create/<int:school_id>/', school.school_account_info_create, name='school_account_info_create'),
 
     #교사명단
     path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),

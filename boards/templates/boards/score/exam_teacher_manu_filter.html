@@ -20,9 +20,9 @@
     <thead>
     <tr class="thead-dark">
         <th>과목</th>
-        <th>점수등록자</th>
-        <th>양식다운</th>
-        <th>양식제출</th>
+        <th>등록</th>
+        <th>객관</th>
+        <th>객관식양식제출</th><th>서술</th><th>서술형양식제출</th>
     </tr>
     </thead>
     <tbody>
@@ -35,13 +35,22 @@
                 <a href="{%url 'boards:show_answer_for_teacher' subject.id%}">응답보기</a>{%endif%}
         </td>
         <td>{{subject.score_set.count}}명</td>
-        <td><a href="{%url 'boards:subject_answer_info_form_download' subject.id %}">다운</a></td>
+        <td><a href="{%url 'boards:subject_answer_info_form_download' subject.id %}">양식받기</a></td>
         <td>
             <form action="{% url 'boards:subject_answer_info_form_upload' subject.id %}" method="POST" enctype="multipart/form-data"
             onsubmit="return confirm('답안정보를 입력하면 점수를 자동으로 계산합니다. 서술형은 반영되지 않으니, 점수를 따로 올려주세요~')">
             <input type="file" name="uploadedFile">
             {% csrf_token %}
-            <input type="submit" value="파일 올리기">
+            <input type="submit" value="객관식 제출">
+            </form>
+        </td>
+        <td><a href="{%url 'boards:subject_descriptive_info_form_download' subject.id %}">양식받기</a></td>
+        <td>
+            <form action="{% url 'boards:subject_answer_info_form_upload' subject.id %}" method="POST" enctype="multipart/form-data"
+            onsubmit="return confirm('답안정보를 입력하면 점수를 자동으로 계산합니다. 서술형은 반영되지 않으니, 점수를 따로 올려주세요~')">
+            <input type="file" name="uploadedFile">
+            {% csrf_token %}
+            <input type="submit" value="서술형 제출">
             </form>
         </td>
     </tr>

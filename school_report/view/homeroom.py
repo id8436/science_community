@@ -12,14 +12,14 @@ def create(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        if school.code != request.POST.get('code'):  # 코드가 같아야 진행.
-            messages.error(request, "학교 코드가 맞지 않습니다.")
-            context['form'] = HomeroomForm(request.POST)
-            return render(request, 'school_report/homeroom/create.html', context)
+        teacher = check.Check_teacher(request, school).in_school_and_none()
+        if teacher == None:
+            messages.error(request, '학교에 소속된 교사만 교실개설이 가능합니다.')
+            return check.Check_teacher(request, school).redirect_to_school()
         form = HomeroomForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
         if form.is_valid():  # 문제가 없으면 다음으로 진행.
             homeroom = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
-            homeroom.master = request.user  # 추가한 속성 author 적용
+            homeroom.master = teacher
             homeroom.school = school
             homeroom.save()
             return render(request, 'school_report/homeroom/main.html', context)  # 작성이 끝나면 작성한 글로 보낸다.

@@ -1,16 +1,19 @@
 from django.db import models
 from django.conf import settings
 
+
 class School(models.Model):
-    name = models.CharField(max_length=10)
-    year = models.IntegerField()
-    level = models.CharField(max_length=10)  # 초중고대, 대학원 + 기타.
+    name = models.CharField(max_length=10, blank=False)
+    year = models.IntegerField(blank=False)
+    level = models.CharField(max_length=10, blank=False)  # 초중고대, 대학원 + 기타.
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자. 마스터는 등록 안했다면 비게끔.
     school_code = models.CharField(max_length=20, null=True, blank=True)  # 나이스 api 이용을 위한 학교코드
     education_office = models.CharField(max_length=20, null=True, blank=True)  # 나이스 api 이용을 위한 교육청코드
 
     # 각종 정보
-    site_account = models.ManyToManyField('Memo')
+    teacher_board_id = models.IntegerField(default=6)  # 학교게시판으로 연결.
+
+    #site_account = models.ManyToManyField('Memo') 버린 모델.
     def __str__(self):
         return self.name + str(self.year)
     class Meta:
@@ -83,6 +86,7 @@ class Student(models.Model):
             ('school', 'student_code')
         )
         ordering = ['student_code']
+
 class Announcement(models.Model):
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.
     classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
@@ -128,11 +132,4 @@ class HomeworkSubmit(models.Model):
     def __str__(self):
         return self.to_student.name
 
-class Memo(models.Model):
-    '''각종 모델에서 정보를 저장할 때 사용할 모델.'''
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='memo_author')
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True, null=True, blank=True)  # 모델수정.
-    text1 = models.TextField(null=True, blank=True)  # 서비스명,
-    text2 = models.TextField(null=True, blank=True)  # 아이디,
-    text3 = models.TextField(null=True, blank=True)  # 패스워드,
+

@@ -14,7 +14,7 @@ class Board(models.Model):
     interest_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='board_interest_users')
     interest_count = models.IntegerField(default=0)
 
-    # - 점수공유에 대한 기능.
+    # 점수공유에 대한 기능. + 학교게시판.
     school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)  # 주관단체
     # official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
     # official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
@@ -50,6 +50,7 @@ class Subject(models.Model):
                                          related_name='official_teacher')  # 시험점수를 입력한 사람을 기록하기 위해.
     right_answer = models.TextField(null=True, blank=True)  # 정답은 Json으로 받아 저장한다.
     distribution = models.TextField(null=True, blank=True)  # 위와 동일하게 저장.
+    descriptive_distribution = models.TextField(null=True, blank=True)  # 서술형 배점정보.
     def __str__(self):
         return self.name
     class Meta:
@@ -63,6 +64,8 @@ class Score(models.Model):
     score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
     real_score = models.IntegerField(default=None, null=True, blank=True)  # 생성 후 입력해서 null이 필요하다.
     answer = models.TextField(null=True, blank=True)  # 시험에서의 응답을 담기 위한 것. Json으로 받는다.
+    descriptive_score = models.IntegerField(default=None, null=True, blank=True)  # 서술형점수.
+    descriptive = models.TextField(null=True, blank=True)  # 서술형 배점정보(응시자가 받은 점수).
     # def __str__(self):
     #     return self.user
     # class Meta:  # 학생 인증할 때 옮기는 데... 유니크 제한이 방해가 된다.
