@@ -7,13 +7,14 @@
 
 <div class="card my-3">
     <div class="card-body">
-<a href="{% url 'boards:subject_download_excel_form' board.id  %}">점수만 올릴 양식 다운받기.</a>
-<br>점수만 입력하기.
-<form action="{% url 'boards:subject_upload_excel_form' board.id %}" method="POST" enctype="multipart/form-data">
-        <input type="file" name="uploadedFile">
-        {% csrf_token %}
-        <input type="submit" value="점수 양식 올리기">
-</form>
+<!--    점수 올리기는 서술형으로 대체하자.    -->
+<!--<a href="">점수만 올릴 양식 다운받기.</a>-->
+<!--<br>점수만 입력하기.-->
+<!--<form action="" method="POST" enctype="multipart/form-data">-->
+<!--        <input type="file" name="uploadedFile">-->
+<!--        {% csrf_token %}-->
+<!--        <input type="submit" value="점수 양식 올리기">-->
+<!--</form>-->
 
 <h4 class="border-bottom py-2">개별응답 올리기</h4>
 <table class="table table-hover" id="score_table">
@@ -46,8 +47,8 @@
         </td>
         <td><a href="{%url 'boards:subject_descriptive_info_form_download' subject.id %}">양식받기</a></td>
         <td>
-            <form action="{% url 'boards:subject_answer_info_form_upload' subject.id %}" method="POST" enctype="multipart/form-data"
-            onsubmit="return confirm('답안정보를 입력하면 점수를 자동으로 계산합니다. 서술형은 반영되지 않으니, 점수를 따로 올려주세요~')">
+            <form action="{% url 'boards:subject_descriptive_info_form_upload' subject.id %}" method="POST" enctype="multipart/form-data"
+            onsubmit="return confirm('답안정보를 입력하면 점수를 자동으로 계산합니다.')">
             <input type="file" name="uploadedFile">
             {% csrf_token %}
             <input type="submit" value="서술형 제출">

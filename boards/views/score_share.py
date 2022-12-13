@@ -40,14 +40,14 @@ def statistical_of_score(request, subject):
     try:  # 점수가 등록되지 않는 과목들이 있는 경우.
         if scores.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
             for score in scores:
-                if score.real_score == None:
+                if score.real_total_score == None:  # 없는 점수는 추가하지 않도록.
                     continue
                 code = score.user.test_code
                 code_list.append(code)
-                score_list.append(score.real_score)
+                score_list.append(score.real_total_score)
         else:
             for score in scores:
-                if score.score == None:
+                if score.score == None:  # 없는 점수는 추가하지 않도록.
                     continue
                 code = score.user.test_code
                 code_list.append(code)
@@ -364,6 +364,9 @@ def subject_answer_info_form_upload(request, subject_id):
                 if right == answer:
                      result_score += float(distribution)
             score.real_score = result_score
+            if score.descriptive_score == None:
+                score.descriptive_score = 0
+            score.real_total_score = score.real_score + score.descriptive_score  # 각 점수를 합한 값을 저장.
         except:
             pass
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
@@ -446,12 +449,17 @@ def subject_descriptive_info_form_upload(request, subject_id):
         score.descriptive = json.dumps(user_answer)  # 받은배점을 여기에 담는다.
         # 점수 계산.
         try:  # 배점정보가 있을 때.
-            test = distribution_list[0]
             result_score = 0
             for distribution in user_answer:
+                if distribution == None:
+                    continue  # 배점정보가 비었다면 패스.
                 result_score += float(distribution)
             score.descriptive_score = result_score
-        except:
+            if score.real_score == None:
+                score.real_score = 0
+            score.real_total_score = score.real_score + score.descriptive_score
+        except Exception as e:
+            print(e)
             pass
         score.save()  # 해당 학생의 답변을 저장하고 닫는다.
     messages.info(request, '등록 성공')

@@ -7,6 +7,8 @@ app_name = 'utility'
 
 urlpatterns = [
     path('', views.main, name='main'),
+    path('do_DB/', views.do_DB, name='do_DB'),  # 변동사항이 생겨 데이터베이스에 반영이 필요할 때.
+
     path('compound_interest/', views.compound_interest, name='compound_interest'),
 
     # 심리상담봇

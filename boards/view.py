@@ -278,71 +278,73 @@ def subject_download_excel_form(request, board_id):
     return response
 
 from school_report.view import check
-def subject_upload_excel_form(request, board_id):
-    if request.method == "POST":
-        board = get_object_or_404(Board, pk=board_id)
-        school = board.school
-        if check.Check_teacher(request, board.school).in_school_and_none():
-            pass
-        else:
-            messages.error(request, '이 기능은 관리자만이 가능합니다.')
-            return redirect('boards:board_detail', board_id=board_id)
-
-        uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
-        wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
-        work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
-
-        # 엑셀 데이터를 리스트 처리한다.
-        work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
-        for row in work_sheet.rows:  # 열을 순회한다.
-            row_data = []  # 열 데이터를 담기 위한 리스트
-            for cell in row:
-                row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
-            work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
-            # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
-
-        subject_info = work_sheet_data[0]  # 첫행은 과목을 생성하는 데 사용한다.
-        subject_list = []  # 과목을 담을 리스트. 객체가 담긴다.
-        for i in range(len(subject_info)-2):
-            subject_name = subject_info[i+2]
-            try:
-                subject = Subject.objects.get(base_exam=board, name=subject_name)  # 기존에 제작된 과목만.
-            # 과목을 만들게 했더니.. 엑셀 잘못올리면 수많은 잘못된 과목이 생성되어서;;
-            except:
-                messages.error(request,'과목 등록이 먼저 이루어져야 합니다. 과목명을 점검하세요.')
-                return redirect('boards:board_detail', board_id=board_id)
-            subject_list.append(subject)
-            subject.official_check = True  # 공식 점수가 올라갔음을 의미.
-            subject.official_teacher = request.user  # 공식 점수의 등록자.
-            subject.save()
-
-        work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
-        for data in work_sheet_data:  # 행별로 데이터를 가져온다.
-            student_code = str(data[0])
-            name = str(data[1])
-            try:
-                student = Student.objects.get(school=school, student_code=student_code, name=name)
-            except Exception as e:
-                messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
-                return redirect('boards:board_detail', board_id=board_id)
-
-            if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
-                user = student.admin  # 계정 소유자.
-                exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
-            else:
-                exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
-            if created:
-                from boards.templatetags.board_filter import create_random_name
-                exam_profile.name = create_random_name(10)  # 새로 생성되었다면 이름 배정조치.
-            exam_profile.student = student  # 프로필에 관련 정보를 담아줘야지~!
-            exam_profile.test_code = student_code
-            exam_profile.save()
-            for i, subject in enumerate(subject_list):
-                score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
-                score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.
-                score.save()
-
-                # board.save()  # 공식 체크를 교과로 옮기면서 필요없어짐.
-
-    return redirect('boards:board_detail', board_id=board_id)
+# 단순 점수 올리는 건 서술형 점수로 대체한다.
+# def subject_upload_excel_form(request, board_id):
+#     if request.method == "POST":
+#         board = get_object_or_404(Board, pk=board_id)
+#         school = board.school
+#         if check.Check_teacher(request, board.school).in_school_and_none():
+#             pass
+#         else:
+#             messages.error(request, '이 기능은 소속 교사만이 가능합니다.')
+#             return redirect('boards:board_detail', board_id=board_id)
+#
+#         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
+#         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
+#         work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
+#
+#         # 엑셀 데이터를 리스트 처리한다.
+#         work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
+#         for row in work_sheet.rows:  # 열을 순회한다.
+#             row_data = []  # 열 데이터를 담기 위한 리스트
+#             for cell in row:
+#                 row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
+#             work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
+#             # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
+#
+#         subject_info = work_sheet_data[0]  # 첫행은 과목을 생성하는 데 사용한다.
+#         subject_list = []  # 과목을 담을 리스트. 객체가 담긴다.
+#         for i in range(len(subject_info)-2):
+#             subject_name = subject_info[i+2]
+#             try:
+#                 subject = Subject.objects.get(base_exam=board, name=subject_name)  # 기존에 제작된 과목만.
+#             # 과목을 만들게 했더니.. 엑셀 잘못올리면 수많은 잘못된 과목이 생성되어서;;
+#             except:
+#                 messages.error(request,'과목 등록이 먼저 이루어져야 합니다. 과목명을 점검하세요.')
+#                 return redirect('boards:board_detail', board_id=board_id)
+#             subject_list.append(subject)
+#             subject.official_check = True  # 공식 점수가 올라갔음을 의미.
+#             subject.official_teacher = request.user  # 공식 점수의 등록자.
+#             subject.save()
+#
+#         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
+#         for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+#             student_code = str(data[0])
+#             name = str(data[1])
+#             try:
+#                 student = Student.objects.get(school=school, student_code=student_code, name=name)
+#             except Exception as e:
+#                 messages.error(request, '수험자 정보에 이상이 있습니다. 기관에 먼저 등록하세요.')
+#                 return redirect('boards:board_detail', board_id=board_id)
+#
+#             if student.admin != None:  # 이 서비스를 이용하지 않는사람에겐 학생계정이 없어 문제가 생긴다.
+#                 user = student.admin  # 계정 소유자.
+#                 exam_profile, created = Exam_profile.objects.get_or_create(master=user, base_exam=board)  # 시험용 프로필.
+#             else:
+#                 exam_profile, created = Exam_profile.objects.get_or_create(student=student, base_exam=board)
+#             if created:
+#                 from boards.templatetags.board_filter import create_random_name
+#                 exam_profile.name = create_random_name(10)  # 새로 생성되었다면 이름 배정조치.
+#             exam_profile.student = student  # 프로필에 관련 정보를 담아줘야지~!
+#             exam_profile.test_code = student_code
+#             exam_profile.save()
+#             for i, subject in enumerate(subject_list):
+#                 score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)
+#                 if data[i+2] != None:
+#                     score.real_score = data[i+2]  # 데이터로 들어온 점수를 넣어준다.
+#                     score.save()
+#
+#                 # board.save()  # 공식 체크를 교과로 옮기면서 필요없어짐.
+#
+#     return redirect('boards:board_detail', board_id=board_id)
 

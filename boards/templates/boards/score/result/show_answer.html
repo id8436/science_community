@@ -34,7 +34,29 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
     </table>
     </div></div>
 
+<h4>{{subject}} 정답</h4>
+<div class="card my-3">
+    <div class="card-body">
 
+    <table class="table table-hover" id="descriptive-table">
+    <thead class="table-dark">
+    <tr class="thead-dark">
+        <th>문항</th>
+        <th>배점</th>
+        <th>나의 점수</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for distribution, right, user_answer in answer_info %}
+    <tr {%if right == user_answer %}{%else%}class="table-danger"{%endif%}>
+        <td>{{forloop.counter}}</td>
+        <td>{{distribution}}</td>
+        <td>{{user_answer}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div></div>
 
 
 {% endblock content%}

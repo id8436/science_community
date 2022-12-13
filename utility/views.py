@@ -27,3 +27,15 @@ def compound_interest(request):
                'form':form,
                }
     return render(request, 'utility/compound_interest.html', context)
+
+from boards.models import Score
+def do_DB(request):
+    scores = Score.objects.all()
+    for i in scores:
+        if i.real_score == None:
+            i.real_score = 0
+        if i.descriptive_score == None:
+            i.descriptive_score = 0
+        i.real_total_score = i.real_score + i.descriptive_score
+        i.save()
+    return render(request, 'utility/main.html', {})
