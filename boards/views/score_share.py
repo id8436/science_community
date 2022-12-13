@@ -40,11 +40,15 @@ def statistical_of_score(request, subject):
     try:  # 점수가 등록되지 않는 과목들이 있는 경우.
         if scores.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
             for score in scores:
+                if score.real_score == None:
+                    continue
                 code = score.user.test_code
                 code_list.append(code)
                 score_list.append(score.real_score)
         else:
             for score in scores:
+                if score.score == None:
+                    continue
                 code = score.user.test_code
                 code_list.append(code)
                 score_list.append(score.score)
