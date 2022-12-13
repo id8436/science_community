@@ -17,7 +17,7 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
     <thead class="table-dark">
     <tr>
         <th onclick="sortTable(0)" style="cursor: pointer">문항</th>
-        <th onclick="sortTable_int(1)" style="cursor: pointer">점수</th>
+        <th onclick="sortTable_int(1)" style="cursor: pointer">객관식점수</th>
         {% for i in right_answer%}
         <td>{{forloop.counter}}번</td>
         {%endfor%}

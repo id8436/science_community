@@ -38,7 +38,7 @@ def statistical_of_score(request, subject):
     code_list = []  # 학생코드 담을 것.
     score_list = [] # 점수 담을 것.
     try:  # 점수가 등록되지 않는 과목들이 있는 경우.
-        if scores.last().real_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
+        if scores.last().real_total_score:  # 공식으로 등록된 점수가 있다면 공식 점수를...
             for score in scores:
                 if score.real_total_score == None:  # 없는 점수는 추가하지 않도록.
                     continue
@@ -124,8 +124,8 @@ def result_main(request, board_id):
             score_object = score_object[0]
         except:  # 프로필이 없는 경우. 그냥 넘기게끔.
             continue
-        if score_object.real_score != None:
-            score = score_object.real_score
+        if score_object.real_total_score != None:
+            score = score_object.real_total_score
         else:
             score = score_object.score
         ## 본인의 점수를 담았으니, 각종 작업 수행.
@@ -442,7 +442,7 @@ def subject_descriptive_info_form_upload(request, subject_id):
         exam_profile.save()
 
         score, created = Score.objects.get_or_create(user=exam_profile, base_subject=subject)  # 점수 생성.
-        user_answer = []  # 사용자의 답을 담기 위한 리스트.
+        user_answer = []  # 사용자의 배점을 담기 위한 리스트.
         for i in range(len(data)-2):
             answer = data[i+2]
             user_answer.append(answer)
@@ -478,6 +478,9 @@ def show_answer(request, score_id):
         context['answer_info'] = zip(distribution, right_answer, user_anser)  # 이중for문을 위하여~
         #context['user_answer'] = decoder.decode(score.answer)
         context['subject'] = score.base_subject
+        descriptive_distribution = decoder.decode(subject.descriptive_distribution)
+        descriptive = decoder.decode(score.descriptive)
+        context['descriptive_answer_info'] = zip(descriptive_distribution, descriptive)
         return render(request, 'boards/score/result/show_answer.html', context)
     else:
         messages.error(request, '자신의 정답만 확인할 수 있습니다.')

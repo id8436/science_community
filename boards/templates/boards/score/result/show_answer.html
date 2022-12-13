@@ -34,7 +34,7 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
     </table>
     </div></div>
 
-<h4>{{subject}} 정답</h4>
+<h4>서술형 정보</h4>
 <div class="card my-3">
     <div class="card-body">
 
@@ -47,11 +47,11 @@ table#jb-table tfoot { position: sticky; bottom: 0; }
     </tr>
     </thead>
     <tbody>
-    {% for distribution, right, user_answer in answer_info %}
-    <tr {%if right == user_answer %}{%else%}class="table-danger"{%endif%}>
+    {% for distribution, user_score in descriptive_answer_info %}
+    <tr {%if distribution == user_score %}{%else%}class="table-danger"{%endif%}>
         <td>{{forloop.counter}}</td>
         <td>{{distribution}}</td>
-        <td>{{user_answer}}</td>
+        <td>{{user_score}}</td>
     </tr>
     {% endfor %}
     </tbody>
