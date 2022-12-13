@@ -14,7 +14,7 @@
     <tr>
         <td>{{score.base_subject}}</td>
         <td>{{score.score}}</td>
-        <td>{{score.real_total_score}}-{{score.real_score}}-{{score.descriptive_score}}</td><td>{{score.base_subject.official_teacher}}</td>
+        <td>{{score.real_total_score}}</td><td>{{score.base_subject.official_teacher}}</td>
         <td>{%if score.answer%}
             <a href="{% url 'boards:show_answer' score.id %}">보기</a>{%else%}
             등록안됨{%endif%}
