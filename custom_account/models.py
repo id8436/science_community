@@ -34,7 +34,7 @@ class User(AbstractBaseUser):
     #----- 추가 기능들
     is_social = models.BooleanField(default=True)  # 소셜계정인가 여부. 기본적으로 True로 두어 추가계정 연결을 꾀한다.
     connected_user = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
-    email = models.EmailField(max_length=128, null=True, blank=True)  # 이메일은 반드시 입력하게끔.
+    email = models.EmailField(max_length=128, null=True, blank=True, unique=True)  # 이메일은 반드시 입력하게끔.
     email_check = models.BooleanField(default=False)
     nickname = models.CharField(max_length=15, unique=True, null=True, blank=False)
     created_date = models.DateTimeField(auto_now_add='True')
@@ -44,9 +44,9 @@ class User(AbstractBaseUser):
     #teacher = models.OneToOneField(Teacher, default=None, blank=True, null=True, on_delete=models.SET_NULL)  # 연결된 교사프로필
     #student = models.OneToOneField(Student, default=None, blank=True, null=True, on_delete=models.SET_NULL, related_name='connected_student')  # 연결된 학생프로필
     def __str__(self):
-        # if self.identifier ==None:
-        #     return self.username
-        return self.nickname or "이름없음"
+        if self.nickname:
+            return self.nickname
+        return self.username
 
     def has_module_perms(self, app_label):
         '''앱 라벨을 받아, 해당 앱에 접근 가능한지 파악'''

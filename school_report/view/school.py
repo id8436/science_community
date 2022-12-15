@@ -389,3 +389,9 @@ def meal_info(request, school_id):
         context['meal_data'] = meal_data
     return render(request, 'school_report/school/meal_info.html', context)
 
+def student_reset(request, student_id):
+    student = models.Student.objects.get(pk=student_id)
+    student.obtained = False
+    student.code = random.randint(100000, 999999)
+    student.save()
+    return redirect('school_report:student_assignment', school_id=student.school.id)

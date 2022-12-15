@@ -87,7 +87,7 @@ class Exam_profile(models.Model):
         try:
             return self.student.name
         except:
-            return self.master
+            return self.master.nickname
     # class Meta:
     #     unique_together = (
     #         ('test_code', 'base_exam')  # 근데, 이건 학생 인증할 때 옮겨야 해서...참 어렵다;
