@@ -11,6 +11,8 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('signup/', views.signup, name='signup'),
     path('password_find/', views.find_id_and_password_reset_code, name='password_find'),
+    path('email_verification_for_password/', views.email_verification_for_password, name='email_verification_for_password'),
+
     path('user_info_change/', views.user_info_change, name='user_info_change'),
 
     path('notification/show/', views.notification_show, name='notification_show'),

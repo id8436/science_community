@@ -34,7 +34,8 @@ class User(AbstractBaseUser):
     #----- 추가 기능들
     is_social = models.BooleanField(default=True)  # 소셜계정인가 여부. 기본적으로 True로 두어 추가계정 연결을 꾀한다.
     connected_user = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
-    email = models.EmailField(max_length=128, null=True, blank=True, unique=True)  # 이메일은 반드시 입력하게끔.
+    email = models.EmailField(max_length=128, null=True, blank=False)  # 이메일은 반드시 입력하게끔.(소셜계정은 메일이 없는 경우가 있어서;;)
+    # 누군가 악의적으로 남의 이메일을 등록할 수 있으니 유니크는 걸지 않는다.
     email_check = models.BooleanField(default=False)
     nickname = models.CharField(max_length=15, unique=True, null=True, blank=False)
     created_date = models.DateTimeField(auto_now_add='True')

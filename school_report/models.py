@@ -70,7 +70,8 @@ class Teacher(models.Model):
 
 
 class Student(models.Model):
-    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='student_user')
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_user')
+    # 어드민이지워질 때 학생계정이 지워지면 누군가 악용할 수 있다 싶어서... null로 둔다.
     school = models.ForeignKey('School', on_delete=models.CASCADE)
     homeroom = models.ManyToManyField('Homeroom')
     #number = models.IntegerField()  # 학생번호. 지우자.

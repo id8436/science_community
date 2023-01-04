@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from .forms import *
 

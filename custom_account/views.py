@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
+
+import config.secret
 from .forms import User_create_form, User_update_form
 from django.contrib import messages
+from config.secret import SERVICE_DOMAIN
 
 def login_test(request):
     return render(request, 'custom_account/login_social.html', {})
@@ -57,6 +60,8 @@ def signup(request):
 
 def user_info_change(request):
     if request.method == "POST":
+        # 과거의 정보는 폼처리가 되기 전에 저장되어야 한다.
+        old_email = request.user.email
         form = User_update_form(request.POST, instance=request.user)
         from django.contrib.auth import authenticate
         password = request.POST.get('password_confirm', None)
@@ -65,8 +70,14 @@ def user_info_change(request):
             messages.error(request, '기존 비밀번호가 일치하지 않습니다.')
             return render(request, 'custom_account/user_info_change.html', {'form': form})
         if form.is_valid():
-            form.save()  # 폼값을 불러와 저장.
-            return redirect('custom_account:profile')  # 회원 가입 후 어디로 돌릴지.
+            user = form.save(commit=False)
+            print(user.email)
+            print(old_email)
+            if old_email != user.email:  # 이메일정보가 달라지면 인증 취소.
+                print('통과!')
+                user.email_check = False
+            user.save()
+            return redirect('custom_account:profile')
     else:
         form = User_update_form(instance=request.user)
     return render(request, 'custom_account/user_info_change.html', {'form': form})
@@ -76,42 +87,54 @@ def find_id_and_password_reset_code(request):
     context = {}
     if request.method == "POST":
         email = request.POST.get('email')
+        users = get_user_model().objects.filter(email=email)  # 계정 찾기.
+        username_list = []
+        for user in users:
+            if user.email_check:  # 이메일 인증이 되어 있는 유저만 담는다.
+                username_list.append(user.username)
+            else:
+                messages.error(request, '이메일 인증이 안된 계정도 있습니다. '+str(user.username)+' 이 경우, 비밀번호 초기화는 불가합니다.')
         try:
-            user = get_user_model().objects.get(email=email)  # 계정 찾기.
-            if user == None:
-                raise ValueError  # 없으면 에러 반환.
+            users[0]  # 없으면 에러 반환. user[0]에서 에러가 날듯.
         except Exception as e:
             print(e)
             messages.error(request, '해당 이메일을 가진 계정이 없습니다.')
-            return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
-        context['id'] = user.username  # 아이디정보 담기.
+            return redirect('custom_account:password_find')
+
+
+        context['username_list'] = username_list  # 아이디정보 담기.
 
         from django.shortcuts import reverse
-        context['to_url'] = 'http://' + request.get_host() + reverse('custom_account:email_verification'),
+        context['to_url'] = SERVICE_DOMAIN + reverse('custom_account:email_verification_for_password')
         response = send_email_cookie_content(request, "아이디 확인 및 비밀번호 초기화", [email],
                                              'custom_account/email_verification_for_password.html', context)
         return response
     else:
         pass
     return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
-
+from django.contrib.auth import get_user_model
 def email_verification_for_password(request):
     '''이메일 인증기능.'''
     if email_verify(request):
-        user_id = request.POST.get('user_id')
-        user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
+        user_id = request.POST.getlist('user_id')
+        user_list = []
+        for id in user_id:
+            user = get_user_model().objects.get(id=id)
+            user_list.append(user)
         # 비밀번호 랜덤 지정.
         import random
-        password = random.random()
-        user.set_password(password)  # 비밀번호 설정.
+        password = random.randint(100000, 999999)
+        for user in user_list:
+            user.set_password(password)  # 비밀번호 설정.
+            user.save()
         messages.error(request, "비밀번호는 잠깐 동안만 알려드립니다. 바로 기억해두세요!")
         text = '비밀번호는 ' + str(password) + ' 입니다.'
         messages.success(request, text)
 
-        response = redirect('custom_account:profile')  # 다음으로 갈 페이지 지정.
+        response = redirect('custom_account:login')  # 다음으로 갈 페이지 지정.
         response.delete_cookie('email_verification_code')  # 확인했으니, 저장했던 쿠키를 지워준다.
 
-        return response
+        return redirect('custom_account:login')
 
 from .models import Notification
 def notification_show(request):
@@ -185,11 +208,12 @@ def send_email_cookie_content(request, subject, to, html, content):
 
 def send_email_verify_code(request): #  쿠키를 이용해 검증해보자.
     from django.shortcuts import reverse
+
     # from config import secret
     user = request.user
     content = {'user': user,
                # http를 안넣어주면... 이메일 도메인을 호스트로 삼아 움직인다;
-               'to_url': 'http://' + request.get_host() + reverse('custom_account:email_verification'),
+               'to_url': SERVICE_DOMAIN + reverse('custom_account:email_verification'),
                }  # 이메일에 코드를 담아보낸다.
     response = send_email_cookie_content(request, "이메일 인증", [request.user.email],
                                          'custom_account/email_verification.html', content)
