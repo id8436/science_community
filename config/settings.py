@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'school_report',  # 학교 내 클래스를 만들기 위한 앱.
     'score_share',  # 점수 공유앱.
     'utility',  # 각종 기능 구현을 시도해보는 앱.
+    'django_celery_results',
 # 기능 관련
 #--소셜로그인 관련
 'django.contrib.sites',  # 사이트 정보를 설정하기 위해 필요
@@ -186,3 +187,9 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# celery설정
+CELERY_BROKER_URL = 'redis://localhost:6379'  # 브로커 주소값. 여기선 redis.
+CELERY_RESULT_BACKEND = 'django-db'  # 장고 DB를 사용하는 경우. DB백엔드로 redis를 사용한다면 위와 동일하게.
+# django-celery-result 백엔드 설정.
+CELERY_CAHCE_BACKEND = 'django-cache'

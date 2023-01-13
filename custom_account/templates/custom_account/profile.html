@@ -11,7 +11,7 @@
 
 <div>
     본계정 : {{ user.username}}
-    <a href="{% url 'custom_account:user_info_change' %}">회원정보 변경.</a>
+    <a href="{% url 'custom_account:password_find' %}">회원정보 변경.</a>
 </div>
 
 <div>
@@ -19,7 +19,7 @@
 {% if user.email_check %}
     (인증됨)
 {% else %}
-    이메일 인증이 안되어 있습니다.
+    이메일 인증이 안되어 있습니다. 회원정보 변경, 아이디 확인 등에 활용되니, 정확히 입력해주세요.
     <a href="{% url 'custom_account:send_email_verify_code' %}">인증코드 보내기</a>
 {% endif %}
 </div>

@@ -3,6 +3,22 @@ import openpyxl
 import requests
 import json
 
+from utility.tasks import correct_text
+from django.contrib.auth.decorators import login_required
+from utility.models import Spell, SpellObject
+
+def main(request):
+    context = {}
+    # 검사객체 올리기. 아래 함수 안에 있는 것과 동일.
+    try:
+        spell_user = Spell.objects.get(user=request.user)  # 위에서 객체가 만들어지기 전에 넘어갈 수 있어 try처리.
+        spell_objects = SpellObject.objects.filter(spell=spell_user)  # 맞춤법 객체들을 모은다.
+        context['spell_user'] = spell_user
+        context['spell_objects'] = spell_objects
+    except Exception as e:
+        print(e)
+    return render(request, 'utility/korean_spell/main.html', context)
+
 def han_spell(text):
     # 0. 수정 데이터 담기.
     cor_num = 0  # 수정한 횟수.
@@ -40,36 +56,42 @@ def han_spell(text):
         cor_num += 1  # 수정횟수 증가.
     return cor_num, corrected_text
 
-def main(request):
-    context = {}
 
-    return render(request, 'utility/korean_spell/main.html', context)
-
-
-
+@login_required()
 def upload_excel_form(request):
     context = {}
-    wrong_text = {}  # 틀린 정보와 수정내용을 담을 사전.
     if request.method == "POST":
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         sheetnames = wb.sheetnames
         work_sheet = wb[sheetnames[0]]  # 첫번째 워크시트를 사용한다.
 
-        # 엑셀 데이터를 처리한다.
-
+        # 엑셀 데이터를 처리한다. 리스트에 담는다.
+        inner_data = []
         for row in work_sheet.rows:  # 열을 순회한다.
-            for cell in row:
+            for cell in row:  # 줄 안의 셀을 순회한다.
                 cell = cell.value
                 if cell == None:
                     continue  # 데이터가 없으면 넘기기.
-                cor_num, corrected_text = han_spell(str(cell))  # 셀의 데이터를 교정처리한다.
-                if cor_num > 0:  # 수정이 있었다면 내용을 담는다.
-                    wrong_text[cell] = corrected_text  # 잘못된 내용에 대한 정보를 추가.
-        context['correct_info'] = wrong_text
-    if request.method == "GET":
+                inner_data.append(str(cell))
+        list_data = json.dumps(inner_data)  # json으로 바꾼다.
+
+        correct_text.delay(request.user.id, list_data)  # 비동기처리.
+        return redirect('utility:korean_spell')
+
+
+    else:  # 하나씩 처리할 때. GET으로 받는다.
+        wrong_text = {}  # 잘못된 정보를 담을 사전.
         check_text = request.GET["check_text"]
         cor_num, corrected_text = han_spell(check_text)
         wrong_text[check_text] = corrected_text
         context['correct_info'] = wrong_text
+        # 검사객체 올리기. main 함수 안에 있는 것과 동일.
+        try:
+            spell_user = Spell.objects.get(user=request.user)  # 위에서 객체가 만들어지기 전에 넘어갈 수 있어 try처리.
+            spell_objects = SpellObject.objects.filter(spell=spell_user)  # 맞춤법 객체들을 모은다.
+            context['spell_user'] = spell_user
+            context['spell_objects'] = spell_objects
+        except Exception as e:
+            print(e)
     return render(request, 'utility/korean_spell/main.html', context)

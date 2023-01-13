@@ -1,6 +1,37 @@
-{% extends 'custom_account/section.html' %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<!-- 반응형 웹을 위한 뷰포트 사용 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-{% block content %}
+<title>계정 관리</title>
+
+{% load static %}
+<!-- 각 앱의 CSS. 앱의 CSS를 먼저 뒤지고 상위의 CSS를 찾는다. -->
+<!-- jQuery JS 부트스트랩 JS를 쓰려면 필요해 -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'popper.min.js' %}"></script>
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" type="text/css" href="{% static 'bootstrap.min.css' %}">
+<!-- Bootstrap JS -->
+<script src="{% static 'bootstrap.min.js' %}"></script>
+
+
+<body>
+{% for message in messages %}
+    <div class="alert {{ message.tags }} alert-auto-dismissible notification-container text-center" role="alert">
+        {{ message }}
+    </div>
+{% endfor %}
+<script>
+window.setTimeout(function() {
+    $(".alert-auto-dismissible").fadeTo(500, 0).slideUp(500, function(){
+    $(this).remove();
+    });
+}, 8000);  // 초는 여기!
+</script>
 
 
 <div class="container my-3">
@@ -13,36 +44,31 @@
     <form method="post" class="post-form">
         {% csrf_token %}
         {% include "form_errors.html" %}
-        <div class="form-group">
-            <label for="password_confirm">기본 비밀번호</label>
-            <input type="password" class="form-control" name="password_confirm" id="password_confirm"
-            placeholder="현재 비밀번호가 맞아야 정보변경이 이루어집니다.">
-        </div>
-        <br><br>
+
         <h4>정보 변경</h4>
         <div class="form-group">
-            <label for="password1">바꿀 비밀번호</label>
+            <label for="password1">바꿀 비밀번호.</label>
             <input type="password" class="form-control" name="password1" id="password1"
                    value="{{ form.password1.value|default_if_none:'' }}" placeholder="비밀번호 안바꿀거면 비워두세요~">
         </div>
         <div class="form-group">
-            <label for="password2">비밀번호 확인</label>
+            <label for="password2">비밀번호 확인.</label>
             <input type="password" class="form-control" name="password2" id="password2"
                    value="{{ form.password2.value|default_if_none:'' }}">
         </div>
         <div class="form-group">
-            <label for="nickname">별칭(별명)</label>
+            <label for="nickname">별칭(별명).</label>
             <input type="text" class="form-control" name="nickname" id="nickname"
                    value="{{ form.nickname.value|default_if_none:'' }}">
         </div>
         <div class="form-group">
-            <label for="email">이메일</label>
+            <label for="email">이메일.</label> 이메일은 계정 보안의 핵심입니다.
             <input type="email" class="form-control" name="email" id="email"
-                   value="{{ form.email.value|default_if_none:'' }}">
+                   value="{{ form.email.value|default_if_none:'' }}" placeholder="회원정보 변경 등에 사용되니 정확히!!">
         </div>
+        <input type="hidden" name="email_verification_code" value="{{email_verification_code}}">
 
         <button type="submit" class="btn btn-primary">정보 변경</button>
     </form>
 </div>
-
-{% endblock %}
+</body>

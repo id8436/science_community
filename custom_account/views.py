@@ -59,61 +59,71 @@ def signup(request):
     return render(request, 'custom_account/signup.html', {'form': form})
 
 def user_info_change(request):
+    '''이메일에서 버튼을 눌러 수정되게끔.'''
     if request.method == "POST":
-        # 과거의 정보는 폼처리가 되기 전에 저장되어야 한다.
-        old_email = request.user.email
-        form = User_update_form(request.POST, instance=request.user)
-        from django.contrib.auth import authenticate
-        password = request.POST.get('password_confirm', None)
-        authentication = authenticate(username=request.user.username, password=password)
-        if authentication == None:
-            messages.error(request, '기존 비밀번호가 일치하지 않습니다.')
-            return render(request, 'custom_account/user_info_change.html', {'form': form})
+        if email_verify(request):
+            pass
+        else:
+            messages.error(request, '부정한 접근인 듯한데요;;;')
+            return redirect('custom_account:password_find')  # 비밀번호 찾기 페이지로 보내기.
+        user_id = request.COOKIES.get('user_id')  # 이메일을 보낼 때 쿠키에 넣었던 아이디의 수정만 가능하도록.
+        target_user = get_user_model().objects.get(id=user_id)
+        # 과거의 정보는 폼처리가 되기 전에 저장되어야 한다. 이메일이 달라지는 경우 이메일 인증 풀기.
+        old_email = target_user.email
+        form = User_update_form(request.POST, instance=target_user)
+        ## 비밀번호 인증은 없앴으니까.
+        # from django.contrib.auth import authenticate
+        # password = request.POST.get('password_confirm', None)
+        # authentication = authenticate(username=target_user.username, password=password)
+        # if authentication == None:
+        #     messages.error(request, '기존 비밀번호가 일치하지 않습니다.')
+        #     return render(request, 'custom_account/user_info_change.html', {'form': form})
         if form.is_valid():
             user = form.save(commit=False)
-            print(user.email)
-            print(old_email)
             if old_email != user.email:  # 이메일정보가 달라지면 인증 취소.
-                print('통과!')
                 user.email_check = False
             user.save()
+            from django.contrib.auth import logout  # 프로필로 돌아가는데, 소셜계정으로 들어가진다. 때문에 일단 로그아웃.
+            logout(request)
+            messages.success(request, '다시 로그인해주세요~')
             return redirect('custom_account:profile')
     else:
-        form = User_update_form(instance=request.user)
-    return render(request, 'custom_account/user_info_change.html', {'form': form})
+        if email_verify(request):
+            pass
+        else:
+            messages.info(request, '본인의 이메일로 회원정보 변경코드를 보냅니다.')
+            return redirect('custom_account:password_find')  # 비밀번호 찾기 페이지로 보내기.
+        user_id = request.COOKIES.get('user_id')  # 이메일을 보낼 때 쿠키에 넣었던 아이디의 수정만 가능하도록.
+        user = get_user_model().objects.get(id=user_id)
+        form = User_update_form(instance=user)
+        email_verification_code = request.COOKIES.get('email_verification_code')
+    return render(request, 'custom_account/user_info_change.html', {'form': form, 'email_verification_code': email_verification_code})
 
 from django.contrib.auth import get_user_model
 def find_id_and_password_reset_code(request):
+    '''회원정보 변경을 위한 이메일 보내기.'''
     context = {}
     if request.method == "POST":
-        email = request.POST.get('email')
-        users = get_user_model().objects.filter(email=email)  # 계정 찾기.
-        username_list = []
-        for user in users:
-            if user.email_check:  # 이메일 인증이 되어 있는 유저만 담는다.
-                username_list.append(user.username)
-            else:
-                messages.error(request, '이메일 인증이 안된 계정도 있습니다. '+str(user.username)+' 이 경우, 비밀번호 초기화는 불가합니다.')
         try:
-            users[0]  # 없으면 에러 반환. user[0]에서 에러가 날듯.
-        except Exception as e:
-            print(e)
+            email = request.POST.get('email')
+            user = get_user_model().objects.get(email=email)  # 계정 찾기.
+        except:
             messages.error(request, '해당 이메일을 가진 계정이 없습니다.')
             return redirect('custom_account:password_find')
-
-
-        context['username_list'] = username_list  # 아이디정보 담기.
+        context['user_info'] = user  # 아이디정보 담기.
 
         from django.shortcuts import reverse
-        context['to_url'] = SERVICE_DOMAIN + reverse('custom_account:email_verification_for_password')
-        response = send_email_cookie_content(request, "아이디 확인 및 비밀번호 초기화", [email],
+        context['to_url'] = SERVICE_DOMAIN + reverse('custom_account:user_info_change')
+        response = send_email_cookie_content(request, user.id, "아이디 확인 및 비밀번호 초기화", [email],
                                              'custom_account/email_verification_for_password.html', context)
         return response
     else:
-        pass
+        if request.user.email:
+            context['email'] = request.user.email
     return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
 from django.contrib.auth import get_user_model
 def email_verification_for_password(request):
+    '''이 함수 버리고... 회원정보 변경 페이지로 보낸다.'''
     '''이메일 인증기능.'''
     if email_verify(request):
         user_id = request.POST.getlist('user_id')
@@ -181,7 +191,7 @@ def profile(request):
 
     return render(request, 'custom_account/profile.html', context)
 
-def send_email_cookie_content(request, subject, to, html, content):
+def send_email_cookie_content(request, user_id, subject, to, html, content):
     '''이메일을 통해 쿠키 인증 링크를 보낸다.'''
     '''to는 리스트 형태로 받는다. content는 사전.'''
     # 쿠키 설정.
@@ -190,6 +200,7 @@ def send_email_cookie_content(request, subject, to, html, content):
     print(email_verification_code)
     response = redirect(request.META.get('HTTP_REFERER', '/'))  # 다음에 보낼 페이지를 지정해 응답을 받아야 한다.(그래야 저장됨)
     response.set_cookie('email_verification_code', email_verification_code, max_age=300)  # 사용자의 쿠키에 검증코드 저장
+    response.set_cookie('user_id', user_id, max_age=300)  # 회원정보 변경 등 user id가 일치해야 할 경우.
     messages.info(request, '이메일을 확인해보세요~ 5분동안 유효합니다~')  # 테스트용
     print(request.COOKIES.get('email_verification_code'))
     content['email_verification_code'] = email_verification_code  # 되돌려받을 쿠키 담기.
@@ -215,25 +226,33 @@ def send_email_verify_code(request): #  쿠키를 이용해 검증해보자.
                # http를 안넣어주면... 이메일 도메인을 호스트로 삼아 움직인다;
                'to_url': SERVICE_DOMAIN + reverse('custom_account:email_verification'),
                }  # 이메일에 코드를 담아보낸다.
-    response = send_email_cookie_content(request, "이메일 인증", [request.user.email],
+    user_id = request.user.id  # 보안을 위해 유저 id와 쿠키를 함께 보내자.
+    response = send_email_cookie_content(request, user_id, "이메일 인증", [request.user.email],
                                          'custom_account/email_verification.html', content)
     return response
 
 def email_verify(request):
     user = request.user
     cookie = request.COOKIES.get('email_verification_code')
-    code = request.GET.get('email_verification_code')
+    try:
+        code = request.POST['email_verification_code']
+        print('포스트로.')
+        print(code)
+    except:
+        print('포스트 실패')
+        code = request.GET.get('email_verification_code')  # 둘 다 없으면 에러가 생기니 한쪽은 get으로 받는다.
+    if cookie == None:  # 쿠키와 폼에서 온 값 모두 없을 때 pass가 되어버리니, None일 때 처리가 따로 필요하다.
+        messages.error(request, '코드가 만료되었습니다. 이메일 발송 후 5분 이내에 처리하세요~')
+        return False
     if code == cookie:  # 쿠키에 있는 걸 쓰면 될듯.
         user.email_check = True
         user.save()
         messages.info(request, '이메일 인증이 완료되었습니다.')
     else:
-        messages.error(request, '뭔가 문제 생김.')
-        messages.error(request, request.GET['email_verification_code'])
-        messages.error(request, '뭔가 ?? 생김.')
-        messages.error(request, request.COOKIES.get('email_verification_code'))
-    if cookie == None:
-        messages.error(request, '쿠키가 삭제되었습니다. 이메일 요청을 다시 하세요~')
+        messages.error(request, '뭔가 문제 생김.(아래는 코드)')
+        messages.error(request, code)
+        messages.error(request, '뭔가 ?? 생김.(아래는 쿠키)')
+        messages.error(request, cookie)
     return True
 def email_verification(request):
     '''이메일 인증기능.'''
