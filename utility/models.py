@@ -11,7 +11,7 @@ class Spell(models.Model):
     created = models.DateTimeField(auto_now_add=True)  # 실행시간.
 
 class SpellObject(models.Model):
-    '''맞춤법 검사 대상'''
+    '''맞춤법 검사 대상. spell 아래에 귀속되는 형태로.'''
     spell = models.ForeignKey('Spell', on_delete=models.CASCADE)  # 기준으로 삼을 모델.
     origin_text = models.TextField(blank=True)
     corrected_text = models.TextField(blank=True)
