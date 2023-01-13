@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'item_pool',
     'school_report',  # 학교 내 클래스를 만들기 위한 앱.
     'score_share',  # 점수 공유앱.
-    'utility.apps.UtilityConfig',  # 각종 기능 구현을 시도해보는 앱.
+    'utility',  # 각종 기능 구현을 시도해보는 앱.
     'django_celery_results',
 # 기능 관련
 #--소셜로그인 관련
