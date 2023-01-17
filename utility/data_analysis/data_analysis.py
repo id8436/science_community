@@ -1,10 +1,5 @@
-from django.shortcuts import render, get_object_or_404, redirect, resolve_url
-import openpyxl
-import requests
-import json
+from django.shortcuts import render, get_object_or_404, redirect
 import pandas as pd
-from django.contrib.auth import get_user_model
-from utility.tasks import correct_text
 from django.contrib.auth.decorators import login_required
 from utility.models import DataObject
 from django.contrib.auth.decorators import login_required
@@ -17,8 +12,11 @@ import base64
 @login_required()
 def main(request):
     context = {}
-    data_object = DataObject.objects.get(user=request.user)
-    context['data_object'] = data_object
+    try:
+        data_object = DataObject.objects.get(user=request.user)
+        context['data_object'] = data_object
+    except:
+        pass
     return render(request, 'utility/data_analysis/main.html', context)
 
 @login_required()
