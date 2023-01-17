@@ -1,0 +1,55 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+<h3>알리는 말</h3>
+<li>22년 1월에 있었던 강원사대부고 ***선생님의 연수에서 아이디어를 받아 제작하였습니다.</li>
+<li>여기선 엑셀 파일만 올리고, 작업은 다른 페이지에서 진행합니다.</li>
+
+
+<h4>사용법</h4>
+<li>엑셀 파일을 올리면 첫번째 시트에 대해서만 다룹니다.</li>
+<li>종속변인을 가장 마지막 열에 넣어주세요. 그 이전 열들은 변수로 쓰입니다.</li>
+<li>따로 비동기 작업 처리를 안해두어서 timeout보다 오래 걸리는 작업에선 에러가 납니다.</li>
+<li>결측치가 있는 경우 행 단위로 drop해버립니다.</li>
+
+
+
+<h4 class="my-3 border-bottom pb-2">엑셀 올리기</h4>
+<form action="{% url 'utility:data_analysis_upload_excel' %}" method="POST" enctype="multipart/form-data" onsubmit="return confirm('진행하면 이전 데이터는 사라집니다. 진행합니까?')">
+        <input type="file" name="uploadedFile">
+        {% csrf_token %}
+        <input type="submit" value="엑셀 올리기.">
+</form>
+
+{% if data_object %}
+<h4 class="my-3 border-bottom pb-2">올려진 데이터</h4>
+<span>{{data_object.created}}에 올려짐.</span>
+<pre>다음의 정보를 가진 데이터가 올려져 있습니다.</br>{{data_object.info|safe}}</pre>
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="table">
+    <thead>
+    <tr class="thead-dark">
+        <th>할 수 있는 것</th>
+        <th>코멘트</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><a href="{% url 'utility:data_analysis_correlation' %}">상관도 분석</a></td>
+            <td>데이터의 변수별 상관도를 분석한다.</td>
+        </tr>
+        <tr>
+            <td><a href="{% url 'utility:data_analysis_linearRegression' %}">다중 선형 회귀분석</a></td>
+            <td>다중 선형 회귀분석을 진행한다.</td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+</div>
+
+{%endif%}
+
+{% endblock content%}

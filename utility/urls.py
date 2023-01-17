@@ -3,6 +3,7 @@ from . import views  # 해당 앱의 뷰를 불러온다.
 from .view import mental_health_chatbot
 from .language.translate_ko_en import  translate_ko_en
 from .language.korean_spell import korean_spell
+from utility.data_analysis import data_analysis
 app_name = 'utility'
 
 urlpatterns = [
@@ -18,4 +19,11 @@ urlpatterns = [
     # 맞춤법
     path('korean_spell/', korean_spell.main, name='korean_spell'),
     path('korean_spell/upload_excel_form/', korean_spell.upload_excel_form, name='korean_spell_upload_excel_form'),
+    # 데이터분석
+    path('data_analysis/', data_analysis.main, name='data_analysis_main'),
+    path('data_analysis/upload_excel/', data_analysis.upload_excel, name='data_analysis_upload_excel'),
+    path('data_analysis/correlation/', data_analysis.correlation, name='data_analysis_correlation'),
+    path('data_analysis/linearRegression/', data_analysis.linearRegression, name='data_analysis_linearRegression'),
+
+
 ]

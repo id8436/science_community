@@ -15,3 +15,12 @@ class SpellObject(models.Model):
     spell = models.ForeignKey('Spell', on_delete=models.CASCADE)  # 기준으로 삼을 모델.
     origin_text = models.TextField(blank=True)
     corrected_text = models.TextField(blank=True)
+
+class DataObject(models.Model):
+    '''데이터검사의 기초'''
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='data_user')
+    info = models.TextField(null=True)  # 분명 만들 때 기입되는 내용인데;; 종종 정보가 없는 경우가;;;
+    contents = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)  # 실행시간.
+    # 각종 통계 결과치.
+    correlation = models.TextField(null=True, blank=True)

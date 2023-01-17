@@ -1,0 +1,43 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+<h3>다중 선형 회귀분석.</h3>
+<li>22년 1월에 있었던 강원사대부고 ***선생님의 연수에서 아이디어를 받아 제작하였습니다.</li>
+
+<h5 class="my-3 border-bottom pb-2">결과</h5>
+<div>회귀계수(기울기) : {{coef}}<br>예측 변수의 1단위 변화에 대해 종속변수의 값이 평균적으로 얼마나 변하는 가.</div>
+<div>절편 : {{intercept}}<br>예측 변수들이 0일 때의 종속변수의 값</div>
+
+<div class="card my-3">
+    <h3>예상값 구해보기.</h3>
+    <span>회귀분석 모델을 사용한 예상값을 구해봅니다.</span>
+    <div class="card-body">
+
+    <table class="table table-hover" id="table">
+
+    <thead>
+    <tr class="thead-dark"><th>예상값 : {{predict}}</th></tr>
+    <tr class="thead-dark">
+        <th>변수항목</th>
+        <th>예측 변수</th>
+    </tr>
+    </thead>
+
+        <form method="POST">{% csrf_token %}
+    <tbody>
+        {% for data_column, input in push_datas.items %}
+        <tr>
+            <td>{{data_column}}</td>
+            <td><input type="text" name="input_data" value="{{input}}"></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+        <input type="submit" value="예상해보자~">
+        </form>
+
+    </div>
+</div>
+
+
+{% endblock content%}

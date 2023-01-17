@@ -3,3 +3,4 @@ from .models import *
 
 admin.site.register(Spell)
 admin.site.register(SpellObject)
+admin.site.register(DataObject)
