@@ -52,7 +52,8 @@ def correlation(request):
     context['correlation'] = correlation
 
     # 그림그리기 전 설정.
-    plt.rc('font', family='NanumGothicCoding')  # 한글을 지원하는 글꼴 지정.
+    #plt.rc('font', family='NanumGothic')  # 한글을 지원하는 글꼴 지정.
+    plt.rcParams["font.family"] = 'NanumGothic'
     # 그림그리기.
     plt.figure(figsize=(10, 5))
     sns.heatmap(df.corr(), linewidths=0.1, vmax=0.5, cmap='coolwarm', linecolor='white', annot=True)
