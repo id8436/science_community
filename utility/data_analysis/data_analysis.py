@@ -51,9 +51,10 @@ def correlation(request):
     # data_object.save()
     context['correlation'] = correlation
 
-    import matplotlib.font_manager
-    font_list = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
-    context['test'] = [matplotlib.font_manager.FontProperties(fname=font).get_name() for font in font_list]
+    # 서버에서 폰트 종류 확인용으로 두었는데.. 되면 버리자.
+    # import matplotlib.font_manager
+    # font_list = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    # context['test'] = [matplotlib.font_manager.FontProperties(fname=font).get_name() for font in font_list]
 
 
     # 그림그리기 전 설정.
