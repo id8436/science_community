@@ -52,10 +52,10 @@ def correlation(request):
     context['correlation'] = correlation
 
     # 그림그리기 전 설정.
-    plt.rc('font', family='Gulim')  # 한글을 지원하는 글꼴 지정.
+    plt.rc('font', family='NanumGothic')  # 한글을 지원하는 글꼴 지정.
     # 그림그리기.
     plt.figure(figsize=(10, 5))
-    sns.heatmap(df.corr(), linewidths=0.1, vmax=0.5, cmap=plt.cm.gist_heat, linecolor='white', annot=True)
+    sns.heatmap(df.corr(), linewidths=0.1, vmax=0.5, cmap='coolwarm', linecolor='white', annot=True)
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     buffer.seek(0)
