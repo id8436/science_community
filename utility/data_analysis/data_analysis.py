@@ -51,9 +51,13 @@ def correlation(request):
     # data_object.save()
     context['correlation'] = correlation
 
+    import matplotlib.font_manager
+    font_list = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
+    context['test'] = [matplotlib.font_manager.FontProperties(fname=font).get_name() for font in font_list]
+
+
     # 그림그리기 전 설정.
-    #plt.rc('font', family='NanumGothic')  # 한글을 지원하는 글꼴 지정.
-    plt.rcParams["font.family"] = 'NanumGothic'
+    plt.rc('font', family='NanumGothic')  # 한글을 지원하는 글꼴 지정.
     # 그림그리기.
     plt.figure(figsize=(10, 5))
     sns.heatmap(df.corr(), linewidths=0.1, vmax=0.5, cmap='coolwarm', linecolor='white', annot=True)
