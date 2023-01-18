@@ -10,7 +10,7 @@ def correct_text(user_id, inner_data):
     import json
     user = get_user_model().objects.get(pk=user_id)
     try:  # 객체가 없다면 에러를 반환하니까.
-        origin_users = Spell.objects.filter(user=user)  # 기존에 있었던 모델을 가져온다.
+        origin_users = Spell.objects.filter(user=user)  # 기존에 있었던 모델들을 가져온다.
         for origin_user in origin_users:
             origin_user.delete()  # 기존 모델 지우기.
     except:
