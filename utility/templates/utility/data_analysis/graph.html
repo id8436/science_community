@@ -1,0 +1,13 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+<div>
+    <li>plotly를 사용해 만들었습니다.</li>
+    <li>마우스커서를 올리면 자세한 값을 보여줍니다.</li>
+    <li>드래그하면 해당 부분만 확대하여 보여줍니다.(더블클릭하면 원래대로)</li>
+</div>
+{% autoescape off %}
+  {{ plot_div }}
+  {% endautoescape %}
+
+{% endblock content%}

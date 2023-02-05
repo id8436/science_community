@@ -56,9 +56,9 @@ def correlation(request):
     # font_list = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
     # context['test'] = [matplotlib.font_manager.FontProperties(fname=font).get_name() for font in font_list]
 
-
     # 그림그리기 전 설정.
     plt.rc('font', family='NanumGothic')  # 한글을 지원하는 글꼴 지정.
+    plt.rc('axes', unicode_minus=False)  # '-'값이 나오면 글자가 깨지는데, 이를 방지하기 위한 설정.
     # 그림그리기.
     plt.figure(figsize=(10, 5))
     sns.heatmap(df.corr(), linewidths=0.1, vmax=0.5, cmap='coolwarm', linecolor='white', annot=True)
@@ -110,3 +110,45 @@ def linearRegression(request):
     context['push_datas'] = push_datas
 
     return render(request, 'utility/data_analysis/linearRegression.html', context)
+
+
+def draw_graph_table(request):
+    context = {}
+    data_object = DataObject.objects.get(user=request.user)
+    df = pd.read_json(data_object.contents)
+    context['data_column_list'] = df.columns
+    return render(request, 'utility/data_analysis/graph_table.html', context)
+
+import plotly.express as px  # 그래프 그림.
+from django.http import HttpResponse  # http 객체를 바로 내보내기 위해.
+from plotly.offline import plot
+
+def draw_graph(request):
+    context = {}
+    data_object = DataObject.objects.get(user=request.user)  # 기초데이터.
+    df = pd.read_json(data_object.contents)
+    if request.method == "POST":
+        graph_type = request.POST.get('graph')
+        x = request.POST.get('X')
+        y = request.POST.get('Y')
+        option = request.POST.get('option')
+        if graph_type == 'line':
+            df = df.sort_values(x, ascending=True)  # 줄을 세워야 제대로 된 선그래프가 나온다.
+            fig = px.line(data_frame=df, x=x, y=y)
+        elif graph_type == 'scatter':
+            if request.POST.get('option2'):  # 옵션2가 선택되어 있다면...
+                fig = px.scatter(data_frame=df, x=x, y=y, color=option, trendline="ols")
+            else:
+                fig = px.scatter(data_frame=df, x=x, y=y, color=option)
+        elif graph_type == 'box':
+            fig = px.box(data_frame=df, x=x, y=y)
+        elif graph_type == 'bar':
+            method = request.POST.get('method')
+            df = df.groupby(x, as_index=False)  # 분류할 때 해당 열이 인덱스가 되지 않게끔.
+            # 보통은 분류 후에 평균값이나 최댓값 등을 계산하여 통계화 한 후에 그래프를 만든다.
+            df = df.agg(new=(y, method))  # 새로운열이름은 따옴표로 감싸지 않음에 유의, mean 등 다양한 방식이 가능하다.
+            df = df.sort_values('new', ascending=True)  # 보통은 정렬하여 그래프를 그린다.
+            fig = px.bar(data_frame=df, x=x, y='new', color=option)
+        plot_div = plot(fig, output_type='div')
+
+    return render(request, 'utility/data_analysis/graph.html', {'plot_div':plot_div})

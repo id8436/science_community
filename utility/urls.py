@@ -24,6 +24,9 @@ urlpatterns = [
     path('data_analysis/upload_excel/', data_analysis.upload_excel, name='data_analysis_upload_excel'),
     path('data_analysis/correlation/', data_analysis.correlation, name='data_analysis_correlation'),
     path('data_analysis/linearRegression/', data_analysis.linearRegression, name='data_analysis_linearRegression'),
+    path('data_analysis/draw_graph_table/', data_analysis.draw_graph_table, name='data_analysis_draw_graph_table'),
+    path('data_analysis/draw_graph/', data_analysis.draw_graph, name='data_analysis_draw_graph'),
+
 
 
 ]

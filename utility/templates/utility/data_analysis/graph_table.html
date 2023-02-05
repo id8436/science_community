@@ -1,0 +1,124 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+<h3>그래프 그리기</h3>
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="table">
+    <thead>
+    <tr class="thead-dark">
+        <th>할 수 있는 것</th>
+        <th>코멘트</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>선 그래프</td>
+            <td>
+<form action="{% url 'utility:data_analysis_draw_graph' %}" target="_blank" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+    <input type="hidden" name="graph" value="line">
+    <span>조작변인(X축): </span>
+        <select name="X">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 종속변인(Y축): </span>
+        <select name="Y">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+        <input type="submit" value="그리기">
+</form></td>
+        </tr>
+        <tr><td>산점도</td>
+            <td>
+<form action="{% url 'utility:data_analysis_draw_graph' %}" target="_blank" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+    <input type="hidden" name="graph" value="scatter">
+    <span>조작변인(X축): </span>
+        <select name="X">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 종속변인(Y축): </span>
+        <select name="Y">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 추가옵션: </span>
+        <select name="option">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 추세선</span>
+        <input type="checkbox" name="option2">
+        <input type="submit" value="그리기">
+</form></td>
+        </tr>
+        <tr>
+            <td>박스그림</td>
+            <td>
+<form action="{% url 'utility:data_analysis_draw_graph' %}" target="_blank" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+    <input type="hidden" name="graph" value="box">
+    <span>조작변인(X축): </span>
+        <select name="X">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 종속변인(Y축): </span>
+        <select name="Y">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+        <input type="submit" value="그리기">
+</form></td>
+        </tr>
+        <tr><td>막대그래프</td>
+            <td>
+<form action="{% url 'utility:data_analysis_draw_graph' %}" target="_blank" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+    <input type="hidden" name="graph" value="bar">
+    <span>조작변인(X축): </span>
+        <select name="X">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 종속변인(Y축): </span>
+        <select name="Y">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, 추가옵션: </span>
+        <select name="method">
+            <option value="mean">평균</option>
+            <option value="count">데이터 갯수</option>
+        </select>
+    <span>, 비교축: </span>
+        <select name="option">
+            {%for col in data_column_list %}
+            <option value={{col}}>{{col}}</option>
+            {%endfor%}
+        </select>
+        <input type="submit" value="그리기">
+</form></td>
+        </tr>
+    </tbody>
+    </table>
+    </div>
+</div>
+
+
+{% endblock content%}
