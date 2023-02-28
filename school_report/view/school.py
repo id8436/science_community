@@ -57,6 +57,7 @@ def name_trimming(name):
 def school_create(request):
     context = {}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        print(request.POST)
         form = SchoolForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
         if form.is_valid():  # 문제가 없으면 다음으로 진행.
             school = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
@@ -93,7 +94,7 @@ def school_modify(request, school_id):
         form = SchoolForm(instance=school)  # 해당 모델의 내용을 가져온다!
         # 태그를 문자열화 하여 form과 함께 담는다.
     context = {'form': form}
-    return render(request, 'school_report/school/school_create.html', context)
+    return render(request, 'school_report/school/school_modify.html', context)
 
 @login_required()
 def download_excel_form(request, school_id):

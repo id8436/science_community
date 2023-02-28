@@ -2,14 +2,17 @@
 
 {% block content %}
 
-test학교 메인
+학교 메인
 {{ school }}
 <div>
-    학교마스터 : {{school.master}}
+    기관 마스터 : {{school.master}}
+
 </div>
 {% if user == school.master %}
 <h3 class="my-3 border-bottom pb-2">기관 마스터 메뉴</h3>
 <a href="{% url 'school_report:school_modify' school.id %}">학교정보 수정하기</a><br>
+<a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
+<a href="{% url 'school_report:student_assignment' school.id %}">전체 학생명단 관리</a>
 {% endif %}
 <div class="my-3 border-bottom pb-2"></div>
 
@@ -26,10 +29,7 @@ test학교 메인
     <a href="{% url 'school_report:homeroom_create' school.id %}">학급 생성</a>
     <a href="{% url 'school_report:classroom_create' school.id %}">교과교실 생성</a>
 
-            {% if school.master == user %}
-                <a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
-            <a href="{% url 'school_report:student_assignment' school.id %}">전체 학생명단 관리</a>
-            {% endif %}
+
 
     <h4 class="my-3 border-bottom pb-2">학급 목록</h4>
     {% include "school_report/homeroom/list.html" %}

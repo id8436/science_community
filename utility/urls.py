@@ -4,6 +4,7 @@ from .view import mental_health_chatbot
 from .language.translate_ko_en import  translate_ko_en
 from .language.korean_spell import korean_spell
 from utility.data_analysis import data_analysis
+from utility.language import wordcloud
 app_name = 'utility'
 
 urlpatterns = [
@@ -26,7 +27,8 @@ urlpatterns = [
     path('data_analysis/linearRegression/', data_analysis.linearRegression, name='data_analysis_linearRegression'),
     path('data_analysis/draw_graph_table/', data_analysis.draw_graph_table, name='data_analysis_draw_graph_table'),
     path('data_analysis/draw_graph/', data_analysis.draw_graph, name='data_analysis_draw_graph'),
-
-
+    # 워드클라우드
+    path('wordcloud/', wordcloud.main, name='wordcloud_main'),
+    path('wordcloud/create', wordcloud.create, name='wordcloud_create'),
 
 ]

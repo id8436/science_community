@@ -21,8 +21,13 @@ def create(request, school_id):
             homeroom = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
             homeroom.master = teacher
             homeroom.school = school
+            if homeroom.name:
+                pass
+            else:
+                homeroom_name = str(request.POST.get('grade'))+'학년' + str(request.POST.get('cl_num')) +'반'
+                homeroom.name = homeroom_name
             homeroom.save()
-            return render(request, 'school_report/homeroom/main.html', context)  # 작성이 끝나면 작성한 글로 보낸다.
+            return redirect('school_report:homeroom_main', homeroom_id=homeroom.id)
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = HomeroomForm()
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
