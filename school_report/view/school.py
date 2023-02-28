@@ -378,16 +378,19 @@ def meal_info(request, school_id):
         school_meal = SchoolMealsApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=school.school_code)
         # 표에 넣기 위해 항목별로 차례대로 넣는다.
         meal_data = {'일자': [], '식사': [], '메뉴': [], '칼로리': [], '영양정보': [], '재료정보': []}
-        for i in school_meal.get_data():
-            date = i['MLSV_YMD']
-            date = date[4:6] + '월' + date[6:] + '일'
-            meal_data['일자'].append(date)  # 급식일자.
-            meal_data['식사'].append(i['MMEAL_SC_NM'])  # 조,중,석식 분류.
-            meal_data['메뉴'].append(i['DDISH_NM'])  # 메뉴
-            meal_data['칼로리'].append(i['CAL_INFO'])  # 칼로리.
-            meal_data['영양정보'].append(i['NTR_INFO'])  # 영양정보
-            meal_data['재료정보'].append(i['ORPLC_INFO'])  # 재료정보
-        context['meal_data'] = meal_data
+        try:  # 개학 전엔 식사정보가 없어 None을 반환한다. 그럼 에러뜸.
+            for i in school_meal.get_data():
+                date = i['MLSV_YMD']
+                date = date[4:6] + '월' + date[6:] + '일'
+                meal_data['일자'].append(date)  # 급식일자.
+                meal_data['식사'].append(i['MMEAL_SC_NM'])  # 조,중,석식 분류.
+                meal_data['메뉴'].append(i['DDISH_NM'])  # 메뉴
+                meal_data['칼로리'].append(i['CAL_INFO'])  # 칼로리.
+                meal_data['영양정보'].append(i['NTR_INFO'])  # 영양정보
+                meal_data['재료정보'].append(i['ORPLC_INFO'])  # 재료정보
+            context['meal_data'] = meal_data
+        except:
+            pass
     return render(request, 'school_report/school/meal_info.html', context)
 
 def student_reset(request, student_id):

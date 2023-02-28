@@ -26,6 +26,7 @@ class SchoolMealsApi:
         self.params.update(SchoolMealsApi.params)
         self.params.update(self.schoolinfo)
         response = requests.get(URL, params=self.params)
+        print(json.loads(response.text))
         try:
             j_response = json.loads(response.text)['mealServiceDietInfo']  # 정보 키는 이것 하나 뿐.
             if j_response[0]["head"][0]["list_total_count"] == 1:  # 들어온 급식의 갯수.(휴일 제외하고 들어온다.)

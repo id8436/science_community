@@ -6,18 +6,19 @@
 
 
 
-{% if user.teacher.school == homeroom.school %}
+{% if homeroom_teacher %}
     <div>교사메뉴.
         <a href="{% url 'school_report:homeroom_student_assignment' homeroom.id %}">학생명단 관리하기</a>
     </div>
         <a href="{% url 'school_report:announcement_create' homeroom.id %}">공지 등록</a>
-{% elif user.student.school == homeroom.school %}
+{% elif homeroom_student %}
 어서와요~ 학생메뉴입니당.
 {% else %}
-
+외부인이시군요?
 {% endif %}
-<br>시간표 : <a href="{% url 'school_report:neis_timetable' homeroom.id %}">neis 학생시간표</a><br>
 
+{% if homeroom_teacher or homeroom_student %}
+<br>시간표 : <a href="{% url 'school_report:neis_timetable' homeroom.id %}">neis 학생시간표</a><br>
 
 <h5>하위 교과교실</h5>
     {% with homeroom.classroom_set.all as classroom_list %}
@@ -46,6 +47,7 @@
     {% endif %}
     </tbody>
 </table>
+{% endif %}
 
 
 {% endblock %}

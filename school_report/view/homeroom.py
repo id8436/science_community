@@ -37,6 +37,13 @@ def main(request, homeroom_id):
     homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
     context ={'homeroom': homeroom}
 
+    # 선생님, 혹은 학생객체 가져오기.
+    homeroom_student = check.Check_teacher(request, homeroom).in_homeroom_and_none()
+    if homeroom_student != None:
+        context['homeroom_student'] = homeroom_student
+    else:
+        context['homeroom_teacher'] = check.Check_teacher(request, homeroom).in_homeroom_and_none()  # 선생님객체.
+
     classroom_list = homeroom.classroom_set.all()
     context['classroom_list'] = classroom_list
     announcement_list = homeroom.announcement_set.all()
@@ -281,9 +288,12 @@ def neis_timetable(request, homeroom_id):
     date_list = list(zip(date_list, day_list))
     context['date_list'] = date_list
     # 데이터 가져오기.
-    table = SchoolTimetableApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=school.school_code,
-                               GRADE=homeroom.grade, CLASS_NM=homeroom.cl_num, school_name=school.name)
-    table = table.create_list()  # 시간표정보 가져오기.
-    context['timetable'] = table
+    try:  # 급식데이터와 동일하게, 방학 등 데이터가 없으면 None을 반환한다.
+        table = SchoolTimetableApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=school.school_code,
+                                   GRADE=homeroom.grade, CLASS_NM=homeroom.cl_num, school_name=school.name)
+        table = table.create_list()  # 시간표정보 가져오기.
+        context['timetable'] = table
+    except:
+        pass
 
     return render(request, 'school_report/homeroom/timetable.html', context)
