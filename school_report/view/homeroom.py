@@ -38,7 +38,8 @@ def main(request, homeroom_id):
     context ={'homeroom': homeroom}
 
     # 선생님, 혹은 학생객체 가져오기.
-    homeroom_student = check.Check_teacher(request, homeroom).in_homeroom_and_none()
+    homeroom_student = check.Check_student(request, homeroom).in_homeroom_and_none()
+    print(homeroom_student)
     if homeroom_student != None:
         context['homeroom_student'] = homeroom_student
     else:

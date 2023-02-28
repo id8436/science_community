@@ -61,3 +61,4 @@ class Check_student(Check_teacher):
         self.messase_school = "이 학교에 소속된 학생이 아닙니다."
         self.messase_homeroom = "이 학급의 학생이 아닙니다."
         self.messase_classroom = "이 교과의 학생이 아닙니다."
+    # 교사 클래스를 상속하여 그대로 구현했으니, 이게 완성버전.

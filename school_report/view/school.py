@@ -20,11 +20,9 @@ def main(request, school_id):
     context['classroom_list'] = classroom_list
 
     # 교사여부.
-    teacher = check.Check_teacher(request, school).in_school_and_none()
-    context['teacher'] = teacher
+    context['teacher'] = check.Check_teacher(request, school).in_school_and_none()
     # 학생여부.
-    student = check.Check_student(request, school).in_school_and_none()
-    context['student'] = student
+    context['student'] = check.Check_student(request, school).in_school_and_none()
     # 시험문제목록.
     category = Board_category.objects.get(id=6)
     context['category'] = category  # 게시판 생성 때 카테고리 아이디도 필요해서.
@@ -66,9 +64,9 @@ def school_create(request):
             school.name = name
             # 게시판 생성 및 연동.
             board_name = str(school.name) + " 교직원 게시판"
-            board_name = Board_name.objects.create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;;)
+            _, board_name = Board_name.objects.get_or_create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;; 역대 게시판을 모을 수 있다는 점에선 좋지만... 검색해도 될듯?)
             category = Board_category.objects.get(pk=7)  # 교직원게시판의 카테고리.
-            board = Board.objects.create(board_name=board_name, category=category, enter_year=school.year, author=request.user)
+            _, board = Board.objects.get_or_create(board_name=board_name, category=category, enter_year=school.year, author=request.user)
             school.teacher_board_id = board.id  # 게시판 지정.
             school.save()
             return redirect('school_report:school_main', school_id=school.id)

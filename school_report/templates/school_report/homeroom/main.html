@@ -12,7 +12,7 @@
     </div>
         <a href="{% url 'school_report:announcement_create' homeroom.id %}">공지 등록</a>
 {% elif homeroom_student %}
-어서와요~ 학생메뉴입니당.
+어서와요~ {{homeroom_student.name}}님. 학생메뉴입니당.
 {% else %}
 외부인이시군요?
 {% endif %}
