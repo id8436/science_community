@@ -28,7 +28,7 @@ class Homeroom(models.Model):
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자.
     code = models.TextField()  # 비밀코드
     def __str__(self):
-        return self.name
+        return str(self.name)
     class Meta:
         unique_together = (
             ('school', 'grade', 'cl_num')
