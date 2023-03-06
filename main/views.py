@@ -14,9 +14,14 @@ def main_show(request):
 
     if is_social == True:
         if connected_user:  # 소셜계정과 유저가 연결되어 있을 때.
+            social_user = request.user.socialaccount_set.all().first()  # 소셜계정을 가져온다.
+            social_user.user = connected_user  # 소셜유저의 포린키 유저를 연결된 유저로 재지정.
+            social_user.save()
             from django.contrib.auth import logout, login
+            origin_user = request.user  # 삭제를 위해 기존 유저를 저장해둔다.
             logout(request)
             login(request, connected_user, backend='django.contrib.auth.backends.ModelBackend')
+            origin_user.delete()  # 로그인에 성공했다면 기존 유저를 지운다.
             return redirect('/')
         else:
             # social_accounts = []

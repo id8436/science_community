@@ -2,7 +2,9 @@
 
 {% block content %}
 
-{{ homeroom }}의 학생 명단을 등록합니다.(담임교사만 등록 가능하고, 이외 열람만 가능합니다.)
+{{ homeroom }}의 학생 명단을 등록합니다.
+<li>담임교사만 등록 가능하고, 이외 열람만 가능합니다.</li>
+<li>학교에 등록되어 있는 학생만 등록할 수 있습니다.</li>
 
 <div>한번에 등록하기.</div>
 <a href="{% url 'school_report:homeroom_download_excel_form' homeroom.id %}">양식 다운 받기</a>

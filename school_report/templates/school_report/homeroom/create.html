@@ -3,7 +3,7 @@
 
 {% include "form_errors.html" %}
 <div class="container">
-<h5 class="my-3 border-bottom pb-2">학급 생성</h5>
+<h2 class="my-3 border-bottom pb-2">학급 생성</h2>
 
 <!-- 폼 처리-->
 <form method="post" enctype="multipart/form-data" class="post-form my-3" >
@@ -13,12 +13,14 @@
     <div type="text" class="form-control" name="school" id="school">{{school}}</div>
 
 
-<h5 class="my-3 border-bottom pb-2">아래는 선택사항입니다.</h5>
+<h4 class="my-3 border-bottom pb-2">아래는 선택사항입니다.</h4>
         식별을 위해서 학급 이름을 넣든가, 학년, 반을 넣어주세요~(둘 다 입력할 경우, 학급이름을 우선합니다.)
         <h5 class="border-bottom pb-2">학급 이름</h5>
     <input type="text" class="form-control" name="name" id="name"
                        value="{{ form.name.value|default_if_none:'' }}" placeholder="학급의 이름으로 사용할 텍스트 입력.">
-
+    <br>
+        <h5 class="border-bottom pb-2">학년 반</h5>
+        <h6>학급이름이 비어있으면 '2학년3반' 형태로 학급이름이 만들어짐.</h6>
     <div class="row">
     <div class="col-6">
     <label>학년</label>

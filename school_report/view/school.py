@@ -14,10 +14,8 @@ def main(request, school_id):
     context = {}
     school = get_object_or_404(models.School, pk=school_id)
     context['school'] = school
-    homeroom_list = school.homeroom_set.all()
-    context['homeroom_list'] = homeroom_list
-    classroom_list = school.classroom_set.all()
-    context['classroom_list'] = classroom_list
+    context['homeroom_list'] = school.homeroom_set.all().order_by('name')
+    context['classroom_list'] = school.classroom_set.all().order_by('homeroom__name', 'name')
 
     # 교사여부.
     context['teacher'] = check.Check_teacher(request, school).in_school_and_none()
@@ -101,7 +99,9 @@ def download_excel_form(request, school_id):
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
     ws['A1'] = '이름'
-    ws['B1'] = '추가할 담임학급'
+    ws['B1'] = '담임학급명(선택사항)'
+    ws['C1'] = '학년(선택사항)'
+    ws['D1'] = '반(선택사항)'
     students = school.teacher_set.all()
     a = 'A'  # 이름 담을 라인.
     for i, teacher in enumerate(students):

@@ -176,16 +176,26 @@ def profile(request):
     #print(request.user.user_set.all()[1].socialaccount_set.all())
     social_provider = []
     social_accounts = []
-    for accounts in request.user.user_set.all():
-        account = accounts.socialaccount_set.all().first()
+    for social_account in request.user.socialaccount_set.all():
         try:
-            social_provider.append(account.get_provider_display())  # 공급자 없는 장고계정에선 get에러.
+            social_provider.append(social_account.get_provider_display())  # 공급자 없는 장고계정에선 get에러.
             try:
-                social_accounts.append(account.get_provider_account().to_str())  # to_str로 계정정보를 받아오는데, 없으면 get 에러.
+                social_accounts.append(social_account.get_provider_account().to_str())  # to_str로 계정정보를 받아오는데, 없으면 get 에러.
             except:
                 social_accounts.append('정보없음.')
         except:
             pass
+    # 아래는 위 코드의 과거형. 혹시 몰라 남겨둔다.
+    #for accounts in request.user.user_set.all():
+    #    account = accounts.socialaccount_set.all().first()
+    #    try:
+    #        social_provider.append(account.get_provider_display())  # 공급자 없는 장고계정에선 get에러.
+    #        try:
+    #            social_accounts.append(account.get_provider_account().to_str())  # to_str로 계정정보를 받아오는데, 없으면 get 에러.
+    #        except:
+    #            social_accounts.append('정보없음.')
+    #    except:
+    #        pass
     social_account_info = list(zip(social_provider, social_accounts))
     context = {'social_account_info': social_account_info}
 
