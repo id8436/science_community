@@ -41,7 +41,7 @@ class Check_teacher:
         else:
             return None
     def in_classroom_and_none(self):
-        self.in_homeroom_and_none()  # 교과는 학급에 종속되어 있으니까.
+        return self.in_homeroom_and_none()  # 교과는 학급에 종속되어 있으니까.
     def redirect_to_school(self):
         messages.error(self.request, self.messase_school)
         return redirect('school_report:school_main', school_id=self.var.id)  # 필요에 따라 렌더링.

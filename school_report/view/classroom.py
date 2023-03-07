@@ -127,7 +127,7 @@ def homework_detail(request, posting_id):
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
         context['submit_list'] = submit_list
     else:
-        return check.Check_student(request, classroom.homeroom).redirect_to_classroom()  # 리다이렉트용.
+        return check.Check_student(request, classroom).redirect_to_classroom()  # 리다이렉트용.
 
     return render(request, 'school_report/classroom/homework/detail.html', context)
 
