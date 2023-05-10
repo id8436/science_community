@@ -97,7 +97,6 @@ $(document).ready(function(){
     </tr>
     </thead>
     <tbody>
-    {% for annoIndividual in annoIndividual_list %}
     <tr>
         <th>{% if individual_announcement.check %}
                 이미 확인한 공지입니다~
@@ -117,7 +116,6 @@ $(document).ready(function(){
     </tr>
     </tbody>
     </table>
-        {%endfor%}
     </div>{% endif %}
 
 
