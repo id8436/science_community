@@ -158,12 +158,13 @@ def announcement_detail(request, posting_id):
         # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별공지 하나가 늘게끔.
         individual_announcement, created = models.AnnoIndividual.objects.get_or_create(to_student=student, base_announcement=posting)
         context['individual_announcement'] = individual_announcement
+        individual_announcement.read  # 열람 했다는 표기.
+        individual_announcement.save()
     elif posting.author == request.user:
         annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
         context['annoIndividual_list'] = annoIndividual_list  # 이건 나중에 없애도 될듯.
     else:
         return check.Check_student(request, homeroom).redirect_to_homeroom()
-    #individual_announcement = get_object_or_404(models.AnnoIndividual, )
     return render(request, 'school_report/homeroom/announcement/detail.html', context)
 
 def announcement_modify(request, posting_id):
