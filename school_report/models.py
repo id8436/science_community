@@ -145,7 +145,7 @@ class HomeworkSubmit(models.Model):
     submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
         return self.to_student.name
-class Question(models.Model):
+class HomeworkQuestion(models.Model):
     '''과제제출 하위의 물음 하나하나.'''
     homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
     question = models.TextField()  # 질문.
@@ -154,7 +154,7 @@ class Question(models.Model):
     # 기능.
     is_essential = models.BooleanField(default=False)  # 필수로 답해야 하는지 여부.
 
-class Answer(models.Model):
+class HomeworkAnswer(models.Model):
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="homework_respondent")
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
     contents = models.TextField(default=None, blank=True)
