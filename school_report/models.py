@@ -155,7 +155,7 @@ class HomeworkQuestion(models.Model):
     is_essential = models.BooleanField(default=False)  # 필수로 답해야 하는지 여부.
 
 class HomeworkAnswer(models.Model):
-    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="homework_respondent")
-    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    question = models.ForeignKey('HomeworkQuestion', on_delete=models.CASCADE)
     contents = models.TextField(default=None, blank=True)
     memo = models.TextField(default=None, blank=True)  # 답변이 마무리되었을 때 표준점수 등... 편항을 알기 위해.
