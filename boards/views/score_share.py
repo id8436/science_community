@@ -96,11 +96,19 @@ def result_main(request, board_id):
         n = (max-min)/ interval_size
         data_dict = {}
         for i in range(interval_size):
-            ceriterion_min = round(min + n*i, 2)
-            ceriterion_max = round(min + n*(i+1), 2)
-            interval_count = df.loc[(df['score'] > ceriterion_min) & (df['score'] <= ceriterion_max)].shape[0]  # 해당구간 데이터 세기.
-            key_text = '{}초과, {}이하'.format(ceriterion_min, ceriterion_max)
-            data_dict[key_text] = interval_count
+            if i == 0:  # 최하점을 담기 위해. else 아래 것이 본체.
+                ceriterion_min = round(min + n * i, 2)
+                ceriterion_max = round(min + n * (i + 1), 2)
+                interval_count = df.loc[(df['score'] >= ceriterion_min) & (df['score'] <= ceriterion_max)].shape[
+                    0]  # 해당구간 데이터 세기.
+                key_text = '{}이상, {}이하'.format(ceriterion_min, ceriterion_max)
+                data_dict[key_text] = interval_count
+            else:
+                ceriterion_min = round(min + n*i, 2)
+                ceriterion_max = round(min + n*(i+1), 2)
+                interval_count = df.loc[(df['score'] > ceriterion_min) & (df['score'] <= ceriterion_max)].shape[0]  # 해당구간 데이터 세기.
+                key_text = '{}초과, {}이하'.format(ceriterion_min, ceriterion_max)
+                data_dict[key_text] = interval_count
         subject_chart[subject] = data_dict
     context['subject_data'] = subject_data
     context['subject_chart'] = subject_chart
@@ -139,7 +147,7 @@ def result_main(request, board_id):
         std_score = (score - mean) / std
         subject_score_data.append(std_score)
         # 랭크데이터 계산
-        rank_num = info['rank_num']
+        rank_num = int(info['rank_num'])  # 이유는 모르겠는데, 10.0 형태로 떠서;
         rank_percent = info['rank_percent']
         same_count = int(info['same_rank'])
         rank_test = "{}등.상위{}%({}명)".format(rank_num, rank_percent, same_count)
