@@ -66,8 +66,8 @@ def statistical_of_score(request, subject):
 
     df = pd.DataFrame(code_list)
     df['score'] = score_list
-    df['rank'] = df['score'].rank(method='min', ascending=False).astype(int)  # 소수점 없이 정수로 반환.
-    df['rank'] = round(df['rank'] / df['rank'].count() * 100, 2)  # 랭크를 백분율로 바꾼다.
+    df['rank_num'] = df['score'].rank(method='min', ascending=False).astype(int)  # 소수점 없이 정수로 반환.
+    df['rank_percent'] = round(df['rank_num'] / df['rank_num'].count() * 100, 2)  # 랭크를 백분율로 바꾼다.
     df['same_rank'] = same_count
     df.set_index(0, inplace=True)
     return df
@@ -139,9 +139,10 @@ def result_main(request, board_id):
         std_score = (score - mean) / std
         subject_score_data.append(std_score)
         # 랭크데이터 계산
-        rank = info['rank']
+        rank_num = info['rank_num']
+        rank_percent = info['rank_percent']
         same_count = int(info['same_rank'])
-        rank_test = "상위 {}%({}명)".format(rank, same_count)
+        rank_test = "{}등.상위{}%({}명)".format(rank_num, rank_percent, same_count)
         subject_score_data.append(rank_test)
 
         self_data[subject] = subject_score_data
