@@ -106,9 +106,6 @@ from django.contrib.auth import get_user_model
 def find_id_and_password_reset_code(request):
     '''회원정보 변경을 위한 이메일 보내기.'''
     context = {}
-    if request.user == 'AnonymousUser':
-        messages.error(request, '로그인 후 진행하세요~')
-        return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
     if request.method == "POST":
         try:
             email = request.POST.get('email')
@@ -124,8 +121,12 @@ def find_id_and_password_reset_code(request):
                                              'custom_account/email_verification_for_password.html', context)
         return response
     else:
-        if request.user.email:
-            context['email'] = request.user.email
+        try:  # 로그인 안된 상태에서 접근하면 에러가 난다.
+            if request.user.email:
+                context['email'] = request.user.email
+        except:
+            messages.error(request, '로그인 후 진행하세요~')
+            return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
     return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
 from django.contrib.auth import get_user_model
 def email_verification_for_password(request):

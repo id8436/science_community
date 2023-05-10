@@ -21,7 +21,7 @@ onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 �
     <thead>
     <tr class="table-info">
         <th>학생코드</th>
-        <th>이름</th>
+        <th>이름(계정명)</th>
     </tr>
     </thead>
     <tbody>
@@ -29,7 +29,7 @@ onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 �
     {% for student in student_list_resistered %}
     <tr>
         <td>{{student.student_code}}</td>
-        <td>{{student.name}}({{student.admin.username}}) <a href="{% url 'school_report:student_reset' student.id %}">학생계정초기화</a></td>
+        <td>{{student.name}}({{student.admin.username}}) <a href="{% url 'school_report:student_reset' student.id %}">계정과 연동 끊기(기존 계정을 분실하여 새 계정에 연결해야 할 경우.)</a></td>
     </tr>
     {% endfor %}
     {% endif %}
