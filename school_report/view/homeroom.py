@@ -158,7 +158,8 @@ def announcement_detail(request, posting_id):
         # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별공지 하나가 늘게끔.
         individual_announcement, created = models.AnnoIndividual.objects.get_or_create(to_student=student, base_announcement=posting)
         context['individual_announcement'] = individual_announcement
-        individual_announcement.read  # 열람 했다는 표기.
+        individual_announcement.read = True  # 열람 했다는 표기.
+        individual_announcement.check_date = datetime.datetime.now()
         individual_announcement.save()
     elif posting.author == request.user:
         annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
