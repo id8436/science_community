@@ -52,6 +52,7 @@ class Classroom(models.Model):
     subject = models.CharField(max_length=10)  # 과목명  # 상위 과목의 과목명으로 연결될 거니까, 25년이 지나면 지워도 괜찮을듯. 그때 위의 null과 블랭크 조건 없애자.
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
     name = models.CharField(max_length=25, null=True, blank=True)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯? 역시, 25년이 지나면 지워도 괜찮을듯.
+    code = models.CharField(max_length=10)  # 임시. 곧 지우자.
     def __str__(self):
         return str(self.homeroom) + ' ' + str(self.base_subject)
     class Meta:
