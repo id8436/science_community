@@ -88,7 +88,7 @@ $(document).ready(function(){
         {% if individual_announcement %}
     <div>
 
-        공지확인.
+        공지확인. {{individual_announcement.to_student}}
     <table class="table table-hover" id="individual_announcement">
     <thead>
     <tr class="table-info">
@@ -106,7 +106,6 @@ $(document).ready(function(){
             {%endif%}
         </th>
         <th>
-            {{individual_announcement.to_student}}
             {% if individual_announcement.content %}
                 {{individual_announcement.content}}
             {% else %}
