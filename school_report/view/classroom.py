@@ -6,27 +6,35 @@ from django.contrib.auth.decorators import login_required
 from . import check
 @login_required()
 def create(request, school_id):
-    school = get_object_or_404(models.School, pk=school_id)
-    context = {'school': school}
-    homeroom_list = school.homeroom_set.all()  # 학교 하위의 학급들.
+    subject = get_object_or_404(models.Subject, pk=school_id)  # 학교로 되어있지만... shcool_id가 아니라 교과아이디.
+    school = subject.school
+    context = {'subject': subject, 'school': school}
+    homeroom_list = list(school.homeroom_set.all()) # 학교 하위의 학급들.
     context['homeroom_list'] = homeroom_list
+    obtained_classroom_list = subject.classroom_set.all()  # 현재 과목의 하위 교실들.
+    obtained_list = []  # 클래스룸 상위의 홈룸을 담을 리스트.
+    for classroom in obtained_classroom_list:
+        obtained_list.append(classroom.homeroom)
+    for homeroom in obtained_list:  # 기존에 만들어진 홈룸은 지우고 제공한다.
+        homeroom_list.remove(homeroom)
+
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         teacher = check.Check_teacher(request, school).in_school_and_none()
         if teacher == None:
             messages.error(request, "학교에 등록된 교사가 아닙니다.")
             context['form'] = ClassroomForm(request.POST)
             return render(request, 'school_report/classroom/create.html', context)
-        form = ClassroomForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
-        if form.is_valid():  # 문제가 없으면 다음으로 진행.
-            subject = request.POST.get('subject')
-            homeroom_list = request.POST.getlist('homeroom_list')
-            for homeroom_id in homeroom_list:  # 받은 데이터에 해당하는 걸 넣는다.
-                homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
-                classroom = models.Classroom.objects.get_or_create(subject=subject, master=teacher, school=school, homeroom=homeroom)
-            return redirect('school_report:school_main', school_id=school.id)  # 작성이 끝나면 작성한 글로 보낸다.
+        #form = ClassroomForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
+        #if form.is_valid():  # 문제가 없으면 다음으로 진행.
+        homeroom_list = request.POST.getlist('homeroom_list')
+        for homeroom_id in homeroom_list:  # 받은 데이터에 해당하는 걸 넣는다.
+            homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
+            classroom, _ = models.Classroom.objects.get_or_create(base_subject=subject, master=teacher, school=school, homeroom=homeroom)
+        return redirect('school_report:subject_main', subject_id=subject.id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
-        form = ClassroomForm()
-    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
+        #form = ClassroomForm()
+        pass
+    #context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/classroom/create.html', context)
 
 def main(request, classroom_id):

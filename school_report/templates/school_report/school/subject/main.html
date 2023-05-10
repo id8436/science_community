@@ -1,0 +1,43 @@
+{% extends "school_report/section.html" %}
+{% block content %}
+교과 페이지 메인.
+{{classroom}}
+<br>소속학교 : <a href="{% url 'school_report:school_main' subject.school.id %}">{{subject.school}}</a><br>
+<a href="{% url 'school_report:classroom_create' subject.id %}">과목 배정(교과교실 생성)</a>
+전체과제......미구현.
+<a href="{% url 'school_report:homework_create' subject.id %}">과제 생성</a>
+
+<div>
+{% if board %} <!-- 수행평가와 게시판을 연동함. -->
+    <a class="btn btn-outline-success">수행평가</a>
+{% else %}
+    <a class="btn btn-outline-success" href="{% url 'school_report:create_performance_score' subject.id %}">수행평가</a>
+{% endif %}
+</div>
+
+<h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
+    {% include "school_report/classroom/list.html" %}
+
+<h5>과제목록</h5>
+<table class="table table-hover" id="student_list">
+    <thead>
+    <tr class="table-info">
+        <th>제목</th>
+        <th>작성자</th>
+        <th>마감일자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if homework_list %}
+    {% for homework in homework_list %}
+    <tr>
+        <td><a href="{% url 'school_report:homework_detail' homework.id %}">{{homework.subject}}</td>
+        <td>{{homework.author}}</td>
+        <td>{{homework.deadline}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+{% endblock %}

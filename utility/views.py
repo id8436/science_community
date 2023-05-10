@@ -29,6 +29,8 @@ def compound_interest(request):
                }
     return render(request, 'utility/compound_interest.html', context)
 
+
+
 from boards.models import Score
 def do_DB(request):
     scores = Score.objects.all()

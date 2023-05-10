@@ -10,4 +10,4 @@ class User_create_form(UserCreationForm):
 class User_update_form(UserChangeForm):
     class Meta:
         model = get_user_model()  #  설정된 커스텀모델
-        fields = ["nickname", "email"]  # password1,2 필드는 자동추가된다.
+        fields = ["nickname", "email"]  # password1,2 필드는 자동추가된다. 근데..아마 패스워드 폼은 따로 두어야 할 것 같은데;

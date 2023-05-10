@@ -26,10 +26,12 @@
     (학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)
     <br><a href="{% url 'boards:posting_list' school.teacher_board_id %}">교직원 게시판</a><br>
     <a href="{% url 'school_report:homeroom_create' school.id %}">학급 생성</a>
-    <a href="{% url 'school_report:classroom_create' school.id %}">교과교실 생성</a>
+    <a href="{% url 'school_report:subject_create' school.id %}">과목 생성</a>
 
 
 
+    <h4 class="my-3 border-bottom pb-2">교과 목록</h4>
+    {% include "school_report/school/subject/list.html" %}
     <h4 class="my-3 border-bottom pb-2">학급 목록</h4>
     {% include "school_report/homeroom/list.html" %}
 

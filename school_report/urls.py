@@ -12,6 +12,10 @@ urlpatterns = [
     path('school_modify/<int:school_id>/', school.school_modify, name='school_modify'),
     path('school/school_list/', school.list, name='school_list'),
     path('meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
+    # 과목, 교과 관련
+    path('subject_create/<int:school_id>/', school.subject_create, name='subject_create'),
+    path('subject_main/<int:subject_id>/', school.subject_main, name='subject_main'),
+    path('create_performance_score/<int:subject_id>/', school.create_performance_score, name='create_performance_score'),
 
     #교사명단
     path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),

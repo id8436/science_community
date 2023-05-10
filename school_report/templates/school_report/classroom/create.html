@@ -13,8 +13,7 @@
     <div type="text" class="form-control" name="school" id="school">{{school}}</div>
 
     <label>과목명</label>
-    <input type="text" class="form-control" name="subject" id="subject"
-           value="{{ form.subject.value|default_if_none:'' }}" placeholder="과목명이 교실이름으로 쓰입니다~">
+        <div type="text" class="form-control" name="subject" id="subject">{{subject}}</div>
 
     <label>어떤 학급을 기반으로 만들 건가요?(필요한 만큼 선택)</label>
     {% for homeroom in homeroom_list %}

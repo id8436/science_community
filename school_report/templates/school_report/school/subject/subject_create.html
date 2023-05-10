@@ -1,0 +1,26 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+<h6 class="my-3 border-bottom pb-2">지금은 아무나 생성할 수 있게 해두었습니다. 허위 작성시 불이익을 주겠습니다.</h6>
+<h4 class="my-3 border-bottom pb-2">과목 생성</h4>
+{% include "form_errors.html" %}
+
+<!--------폼 처리-->
+<form method="post" enctype="multipart/form-data" class="post-form my-3">
+{% csrf_token %}
+
+<!--  이미 핵심정보가 기입된 경우엔 disabled!  -->
+    <div class="form-group">
+        <label>과목명</label>ex) 물리
+    <input type="text" class="form-control" name="subject_name" id="subject_name"
+                       value="{{ form.subject_name.value|default_if_none:'' }}" placeholder="과목의 정식명칭을 띄어쓰기 없이.">
+<label>식별자</label>(한 사람이 동일한 과목을 여러 학년에 들어가는 경우. 교사에게만 보이는 식별자.)
+    <input type="text" class="form-control" name="subject_identifier" id="subject_identifier"
+                       value="{{ form.subject_identifier.value|default_if_none:'' }}" placeholder="(선택사항)편하게 아무렇게나 작성하세요.">
+
+    <input type="submit" class="btn btn-primary" value='등록'>
+    </div>
+</form>
+
+
+{% endblock content%}

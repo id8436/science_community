@@ -33,15 +33,27 @@ class Homeroom(models.Model):
         unique_together = (
             ('school', 'grade', 'cl_num')
         )
-class Classroom(models.Model):
+class Subject(models.Model):
+    '''학교 하위의, 클래스룸을 만들기 위한 교과.'''
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
-    subject = models.CharField(max_length=10)  # 과목명
+    subject_name = models.CharField(max_length=10)  # 과목명
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
-    name = models.CharField(max_length=25)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯?
-    code = models.TextField()  # 가입을 위한 비밀코드
+    subject_identifier = models.CharField(max_length=10, null=True, blank=True)  # 학생들에게 보여지지 않는 구분자.(같은 과목으로 여러 학년 들어갈 때)
     def __str__(self):
-        return str(self.homeroom) + ' ' + self.subject
+        return self.subject_name
+    class Meta:
+        unique_together = (
+            ('school', 'subject_name', 'master', 'subject_identifier')
+        )
+class Classroom(models.Model):
+    school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함. # 25년이 지나면 지우자.(다 학교 배정 없이 정리될 거니까.)
+    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
+    base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)  # 연결할 모델.
+    subject = models.CharField(max_length=10)  # 과목명  # 상위 과목의 과목명으로 연결될 거니까, 25년이 지나면 지워도 괜찮을듯. 그때 위의 null과 블랭크 조건 없애자.
+    master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
+    name = models.CharField(max_length=25, null=True, blank=True)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯? 역시, 25년이 지나면 지워도 괜찮을듯.
+    def __str__(self):
+        return str(self.homeroom) + ' ' + str(self.base_subject)
     class Meta:
         unique_together = (
             ('school', 'homeroom', 'subject')
@@ -120,10 +132,11 @@ class Homework(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
+    is_secret = models.BooleanField(default=False)  # 익명설문 여부.
     def __str__(self):
         return self.subject
 class HomeworkSubmit(models.Model):
-    '''과제제출.'''
+    '''과제제출. 이걸 설문조사 삼아도 괜찮을듯...??'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
     to_student = models.ForeignKey('Student', on_delete=models.CASCADE)  # 각 개별 학생에게 전달되게끔.
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용.
@@ -132,5 +145,17 @@ class HomeworkSubmit(models.Model):
     submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
         return self.to_student.name
+class Question(models.Model):
+    '''과제제출 하위의 물음 하나하나.'''
+    homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
+    question = models.TextField()  # 질문.
+    type = models.TextField()  # 질문유형. 단답형? 숫자? 등등등
+    response = models.TextField()  # 응답.
+    # 기능.
+    is_essential = models.BooleanField(default=False)  # 필수로 답해야 하는지 여부.
 
-
+class Answer(models.Model):
+    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="homework_respondent")
+    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    contents = models.TextField(default=None, blank=True)
+    memo = models.TextField(default=None, blank=True)  # 답변이 마무리되었을 때 표준점수 등... 편항을 알기 위해.

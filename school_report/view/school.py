@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 from .. import models  # 모델 호출.
-from ..forms import HomeroomForm, SchoolForm
+from ..forms import HomeroomForm, SchoolForm, SubjectForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import openpyxl
@@ -15,6 +15,7 @@ def main(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context['school'] = school
     context['homeroom_list'] = school.homeroom_set.all().order_by('name')
+    context['subject_list'] = school.subject_set.all().order_by('subject_name')
     context['classroom_list'] = school.classroom_set.all().order_by('homeroom__name', 'name')
 
     # 교사여부.
@@ -91,7 +92,42 @@ def school_modify(request, school_id):
         # 태그를 문자열화 하여 form과 함께 담는다.
     context = {'form': form}
     return render(request, 'school_report/school/school_modify.html', context)
-
+@login_required()
+def subject_create(request, school_id):
+    '''교과 생성.'''
+    context = {}
+    school = get_object_or_404(models.School, pk=school_id)
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        form = SubjectForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
+        if form.is_valid():  # 문제가 없으면 다음으로 진행.
+            subject = form.save(commit=False)
+            subject.school = school
+            teacher = check.Check_teacher(request, school).in_school_and_none()
+            subject.master = teacher
+            name = name_trimming(subject.subject_name)  # 이름에서 공백 제거해 적용.
+            subject.subject_name = name
+            subject.save()
+            messages.info(request, str(subject.subject_name)+' 생성에 성공하였습니다.')
+            return redirect('school_report:school_main', school_id=school.id)
+    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
+        form = SubjectForm()
+    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
+    return render(request, 'school_report/school/subject/subject_create.html', context)
+def subject_main(request, subject_id):
+    subject = get_object_or_404(models.Subject, pk=subject_id)
+    context = {'subject': subject}
+    context['classroom_list'] = subject.classroom_set.all().order_by('homeroom__name')
+    return render(request, 'school_report/school/subject/main.html', context)
+def create_performance_score(request, subject_id):
+    subject = get_object_or_404(models.Subject, pk=subject_id)
+    category = get_object_or_404(Board_category, pk=6)  # 점수게시판 생성을 위해.
+    context = {}
+    school = subject.school
+    board_name_str = str(school.name) +'/'+ str(subject.subject_name) +'/'+ '수행평가'
+    board_name, _ = Board_name.objects.get_or_create(name=board_name_str)
+    board, _ = Board.objects.get_or_create(category=category, author=subject.master.admin, board_name=board_name, enter_year=school.year,
+                                           school=school)
+    return redirect('boards:board_detail', board.id)
 @login_required()
 def download_excel_form(request, school_id):
     '''교사 명단 폼.'''

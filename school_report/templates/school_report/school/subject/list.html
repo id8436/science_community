@@ -1,0 +1,18 @@
+<table class="table table-hover" id="homeroom_table">
+    <thead>
+    <tr class="table-info">
+        <th>교과</th>
+        <th>담당</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if subject_list %}
+    {% for subject in subject_list %}
+    <tr>
+        <td><a href="{% url 'school_report:subject_main' subject.id %}">{{subject}} {%if subject.subject_identifier%}{{subject.subject_identifier}}{%endif%}</a></td>
+        <th>{{subject.master.name}}</th>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>

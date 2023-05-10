@@ -43,7 +43,7 @@ class Subject(models.Model):
     '''시험 하위 과목'''  # form에서 컴마로 구분되게 하면 어떨까? 태그 기입하듯.
     base_exam = models.ForeignKey('Board', null=True, blank=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=20)  # 과목명.
-    sj_code = models.IntegerField(null=True, blank=True)  # 과목코드.
+    sj_code = models.TextField(null=True, blank=True)  # 과목코드.
 
     official_check = models.BooleanField(default=False)  # 공식 체크가 되어있는지 여부
     official_teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,

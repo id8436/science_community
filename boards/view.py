@@ -204,14 +204,20 @@ def subject_create(request, board_id):
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         box = request.POST.getlist('subject')
         sj_code = request.POST.getlist('sj_code')
+        address = request.POST.getlist('address')
         for i, tag in enumerate(box):
             if not tag:
                 continue
             else:
-                tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
-                tag_, created = Subject.objects.get_or_create(base_exam=board, name=tag)  # 과목 생성.
-                tag_.sj_code = sj_code[i]
-                tag_.save()
+                tag_name = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
+                try:
+                    tag = Subject.objects.get(pk=address[i])  # 없으면 애러 낼거야.
+                    tag.name = tag_name
+                except Exception as e: # 새로운 과목인 경우.
+                    print(e)
+                    tag, created = Subject.objects.get_or_create(base_exam=board, name=tag_name)  # 과목 생성.
+                tag.sj_code = sj_code[i]
+                tag.save()
         return redirect('boards:board_detail', board_id=board_id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = PostingForm()

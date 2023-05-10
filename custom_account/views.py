@@ -75,13 +75,16 @@ def user_info_change(request):
         # from django.contrib.auth import authenticate
         # password = request.POST.get('password_confirm', None)
         # authentication = authenticate(username=target_user.username, password=password)
-        # if authentication == None:
-        #     messages.error(request, '기존 비밀번호가 일치하지 않습니다.')
-        #     return render(request, 'custom_account/user_info_change.html', {'form': form})
         if form.is_valid():
             user = form.save(commit=False)
             if old_email != user.email:  # 이메일정보가 달라지면 인증 취소.
                 user.email_check = False
+            if request.POST.get('password1') != None:  # 비밀번호 체크.
+                if request.POST.get('password1') == request.POST.get('password2'):
+                    user.set_password(request.POST.get('password1'))
+                else:
+                    messages.error(request, '두 비밀번호가 일치하지 않습니다.')
+                    return render(request, 'custom_account/user_info_change.html', {'form': form})
             user.save()
             from django.contrib.auth import logout  # 프로필로 돌아가는데, 소셜계정으로 들어가진다. 때문에 일단 로그아웃.
             logout(request)

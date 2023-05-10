@@ -9,8 +9,12 @@ class HomeroomForm(forms.ModelForm):
     class Meta:
         model = Homeroom
         fields = ['name', 'grade', 'cl_num']
-
+class SubjectForm(forms.ModelForm):
+    class Meta:
+        model = Subject
+        fields = ['subject_name', 'subject_identifier']
 class ClassroomForm(forms.ModelForm):
+    '''이 폼은 사용하지 않는다.'''
     class Meta:
         model = Classroom
         fields = ['subject']

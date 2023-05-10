@@ -6,7 +6,7 @@ let count = 1;
     const add_textbox = () => {
         const box = document.getElementById("box");
         const newP = document.createElement('p');
-        newP.innerHTML = "추가 " + count + "과목 : <input type='text' placeholder='과목명' name='subject'>" + "  과목코드 : <input type='text' placeholder='과목코드' name='sj_code'>";
+        newP.innerHTML = "추가 " + count + "과목 : <input type='text' placeholder='과목명' name='subject'>" + "  과목코드 : <input type='number' placeholder='과목코드' name='sj_code'>";
         box.appendChild(newP);
         count += 1
     }
@@ -36,9 +36,9 @@ let count = 1;
     <tbody>
     {% for posting in subjects %}
     <tr>
-        <td><input type='text' class="form-control" placeholder='과목명' name='subject' value="{{ posting.name }}" readonly></td>
-        <td><input type='text' placeholder='과목코드' name='sj_code' value="{{ posting.sj_code }}"></td>
-    </tr>
+        <td><input type='text' class="form-control" placeholder='과목명' name='subject' value="{{ posting.name }}"></td>
+        <td><input type='number' placeholder='과목코드' name='sj_code' value="{{ posting.sj_code }}"></td>
+    </tr><input type="hidden" name='address' value="{{posting.id}}"
     {% endfor %}
     </tbody>
 </table> {% endif %}
