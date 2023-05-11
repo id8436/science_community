@@ -257,7 +257,7 @@ def subject_descriptive_info_form_download(request, subject_id):
         ws.cell(row=4 + i, column=1).value = score.user.test_code  # 학번 반영.
         # 학생 응답 쓰기.(여기선 학생 객관식 점수.)
         if score.descriptive != None:
-            indi_answers = score.descriptive
+            indi_answers = json.loads(score.descriptive)
             for j, indi_answer in enumerate(indi_answers):
                 ws.cell(row=4+i, column=j+3).value = indi_answer  # 학생의 답 써넣기.
 

@@ -125,7 +125,7 @@ def find_id_and_password_reset_code(request):
             if request.user.email:
                 context['email'] = request.user.email
         except:
-            messages.error(request, '로그인 후 진행하세요~')
+            messages.error(request, '로그인 후 진행하세요~(같은 브라우저에서 로그인 된 상태여야 합니다.)')
             return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
     return render(request, 'custom_account/find_id_and_password_reset_code.html', context)
 from django.contrib.auth import get_user_model
