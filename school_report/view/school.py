@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect, resolve_url, H
 from .. import models  # 모델 호출.
 from ..forms import HomeroomForm, SchoolForm, SubjectForm
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from custom_account.decorator import custom_login_required as login_required
 import openpyxl
 from . import check
 from django.http import HttpResponse

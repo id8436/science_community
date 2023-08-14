@@ -2,6 +2,7 @@ import datetime
 
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 from .. import models  # 모델 호출.
+from custom_account.models import Notification
 from ..forms import HomeroomForm, AnnouncementForm
 from django.contrib import messages
 from custom_account.decorator import custom_login_required as login_required
@@ -135,6 +136,9 @@ def announcement_create(request, homeroom_id):
             for student in student_list:
                 individual, created = models.AnnoIndividual.objects.get_or_create(to_student=student,
                           base_announcement=announcement)
+                Notification.objects.create(to_user=student.admin, official=True, classification=11, type=2,
+                                                   from_user=request.user, message=homeroom,
+                                                   url=resolve_url("school_report:announcement_detail", announcement.id))
 
             return redirect('school_report:homeroom_main', homeroom.id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
@@ -180,6 +184,10 @@ def announcement_modify(request, posting_id):
             submit_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
             for submit in submit_list:
                 submit.check = False
+                submit.save()
+                Notification.objects.create(to_user=submit.to_user, official=True, classification=11,
+                                                   type=3, from_user=request.user, message=posting.homeroom,
+                                                   url=resolve_url("school_report:announcement_detail", posting_id))
             return redirect('school_report:announcement_detail', posting_id=posting.id)
     else:  # GET으로 요청된 경우.
         form = AnnouncementForm(instance=posting)  # 해당 모델의 내용을 가져온다!

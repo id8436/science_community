@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect, resolve_url, H
 from django.http import HttpResponseBadRequest  # 파일 처리 후 요청용.
 
 from .. import models  # 모델 호출.
+from custom_account.models import Notification
 from ..forms import ClassroomForm, HomeworkForm
 from django.contrib import messages
 from custom_account.decorator import custom_login_required as login_required
@@ -72,6 +73,7 @@ def homework_create(request, classroom_id):
                 student_list = models.Student.objects.filter(homeroom=classroom.homeroom)
                 for student in student_list:
                     homework_distribution(homework, student.admin)  # 유저모델을 대응시킨다.
+                    Notification.objects.create(to_user=student.admin, official=True, classification=12, type=2, from_user=request.user, message=classroom, url=resolve_url("school_report:homework_detail", homework.id))
                 homework_distribution(homework, request.user)  # 작성자도 대응시킨다.
 
             return redirect('school_report:classroom_main', classroom.id)  # 작성이 끝나면 작성한 글로 보낸다.
@@ -98,6 +100,11 @@ def homework_modify(request, posting_id):
             for submit in submit_list:
                 submit.check = False
                 submit.save()
+                Notification.objects.create(to_user=submit.to_user, official=True, classification=12,
+                                                              type=3, from_user=request.user, message=posting.classroom,
+                                                              url=resolve_url("school_report:homework_detail",
+                                                                              posting_id))
+
             return redirect('school_report:homework_detail', posting_id=posting.id)
     else:  # GET으로 요청된 경우.
         form = HomeworkForm(instance=posting)  # 해당 모델의 내용을 가져온다!

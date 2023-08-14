@@ -160,11 +160,11 @@ def notification_show(request):
     context = {'notifications': notifications}
     return render(request, 'custom_account/notification_show.html', context)
 
-def notification_add(request, type, to_users, message, url):
-    # type에 대한 규율은 notification.html을 보자.
+def notification_add(request, classification, type, to_users, message, url):
+    # type에 대한 규율은 모델을 보자.
     # 어디에 달리는 알람이냐에 따라 다르게 짜줘야 할 필요가 있을지도.... 아니면 포스팅이나 이런저런거에 기본적인 게 달리게 하자.
     for to_user in to_users:
-        Notification.objects.create(type=type, to_user=to_user, from_user=request.user,
+        Notification.objects.create(classification=classification, type=type, to_user=to_user, from_user=request.user,
                                                url=url,
                                                message=message)
 def notification_click(request, notification_id):

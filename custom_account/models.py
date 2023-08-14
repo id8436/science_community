@@ -58,11 +58,15 @@ class User(AbstractBaseUser):
 
 class Notification(models.Model):
     to_user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='to_user')
-    # 1:게시판, 2:포스팅, 3:답글, 4:코멘트
-    # 11:관심게시, 12:게시글추가, 21:포스팅좋아요, 22:답글추가, 31:답글좋아요, 32:대댓글추가, 41:코멘트좋아요
-    type = models.IntegerField()
+    official = models.BooleanField(default=False)  # 학교 과제 등 중요 알람인 경우.
+    # 1:게시글을, 2:댓글을, 3:대댓글을, 4:코멘트를, 5. '좋아요'를,
+    # official용. 11. 공지를, 12. 과제를,
+    classification = models.IntegerField()  # 대분류.
+    # 여긴 정리되면 지울, 예전의 유산. 11:관심게시, 12:게시글추가, 21:포스팅좋아요, 22:답글추가, 31:답글좋아요, 32:대댓글추가, 41:코멘트좋아요
+    # 2 : 추가하였습니다, 3. 수정하였습니다,
+    type = models.IntegerField()  # 하위분류.
     from_user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='from_user')
-    message = models.TextField()
+    message = models.TextField()  # 메모 등의 기록. 보통은 목적어.
     user_has_seen = models.BooleanField(default=False)
     url = models.URLField()  # 이동할 url이 담기는 곳.
     created_date = models.DateTimeField(auto_now_add='True')

@@ -11,8 +11,6 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Color
 from school_report.view import check
-from custom_account.models import Notification
-from custom_account.views import notification_add
 import numpy
 import pandas as pd
 

@@ -106,7 +106,7 @@ def answer_create(request, posting_id):
             answer.create_date = timezone.now()
             answer.save()
             redirect_url = '{}#answer_{}'.format(request.META.get('HTTP_REFERER','/'), answer.id)
-            notification_add(request, type=22, to_users=posting.interest_users.all(), message=posting.subject, url=redirect_url)
+            notification_add(request, classification=2, type=2, to_users=posting.interest_users.all(), message=posting.subject, url=redirect_url)
             return redirect(redirect_url)
 
     form = AnswerForm()
@@ -157,7 +157,7 @@ def comment_create(request, answer_id):
             comment.save()
             redirect_url = '{}#comment_{}'.format(request.META.get('HTTP_REFERER','/'), comment.id)
             to_users = [answer.author]
-            notification_add(request, type=32, to_users=to_users, message=answer.content, url=redirect_url)
+            notification_add(request, classification=3, type=2, to_users=to_users, message=answer.content, url=redirect_url)
             #return HttpResponse(json.dumps(context), content_type='application/json')
             return redirect('{}#answer_{}'.format(
                 request.META.get('HTTP_REFERER','/'), answer.id))

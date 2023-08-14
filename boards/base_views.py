@@ -292,7 +292,7 @@ def posting_create_on_board(request, board_id):
             check_boolean(request, posting)
             posting.save()
             posting_interest(request, posting.id)
-            notification_add(request, type=12, to_users=board.interest_users.all(),
+            notification_add(request, classification=1, type=2, to_users=board.interest_users.all(),
                              message=str(board.board_name)+str(board.enter_year), url=resolve_url('boards:posting_detail', posting.id))
             tag_adding_on_posting(request, posting)  # 태그 추가 함수.
             return posting_detail_on_board(request, posting.id)  # 작성이 끝나면 작성한 글로 보낸다.
@@ -351,7 +351,7 @@ def report_user(request):
             posting.report_user = reported_user
             posting.save()
             posting_interest(request, posting.id)
-            notification_add(request, type=12, to_users=board.interest_users.all(),
+            notification_add(request, classification=1, type=2, to_users=board.interest_users.all(),
                              message=str(board.board_name) + str(board.enter_year),
                              url=resolve_url('boards:posting_detail', posting.id))
             tag_adding_on_posting(request, posting)  # 태그 추가 함수.
