@@ -1,0 +1,26 @@
+<label for="question{{ question.id }}-response">{{ question.question_title }}</label>
+<input type="number" class="form-control" id="question{{ question.id }}-response"
+       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+       min="{{question.lower_lim}}" max="{{question.upper_lim}}"
+       placeholder="응답해주세요~(숫자) 최소 {{question.lower_lim}}, 최대 {{question.upper_lim}}" name="response{{question.id}}"
+        value="{{ question.response }}">
+
+
+<script>
+window.onload = function() {
+  var inputElements = document.querySelectorAll('input[type="number"]');
+
+  inputElements.forEach(function(inputElement) {
+    inputElement.onchange = function() {
+      var min = parseFloat(this.min);
+      var max = parseFloat(this.max);
+      var value = parseFloat(this.value);
+
+      if (value < min || value > max) {
+        alert(`입력 범위를 초과하였습니다. 입력 가능한 범위는 ${min}에서 ${max}입니다.`);
+        this.value = '';
+      }
+    };
+  });
+};
+</script>

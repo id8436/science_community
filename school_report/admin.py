@@ -12,5 +12,7 @@ admin.site.register(Announcement)
 admin.site.register(AnnoIndividual)
 admin.site.register(Homework)
 admin.site.register(HomeworkSubmit)
+admin.site.register(HomeworkAnswer)
+
 
 

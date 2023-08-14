@@ -1,0 +1,34 @@
+<div><label >{{ question.question_title }}</label>
+(10MB 이내)</div>
+
+{% if question.response.name %}
+    <a href="{{ question.response.url }}" download>기존에 올린 파일 다운로드({{question.response.file.name}})</a>
+    <div class="file-upload-container">
+        <input id="file_check{{question.id}}" type="checkbox" class="delete-file-checkbox">
+        <label for="file_check{{question.id}}">지우고 새 파일 올리기</label>
+        <input type="file" class="file-input" style="display: none;" name="response{{question.id}}">
+    </div>
+    <br>
+{% else %}
+<input type="file" class="file-input" name="response{{question.id}}">
+{% endif %}
+
+
+
+<script>
+window.onload = function() {
+    var checkboxes = document.getElementsByClassName("delete-file-checkbox");
+
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].addEventListener('change', function() {
+            var uploadInput = this.parentNode.getElementsByClassName("file-input")[0];
+
+            if(this.checked) {
+                uploadInput.style.display = "block";
+            } else {
+                uploadInput.style.display = "none";
+            }
+        });
+    }
+}
+</script>

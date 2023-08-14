@@ -1,0 +1,211 @@
+  <script>
+      let questionCount = 1;  // 문항 개수 추적을 위한 변수 설정
+
+    function handleAddQuestionClick() {
+    questionCount++;
+    let newQuestion = createQuestion(questionCount);
+    document.getElementById("questionContainer").appendChild(newQuestion);
+  }
+
+    // 문항 복사 버튼 클릭 시 해당 문항 복사
+function handleCopyQuestionClick(button) {
+    var questionElement = button.closest('.card');
+    if (questionElement) {
+        var questionNumber = questionElement.id.replace('question', '');
+        var clonedQuestionCard = copyQuestion(questionNumber);
+
+        // 복사된 card 내의 모든 'hidden' 이름을 가진 input 필드를 찾아 값을 빈 문자열로 설정
+        // hidden의 quesion.id나 is_special까지 복사해버려서;;
+        var hiddenInputs = clonedQuestionCard.querySelectorAll('input[name="question_id"]');
+        for (var i = 0; i < hiddenInputs.length; i++) {
+            hiddenInputs[i].value = '';
+        }
+    }
+}
+
+    // 문항 복사
+    function copyQuestion(questionNumber) {
+  var originalQuestion = document.getElementById(`question${questionNumber}`);
+  if (originalQuestion) {
+    var clonedQuestion = originalQuestion.cloneNode(true);
+    clonedQuestion.id = `question${questionCount + 1}`;
+
+    // 복제한 문항의 select 요소 찾기
+    var clonedSelectElement = clonedQuestion.querySelector('select[name="question_type"]');
+
+    // 원본 문항의 select 요소에서 선택된 인덱스 찾기
+    var originalSelectedIndex = originalQuestion.querySelector('select[name="question_type"]').selectedIndex;
+
+    // 복제한 문항의 select 요소에서 선택된 인덱스 설정
+    clonedSelectElement.selectedIndex = originalSelectedIndex;
+
+    // select 요소의 onchange 이벤트 핸들러 등록
+    handleOptionChange(clonedSelectElement);
+
+      // select 요소의 onchange 이벤트 다시 발생
+      if (typeof Event === 'function') {
+        var event = new Event('change');
+      } else {
+        var event = document.createEvent('Event');
+        event.initEvent('change', true, true);
+      }
+      this.dispatchEvent(event);
+    };
+
+    originalQuestion.parentNode.insertBefore(clonedQuestion, originalQuestion.nextSibling);
+    questionCount++;
+    renumberQuestions();
+    return clonedQuestion;  // 복사된 요소를 반환해야 hidden을 지우는 작업을 이어서..
+}
+
+
+    function createQuestion(questionCount) {
+  // 원래 문항 가져오기
+  let originalQuestion = document.getElementById(`question${questionCount - 1}`);
+
+  // 원래 문항 복사
+  let newQuestion = originalQuestion.cloneNode(true);
+  newQuestion.id = `question${questionCount}`;
+
+  // 복사된 문항의 제목 변경 (예: 'Question 2'로)
+  let title = newQuestion.querySelector('h2');
+  title.textContent = `Question ${questionCount}`;
+
+  return newQuestion;
+}
+
+    // 문항 삭제 버튼 클릭 시 해당 문항 삭제
+    function handleRemoveQuestionClick(button) {
+    var confirmDelete = confirm("기존의 답변도 함께 삭제합니다. 정말로 삭제하시겠습니까?");
+  if (confirmDelete) {
+  // 삭제 수행
+    var questionElement = button.closest('.card');
+    if (questionElement) {
+        questionElement.parentNode.removeChild(questionElement);
+        renumberQuestions();
+        }
+    }
+}
+    // 문항 삭제
+    function removeQuestion(questionNumber) {
+      var questionContainer = document.getElementById('questionContainer');
+      var questionElement = document.getElementById(`question${questionNumber}`);
+
+      if (questionElement) {
+        // 문항을 문항 컨테이너에서 제거
+        questionContainer.removeChild(questionElement);
+      }
+    }
+    // 삭제 후 문항 조절용.
+function renumberQuestions() {
+    var questionContainer = document.getElementById('questionContainer');
+    var questions = questionContainer.querySelectorAll('.card');
+    questionCount = questions.length;
+    for (var i = 0; i < questionCount; i++) {
+        var question = questions[i];
+        question.id = `question${i + 1}`;
+
+        // Check if removeButton exists
+        var removeButton = question.querySelector('.btn-remove-question');
+        if (removeButton) {
+            removeButton.setAttribute('data-question-number', i + 1);
+        }
+
+        // Check if copyButton exists
+        var copyButton = question.querySelector('.btn-copy-question');
+        if (copyButton) {
+            copyButton.setAttribute('data-question-number', i + 1);
+        }
+    }
+}
+//위치조정에 관하여(card 클래스를 이용하여 체인지)
+function moveQuestionUp(button) {
+      var question = $(button).closest('.card');
+      var prevQuestion = question.prev('.card');
+      // 특정 문항 위로 문항이 올라가지 않도록 설정
+
+  // existing은 특수 설문에서 부여하는 값.
+  if (typeof existing === 'undefined' || existing === null) {
+        // pass
+    }
+    else{
+        var targetid = 'question' + (existing-1);
+        if (prevQuestion.attr('id') === targetid) {
+            return;  // targetid보다 작아질 수 있다면 끝내기.
+        }
+    }
+
+    if (prevQuestion.length > 0) {
+        question.insertBefore(prevQuestion);
+    }
+}
+
+    function moveQuestionDown(button) {
+      var question = $(button).closest('.card');
+      var nextQuestion = question.next('.card');
+      if (nextQuestion.length > 0) {
+        question.insertAfter(nextQuestion);
+      }
+    }
+
+ // 제출 check
+var submitButton = document.getElementById('submit-button');
+submitButton.onclick = function(event) {
+  if (checkIfEmpty()) {
+    event.preventDefault();  // 제출 이벤트를 중단
+  }else {
+    updateOptionNames();
+  }
+
+
+function checkIfEmpty() {
+  var textareas = document.querySelectorAll('textarea[name="question_title"]');
+
+    // 질문 칸과 옵션 칸을 따로 제각기 검사한다.
+  for (let i = 0; i < textareas.length; i++) {
+    var textarea = textareas[i];
+    if (textarea.value.trim() === '') {
+      alert('하나 이상의 질문란이 비어있습니다. 모든 질문을 입력해주세요!');
+      textarea.style.borderColor = 'red';  // 빈 텍스트에어리어의 테두리 색상을 빨간색으로 설정
+      textarea.scrollIntoView({block: 'center'});  // 빈 텍스트에어리어로 스크롤
+      return true;  // 비어 있는 텍스트에어리어가 있다면 true 반환
+    }
+  }
+
+  var inputs = document.querySelectorAll('input.form-control');  // input 검사.
+  for (let i = 0; i < inputs.length; i++) {
+    var input = inputs[i];
+    if (input.value.trim() === '') {
+      alert('하나 이상의 입력란이 비어있습니다. 모든 입력란을 채워주세요!');
+      input.style.borderColor = 'red';  // 빈 텍스트에어리어의 테두리 색상을 빨간색으로 설정
+      input.scrollIntoView({block: 'center'});  // 빈 에어리어로 스크롤
+      return true;  // 비어 있는 input이 있다면 true 반환
+    }
+  }
+}
+}
+
+// 객관식이나 dropbox 문항을 처리하기 위한 작업.
+function updateOptionNames() {
+  // 모든 .card 요소를 찾습니다.
+  var questionElements = document.querySelectorAll('.card');  // 추후 card 대신 다른 걸로 바꾸는 게 좋을듯?
+  questionElements.forEach(function(questionElement, questionIndex) {
+    // 각 .card 요소 내의 모든 option 요소를 찾습니다.
+    var optionElements = questionElement.querySelectorAll('input[name="option"]');
+    optionElements.forEach(function(optionElement, optionIndex) {
+      // 각 option 요소의 name 속성을 업데이트합니다.
+      optionElement.name = 'option' + (questionIndex + 1);
+    });
+    // 각 .card 요소 내의 upper_lim와 lower_lim 요소를 찾습니다.
+    var upperLimitElement = questionElement.querySelector('input[name="upper_lim"]');
+    var lowerLimitElement = questionElement.querySelector('input[name="lower_lim"]');
+    if (upperLimitElement && lowerLimitElement) {
+      // upper_lim와 lower_lim 요소의 name 속성을 업데이트합니다.
+      upperLimitElement.name = 'upper_lim' + (questionIndex + 1);
+      lowerLimitElement.name = 'lower_lim' + (questionIndex + 1);
+    }
+  });
+}
+
+
+</script>

@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required #로그인이 있어야 가능함
+from custom_account.decorator import custom_login_required as login_required
 
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 import json
@@ -205,9 +205,11 @@ def tag_adding_on_posting(request, posting):
     if tags_str:  # 태그가 있을 경우에만 진행.
         for text in replace_text:
             tags_str = tags_str.replace(text, ',')  # 각종 문자들을 ,로 바꾼다.
-        tags = tags_str.split(',')
+        tags = tags_str.split(',')  # ,로 구분된 태그 분할.
         for tag in tags:
-            if not tag:
+            if not tag:  # tags가 없어서 tag가 없다면
+                continue
+            if tag == '':  # 공백이라면
                 continue
             else:
                 tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.

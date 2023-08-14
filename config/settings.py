@@ -158,8 +158,8 @@ STATICFILES_FINDERS = ['django.contrib.staticfiles.finders.FileSystemFinder',
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
-MIDIA_URL = '/media/'
-MIDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # Default primary key field type

@@ -1,0 +1,8 @@
+
+<label>{{ question.question_title }}</label>
+
+<div><select name="response{{question.id}}">
+{% for option in question.options %}
+    <option value="{{option}}" {% if option in question.response %}selected{%endif%}>{{option}}</option>
+{% endfor %}
+</select></div>

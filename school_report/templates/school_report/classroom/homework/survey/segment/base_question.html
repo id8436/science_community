@@ -1,0 +1,9 @@
+<!-- 초기에 하나의 문항이 기본적으로 표시됨 -->
+<!--   다른 특수설문에서 기본 문항이 추가될 때의 번호 지정.   -->
+<div id="question{% block survey_num %}{% endblock survey_num %}" class="card my-3">
+  <div class="card-body">
+    {% include "school_report/classroom/homework/survey/segment/select_and_base_info.html" %}
+
+    {% include "school_report/classroom/homework/survey/segment/bottom_box.html" %}
+  </div>
+</div>

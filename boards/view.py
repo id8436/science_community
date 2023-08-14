@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required #로그인이 있어야 가능함
+from custom_account.decorator import custom_login_required as login_required
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 import json
 from django.utils import timezone  # 시간입력을 위해.

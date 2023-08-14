@@ -1,0 +1,92 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+여기는 제출페이지입니당
+  <form action="{% url 'school_report:homework_survey_submit' submit.id%}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+    <div id="questionContainer">
+        {% for question in question_list %}
+              <div id="question{{forloop.counter}}" class="card my-3">
+                <div class="card-body">
+                  <div class="form-group">
+                      <input type="hidden" name="question" value="{{question.id}}">  <!--문항에 대한 것도 들어와야할듯.-->
+                    {% if question.is_essential %}<span class="text-danger">(필수)</span>
+                      <input type="hidden" name="is_essential" value="True">
+                    {% endif %}
+          <!-- 형식에 따라 다른 html 호출. -->
+          {% include "school_report/classroom/homework/survey/submit_case/"|add:question.question_type|add:".html" with question=question %}
+                  </div>
+                </div>
+              </div>
+        {% endfor %}
+    </div> 
+
+
+
+
+    <div class="mt-3">
+      <button type="submit" id="submit-button" class="btn btn-primary">제출</button>
+    </div>
+  </form>
+
+<script>
+document.getElementById('submit-button').addEventListener('click', function(event) {
+    // 제출 동작을 처음에 중단합니다.
+    event.preventDefault();
+
+    // "response"로 시작하는 모든 입력 필드와 객관식 질문에 대한 검사를 진행합니다.
+    // 입력칸에 대한걸 다 담아둔다.
+    var inputs = document.querySelectorAll('input[name^="response"], textarea[name^="response"], .question');
+
+    for (var i = 0; i < inputs.length; i++) {
+        var input = inputs[i];
+
+        if (input.matches('.question')) {
+            // 이 경우 객관식 질문에 대한 검사를 진행합니다.
+            var parent = input.parentNode;
+            if (input.querySelector('input[type=checkbox]')) {
+                checkboxes = input.querySelectorAll('input[type=checkbox]:checked');
+            } else if (input.querySelector('input[type=radio]')) {
+                checkboxes = input.querySelectorAll('input[type=radio]:checked');
+            }
+            minSelections = parseInt(parent.querySelector('input[name=lower_lim]').value, 10);
+            console.log(minSelections);
+            if (checkboxes.length < minSelections) {
+                // 선택한 체크박스의 개수가 최소 선택 개수보다 적은 경우
+                alert('객관식 질문에서 최소 ' + minSelections + '개를 선택해야 합니다.');
+                // 해당 질문의 배경색을 변경합니다.
+                var card = input.closest('.card');
+                card.style.backgroundColor = '#f8d7da';  // Light pink
+                card.scrollIntoView({block: 'center'});  // 빈 에어리어로 스크롤
+                return false;
+            } else {
+                // 충분한 체크박스가 선택된 경우 배경색을 원래대로 돌립니다.
+                var card = input.closest('.card');
+                card.style.backgroundColor = '';
+            }
+        } else {
+            // 이제, 이 입력 필드가 필수인지 확인해야 합니다.
+            var parent = input.parentNode;
+            var isEssential = parent.querySelector('input[name="is_essential"][value="True"]');
+            if (isEssential && input.value.trim() === '') {
+                // 필수 질문에 답하지 않은 경우, 경고를 띄우고 제출을 막습니다.
+                alert('필수 질문에 답변해주세요.');
+                // 해당 질문의 배경색을 변경합니다.
+                var card = parent.closest('.card');
+                card.style.backgroundColor = '#f8d7da';  // Light pink
+                card.scrollIntoView({block: 'center'});  // 빈 에어리어로 스크롤
+                return false;
+            } else {
+                // 값이 존재하는 경우 배경색을 원래대로 돌립니다.
+                var card = parent.closest('.card');
+                card.style.backgroundColor = '';
+            }
+        }
+    }
+
+    // 모든 조건이 충족되면 폼을 제출합니다.
+    event.currentTarget.form.submit();
+});
+</script>
+
+{% endblock %}

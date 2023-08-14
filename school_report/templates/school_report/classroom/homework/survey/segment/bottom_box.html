@@ -1,0 +1,12 @@
+
+<div id="inputContainer"></div>
+
+{% if question.is_special %}
+{% else %}
+<button type="button" class="btn btn-outline-info" onclick="moveQuestionUp(this)">↑</button>
+<button type="button" class="btn btn-outline-info" onclick="moveQuestionDown(this)">↓</button>
+<button type="button" class="btn btn-primary btn-add-question" data-question-number="{{ questionCount }}" onclick="handleCopyQuestionClick(this)">문항 복사</button>
+<button type="button" class="btn btn-danger btn-remove-question" data-question-number="{{ questionCount }}" onclick="handleRemoveQuestionClick(this)">문항 삭제</button>
+{% endif %}
+
+</div>

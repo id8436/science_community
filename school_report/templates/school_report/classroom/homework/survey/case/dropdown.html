@@ -1,0 +1,11 @@
+
+<div id="inputContainer">
+{% for option in question.options %}
+    <div class="multiple-choice-item d-flex">
+    <span>{{forloop.counter}}. </span>
+        <input type="text" class="form-control" name="option" placeholder="내용을 기입해주세요~" value="{{option }}">
+    <button type="button" class="btn btn-outline-danger btn-remove" onclick="removeOption(this)">-</button>
+    <button type="button" class="btn btn-outline-primary btn-add" onclick="addOption(this)">+</button>
+    </div>
+{% endfor %}
+</div>

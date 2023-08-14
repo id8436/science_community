@@ -26,7 +26,6 @@ urlpatterns = [
     path('school_report/', include('school_report.urls')),
     path('chat/', include('chat.urls')),
     path('utility/', include('utility.urls')),
-
 ]
 
 # 미디어 파일을 위한 url

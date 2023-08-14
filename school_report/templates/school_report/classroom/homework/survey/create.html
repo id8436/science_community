@@ -1,0 +1,43 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+  <form action="{% url 'school_report:homework_survey_create' posting.id%}" method="post">
+    {% csrf_token %}
+    <div id="questionContainer">
+      {% block survey %}{% endblock survey %}
+      {% if question_list %}
+      <!-- 기본적으로 아래 기초 1문항과 같음. -->
+        {% for question in question_list %}
+              <div id="question{{forloop.counter}}" class="card my-3">
+                <div class="card-body">
+                  {% include "school_report/classroom/homework/survey/segment/select_and_base_info.html" %}
+          <!-- 형식에 따라 다른 html 호출. -->
+          {% include "school_report/classroom/homework/survey/case/"|add:question.question_type|add:".html" with question=question %}
+
+          {% include "school_report/classroom/homework/survey/segment/bottom_box.html" %}
+                </div>
+        {% endfor %}
+      {%else%}
+         <!--기존 문항이 없으면 기본문항 배치-->
+          {% include "school_report/classroom/homework/survey/segment/base_question.html" %}
+      {% endif %}
+
+      {% if question_list.last.is_special %}
+          <!--특수문항만 있다면 기본문항 배치-->
+          {% include "school_report/classroom/homework/survey/segment/base_question.html" %}
+      {% endif %}
+
+
+
+    <div class="mt-3">
+      <button type="submit" id="submit-button" class="btn btn-primary">제출</button>
+    </div>
+  </form>
+
+{% include "school_report/classroom/homework/survey/question_form_script.html" %}
+<!--문항 틀과 관련한 자바스크립트-->
+{% include "school_report/classroom/homework/survey/question_frame_script.html" %}
+<!-- 특수 설문에서 문항 수 변경을 해주어야 하는데, 이는 최종적으로 반영되어야 해서 가장 아래에.-->
+
+{% endblock %}

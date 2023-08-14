@@ -1,0 +1,16 @@
+<div id="inputContainer">
+    <span class="input-group-text">몇 개를 고를까?(최소)
+    <input type="number" class="form-control form-control" name="lower_lim" placeholder="몇 개를 고를까?(최소)" value="{{question.lower_lim}}">
+    </span>
+    <span class="input-group-text">몇 개를 고를까?(최대)
+        <input type="number" class="form-control form-control" name="upper_lim" placeholder="몇 개를 고를까?(최대)" value="{{question.upper_lim}}">
+    </span>
+{% for option in question.options %}
+    <div class="multiple-choice-item d-flex">
+    <span>{{forloop.counter}}. </span>
+        <input type="text" class="form-control" name="option" placeholder="내용을 기입해주세요~" value="{{option }}">
+    <button type="button" class="btn btn-outline-danger btn-remove" onclick="removeOption(this)">-</button>
+    <button type="button" class="btn btn-outline-primary btn-add" onclick="addOption(this)">+</button>
+    </div>
+{% endfor %}
+</div>

@@ -31,14 +31,12 @@ def compound_interest(request):
 
 
 
-from boards.models import Score
+from school_report.models import HomeworkSubmit
 def do_DB(request):
-    scores = Score.objects.all()
-    for i in scores:
-        if i.real_score == None:
-            i.real_score = 0
-        if i.descriptive_score == None:
-            i.descriptive_score = 0
-        i.real_total_score = i.real_score + i.descriptive_score
+    '''과제에 학생 배치시키는 게 아니라, 유저모델 대응시키기.'''
+    object = HomeworkSubmit.objects.all()
+    for i in object:
+        user = i.to_student.admin
+        i.to_user = user
         i.save()
     return render(request, 'utility/main.html', {})

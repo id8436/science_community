@@ -1,0 +1,44 @@
+<label>{{ question.question_title }}</label>
+<div class="question" data-upperlim="{{question.upper_lim}}" class="multiple_choice">
+
+{% if question.upper_lim <= 1%}
+    {% for option in question.options %}
+
+    <div>{{forloop.counter}}.
+        <span>
+            <input type="radio" name="response{{question.id}}" id="option{{question.id}}-{{forloop.counter}}"
+                   value="{{option}}" {%if option == question.response %}checked{%endif%}>
+            <label for="option{{question.id}}-{{forloop.counter}}">{{option}}</label>
+        </span>
+    </div>
+    {% endfor %}
+
+{% else %}
+<p class="text-muted">- 최소 {{question.lower_lim|floatformat:0}}개, 최대 {{question.upper_lim|floatformat:0}}개 선택.</p>
+    {% for option in question.options %}
+    <div>{{forloop.counter}}.
+        <span>
+            <input type="checkbox" name="option_for{{question.id}}" id="option{{question.id}}-{{forloop.counter}}"
+                   value="{{option}}" onchange="validateSelection(this)" {% if option in question.answer_list %}checked{%endif%}>
+            <label for="option{{question.id}}-{{forloop.counter}}">{{option}}</label>
+        </span>
+    </div>
+    {% endfor %}
+{% endif %}
+</div>
+
+<input type="hidden" name="lower_lim" value="{{question.lower_lim}}">
+
+<script>
+    function validateSelection(checkbox) {
+    var questionElement = checkbox.closest('.question');
+    var upperLim = parseInt(questionElement.dataset.upperlim, 10);
+
+    var selectedOptions = questionElement.querySelectorAll('input[type=checkbox]:checked');
+
+    if (selectedOptions.length > upperLim) {
+        alert('이 문항은 최대 ' + upperLim + '개까지 선택 가능합니다.');
+        checkbox.checked = false;
+    }
+}
+</script>

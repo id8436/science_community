@@ -1,0 +1,28 @@
+{% extends "school_report/classroom/homework/survey/create.html" %}
+
+{% block survey %}
+
+<div id="question" class="card my-3">
+        <div class="card-body">
+          <select name="question_type" >
+            <option value="numeric" selected readonly>숫자형</option>
+          </select>
+            <input type="hidden" name="is_special" value="True">
+            <input type="hidden" name="is_essential" value="True">
+            필수문항인가요?<input class="form-check-input" type="checkbox" checked disabled>
+          <div id="inputContainer"></div>
+            <input type="text" class="form-control" style="resize: both;" name="question_title" value="동료의 점수" readonly>
+            <span class="input-group-text">최솟값<input type="number" class="form-control form-control" name="lower_lim" placeholder="최솟값"></span>
+            <span class="input-group-text">최댓값<input type="number" class="form-control form-control" name="upper_lim" placeholder="최댓값"></span>
+        </div>
+      </div>
+<input type="hidden" name="ordering">
+<input type="hidden" name="special" value="{{surveyType}}">
+이외, 필요한 설문 내용 추가해 넣으세요~
+<!-- 올라감 버튼을 제어하기 위함. -->
+<script>
+    var existing = 2
+</script>
+{% endblock survey %}
+<!--설문을 몇번부터 시작할 것인가. 위 스크립트 안 값과 같은 숫자.-->
+{% block survey_num %}2{% endblock survey_num %}

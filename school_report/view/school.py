@@ -63,9 +63,9 @@ def school_create(request):
             school.name = name
             # 게시판 생성 및 연동.
             board_name = str(school.name) + " 교직원 게시판"
-            _, board_name = Board_name.objects.get_or_create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;; 역대 게시판을 모을 수 있다는 점에선 좋지만... 검색해도 될듯?)
+            board_name, _ = Board_name.objects.get_or_create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;; 역대 게시판을 모을 수 있다는 점에선 좋지만... 검색해도 될듯?)
             category = Board_category.objects.get(pk=7)  # 교직원게시판의 카테고리.
-            _, board = Board.objects.get_or_create(board_name=board_name, category=category, enter_year=school.year, author=request.user)
+            board, _ = Board.objects.get_or_create(board_name=board_name, category=category, enter_year=school.year, author=request.user)
             school.teacher_board_id = board.id  # 게시판 지정.
             school.save()
             return redirect('school_report:school_main', school_id=school.id)

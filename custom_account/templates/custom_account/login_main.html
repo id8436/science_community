@@ -41,7 +41,8 @@ window.setTimeout(function() {
             '{{ request.user.socialaccount_set.first.get_provider_account }}'으로 연동을 진행하는 게 맞습니까?</h5>
             <h4>메인계정 로그인</h4>
                 <div class="col-8 text-left">
-                    <span>또는 <a href="{% url 'custom_account:signup' %}">계정을 만드세요.(클릭)</a></span>
+                    <div>또는 <a href="{% url 'custom_account:logout' %}">로그아웃(다른 소셜계정 이용)</a></div>
+                    <span>또는 <a href="{% url 'custom_account:signup' %}">계정을 만드세요.(회원가입, 클릭)</a></span>
                 </div>
 
             <li>소셜로그인 후 메인계정과 연동하여야 정상적인 이용이 가능합니다.</li>

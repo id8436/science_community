@@ -1,0 +1,149 @@
+// 선택 반영.
+    var selectedValue = selectElement.value;
+  var inputContainer = selectElement.closest('.card-body').querySelector('#inputContainer');
+
+    // 기존에 생성된 요소들을 제거
+    while (inputContainer.firstChild) {
+      inputContainer.removeChild(inputContainer.firstChild);
+    }
+
+    // 선택한 값에 따라서 처리
+    switch (selectedValue) {
+      case 'short':
+        // 단답형 처리
+        break;
+
+      case 'long':
+        // 장문형 처리
+        break;
+
+      case 'numeric':
+        // 숫자형 처리
+        // 최소값 및 최대값에 대한 입력 항목 만들기
+    const limits = [
+      { label: '최솟값', name: 'lower_lim' },
+      { label: '최댓값', name: 'upper_lim' }
+    ];
+
+    for (const limit of limits) {
+      var optionCountElement = document.createElement('span'); // 몇 개까지 고를 수 있게 할지 담을 칸.
+      optionCountElement.textContent = limit.label;
+      optionCountElement.classList.add('input-group-text');
+
+      var inputCountElement = document.createElement('input');
+      inputCountElement.setAttribute('type', 'number');
+      inputCountElement.setAttribute('class', 'form-control form-control');
+      inputCountElement.setAttribute('name', limit.name);
+      inputCountElement.setAttribute('placeholder', limit.label);
+      inputCountElement.setAttribute('value', '1'); // 초기값 1
+
+      optionCountElement.appendChild(inputCountElement);
+      inputContainer.appendChild(optionCountElement);
+    }
+
+    multipleChoiceContainer.style.display = 'flex';
+    break;
+
+      case 'multiple-choice':
+        var multipleChoiceContainer = document.createElement('div');
+        multipleChoiceContainer.classList.add('multiple-choice-item');
+        multipleChoiceContainer.classList.add('multiple-choice-item', 'd-flex', 'align-items-center');
+        // 최소값 칸 만들기
+        var optionCountElement = document.createElement('span'); // 몇 개까지 고를 수 있게 할지 담을 칸.
+        optionCountElement.textContent = '몇 개를 고를까?(최소)';
+        inputContainer.appendChild(optionCountElement);
+        optionCountElement.classList.add('input-group-text');
+        multipleChoiceContainer.style.display = 'flex';
+
+        var inputCountElement = document.createElement('input');
+        inputCountElement.setAttribute('type', 'number');
+        inputCountElement.setAttribute('class', 'form-control form-control');
+        inputCountElement.setAttribute('name', 'lower_lim');
+        inputCountElement.setAttribute('placeholder', '몇 개를 고를까?(최소)');
+        inputCountElement.setAttribute('value', '1'); // 초기값 1
+        optionCountElement.appendChild(inputCountElement);
+        // 최대값 칸 만들기
+        var optionCountElement = document.createElement('span'); // 몇 개까지 고를 수 있게 할지 담을 칸.
+        optionCountElement.textContent = '몇 개를 고를까?(최대)';
+        inputContainer.appendChild(optionCountElement);
+        optionCountElement.classList.add('input-group-text');
+        multipleChoiceContainer.style.display = 'flex';
+
+        var inputCountElement = document.createElement('input');
+        inputCountElement.setAttribute('type', 'number');
+        inputCountElement.setAttribute('class', 'form-control form-control');
+        inputCountElement.setAttribute('name', 'upper_lim');
+        inputCountElement.setAttribute('placeholder', '몇 개를 고를까?(최대)');
+        inputCountElement.setAttribute('value', '1'); // 초기값 1
+        optionCountElement.appendChild(inputCountElement);
+
+        var optionNumber = 1 //inputContainer.childElementCount; // 순번 계산
+
+        var optionNumberElement = document.createElement('span'); // 순번을 나타내는 요소
+        optionNumberElement.textContent = optionNumber + '. '; // 순번 텍스트 설정
+
+        var inputElement = document.createElement('input');
+        inputElement.setAttribute('type', 'text');
+        inputElement.setAttribute('class', 'form-control');
+        inputElement.setAttribute('name', 'option');
+        inputElement.setAttribute('placeholder', '내용을 기입해주세요~');
+
+        var addButton = document.createElement('button');
+        addButton.setAttribute('type', 'button');
+        addButton.setAttribute('class', 'btn btn-primary btn-add');
+        addButton.setAttribute('onclick', 'addOption(this)');
+        addButton.textContent = '+';
+
+        multipleChoiceContainer.appendChild(optionNumberElement); // 순번 요소 추가
+        multipleChoiceContainer.appendChild(inputElement);
+        multipleChoiceContainer.appendChild(addButton);
+
+        inputContainer.appendChild(multipleChoiceContainer);
+
+        break;
+
+      case 'dropdown':
+        // 문항 생성 처리
+        var multipleChoiceContainer = document.createElement('div');
+        multipleChoiceContainer.classList.add('multiple-choice-item');
+        multipleChoiceContainer.classList.add('multiple-choice-item', 'd-flex', 'align-items-center');
+
+
+        var optionNumber = inputContainer.childElementCount; // 순번 계산
+
+        var optionNumberElement = document.createElement('span'); // 순번을 나타내는 요소
+        optionNumberElement.textContent = optionNumber + '. '; // 순번 텍스트 설정
+
+        var inputElement = document.createElement('input');
+        inputElement.setAttribute('type', 'text');
+        inputElement.setAttribute('class', 'form-control');
+        inputElement.setAttribute('name', 'option');
+        inputElement.setAttribute('placeholder', '내용을 기입해주세요~');
+
+        var addButton = document.createElement('button');
+        addButton.setAttribute('type', 'button');
+        addButton.setAttribute('class', 'btn btn-primary btn-add');
+        addButton.setAttribute('onclick', 'addOption(this)');
+        addButton.textContent = '+';
+
+        multipleChoiceContainer.appendChild(optionNumberElement); // 순번 요소 추가
+        multipleChoiceContainer.appendChild(inputElement);
+        multipleChoiceContainer.appendChild(addButton);
+
+        inputContainer.appendChild(multipleChoiceContainer);
+
+        break;
+
+      case 'file':
+
+        break;
+
+      case 'date-time':
+
+        // 날짜(시간) 처리
+        break;
+
+      default:
+          // 선택이 'none'인 경우 아무 동작도 수행하지 않음
+          break;
+      }

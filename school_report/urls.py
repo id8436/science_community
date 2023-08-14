@@ -58,5 +58,14 @@ urlpatterns = [
     path('classroom/homework/modify/<int:posting_id>/', classroom.homework_modify, name='homework_modify'),
     path('classroom/homework/delete/<int:posting_id>/', classroom.homework_delete, name='homework_delete'),
     path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
+    # 설문 관련.
+    path('classroom/homework/survey_create/<int:posting_id>/', classroom.homework_survey_create, name='homework_survey_create'),
+    path('classroom/homework/survey_submit/<int:submit_id>/', classroom.homework_survey_submit, name='homework_survey_submit'),
+    path('classroom/homework/survey_statistics/<int:submit_id>/', classroom.homework_survey_statistics, name='homework_survey_statistics'),
+    # 특수설문.
+    path('classroom/homework/survey_list/<int:posting_id>/', classroom.homework_survey_list,
+         name='homework_survey_list'),
+    path('classroom/homework/peerreview_create/<int:posting_id>/', classroom.peerreview_create,
+         name='peerreview_create'),  # 동료평가할 때 동료평가 대상 지정.
 
 ]

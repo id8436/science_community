@@ -1,0 +1,48 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+  <form action="{% url 'school_report:homework_survey_list' posting.id%}" method="POST">
+    {% csrf_token %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>설문 종류</th>
+          <th>설명</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="surveyType" value="peerReview" id="peerReview">
+                <label for="peerReview">동료평가</label>
+            </div>
+          </td>
+          <td>평가점수, 긍정평가, 부정평가를 입력함.</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="surveyType" value="설문_종류_2" id="surveyType2">
+              여기부터 미구현
+            </div>
+          </td>
+          <td>설문 종류 2에 대한 설명</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="surveyType" value="설문_종류_3" id="surveyType3">
+              <label class="form-check-label" for="surveyType3">설문 종류 3</label>
+            </div>
+          </td>
+          <td>설문 종류 3에 대한 설명</td>
+        </tr>
+        <!-- 추가적인 설문 종류와 설명을 필요에 따라 행을 추가할 수 있습니다 -->
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">설문 제작</button>
+  </form>
+
+{% endblock %}

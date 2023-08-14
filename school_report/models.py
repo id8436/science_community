@@ -3,7 +3,7 @@ from django.conf import settings
 
 
 class School(models.Model):
-    name = models.CharField(max_length=10, blank=False)
+    name = models.CharField(max_length=30, blank=False)
     year = models.IntegerField(blank=False)
     level = models.CharField(max_length=10, blank=False)  # 초중고대, 대학원 + 기타.
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자. 마스터는 등록 안했다면 비게끔.
@@ -93,7 +93,7 @@ class Student(models.Model):
     code = models.TextField(null=True, blank=True)
     activated = models.DateTimeField(auto_now=True, null=True, blank=True)
     def __str__(self):
-        return str(self.school) + " " + str(self.student_code)+ self.name
+        return str(self.student_code)+ self.name
     class Meta:
         unique_together = (
             ('school', 'student_code')
@@ -124,6 +124,7 @@ class AnnoIndividual(models.Model):
 
 # 아래는 천천히 구현해보자. 과제제출.
 class Homework(models.Model):
+    school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.
     classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author")
@@ -134,12 +135,15 @@ class Homework(models.Model):
     modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
     is_secret = models.BooleanField(default=False)  # 익명설문 여부.
+    is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
     def __str__(self):
         return self.subject
 class HomeworkSubmit(models.Model):
-    '''과제제출. 이걸 설문조사 삼아도 괜찮을듯...??'''
+    '''간단 과제제출, 동료평가 설문나누기용.'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
-    to_student = models.ForeignKey('Student', on_delete=models.CASCADE)  # 각 개별 학생에게 전달되게끔.
+    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아?
+    to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용.
+    title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비)
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
@@ -149,14 +153,36 @@ class HomeworkSubmit(models.Model):
 class HomeworkQuestion(models.Model):
     '''과제제출 하위의 물음 하나하나.'''
     homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
-    question = models.TextField()  # 질문.
-    type = models.TextField()  # 질문유형. 단답형? 숫자? 등등등
-    response = models.TextField()  # 응답.
-    # 기능.
+    question_title = models.TextField()  # 질문.
+    question_type = models.TextField()  # 질문유형. 단답형? 숫자? 등등등
     is_essential = models.BooleanField(default=False)  # 필수로 답해야 하는지 여부.
+    # 순번 및 특수기능.
+    ordering = models.IntegerField(null=True, blank=True)  # 질문의 순번.
+    is_special = models.BooleanField(default=False)  # 특수 설문으로, 조정 불가능한 문항임을 알리기 위해.
+    # 기능.
+    options = models.TextField(null=True, blank=True)  # 문항정보 담기.
+    upper_lim = models.FloatField(default=None, null=True, blank=True)  # 숫자 등에 사용하는 상위 리밋.(최대 글자수,체크박스선택갯수,)
+    lower_lim = models.FloatField(default=None, null=True, blank=True)  # 숫자 등에 사용하는 하위 리밋.(최소 글자수,체크박스선택갯수,)
 
+from datetime import datetime  # 저장경로 관련.
+from os.path import basename  # 파일명 관련.
+
+def get_upload_to(instance, filename):
+    return 'homework/submit/{}/{}/{}/{}'.format(datetime.now().year, datetime.now().month, datetime.now().day,
+                                                filename)
 class HomeworkAnswer(models.Model):
-    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자.
+    submit = models.ForeignKey('HomeworkSubmit', on_delete=models.CASCADE, blank=True, null=True)  # 동료평가에서 쓰일 평가대상 나누기용 제출.
     question = models.ForeignKey('HomeworkQuestion', on_delete=models.CASCADE)
-    contents = models.TextField(default=None, blank=True)
-    memo = models.TextField(default=None, blank=True)  # 답변이 마무리되었을 때 표준점수 등... 편항을 알기 위해.
+    contents = models.TextField(default=None, blank=True, null=True)  # 응답, 선택값들 담기.
+    file = models.FileField(upload_to=get_upload_to, default=None, blank=True, null=True)  # 각종 파일을 담기 위한 필드.
+    memo = models.TextField(default=None, blank=True, null=True)  # 답변이 마무리되었을 때 표준점수 등... 편항을 알기 위해.
+    def save(self, *args, **kwargs):
+        '''기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
+        try:
+            this = HomeworkAnswer.objects.get(id=self.id)
+            if this.file != self.file:
+                this.file.delete(save=False)
+        except:
+            pass  # when new photo then we do nothing, normal case
+        super(HomeworkAnswer, self).save(*args, **kwargs)

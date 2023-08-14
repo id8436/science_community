@@ -1,0 +1,46 @@
+<input type="hidden" name="question_id" value="{{question.id}}">
+
+{% if question.is_special %}
+  <select name="question_type" onchange="handleOptionChange(this)">
+    <option value="{{question.question_type}}">특수문항</option>
+  </select>
+  <input type="hidden" name="is_special" value="{{question.is_special}}">
+  <!-- checkbox는 선택을 안하면 데이터 전송을 하지 않는다;; -->
+  <input type="hidden" name="is_essential" value="{{question.is_essential}}">
+  필수문항인가요?<input class="form-check-input" type="checkbox" checked disabled>
+  <textarea class="form-control" style="resize: both;" name="question_title" placeholder="질문을 입력하세요~" readonly>{{ question.question_title }}</textarea>
+
+<script>
+    var existing = Number({{forloop.counter}}) + Number(1);  // 문항 돌 때마다 갱신.
+    console.log(existing)
+</script>
+
+{% else %}<!-- 아래가 기본형. -->
+  <select name="question_type" onchange="handleOptionChange(this)">
+    {% if question.question_type%}<option value="{{question.question_type}}">(기존값){{question.question_type}}</option>
+    {% else %}    <option value="short">==선택==</option> {% endif %}
+    <option value="short">단답형(short)</option>
+    <option value="long">장문형(long)</option>
+    <option value="numeric">숫자형(numeric)</option>
+    <option value="multiple-choice">객관식(다중선택)</option>
+    <option value="dropdown">드롭다운(단일선택)</option>
+    <option value="file">파일</option>
+    <option value="date-time">날짜(시간)</option>
+  </select>
+  <input type="hidden" name="is_special" value="{{question.is_special}}">
+
+  <!-- checkbox는 선택을 안하면 데이터 전송을 하지 않는다;; -->
+  <label>필수문항인가요?
+  <input type="hidden" name="is_essential" value="{{question.is_essential}}">
+  {% if question.is_essential %}
+  <input class="form-check-input" id="is_essential{{question.id}}" type="checkbox" checked onchange="handleCheckboxChange(this)">
+  {% else %}
+  <input class="form-check-input" id="is_essential{{question.id}}" type="checkbox" onchange="handleCheckboxChange(this)">
+  {% endif %}
+  </label>
+
+  <textarea class="form-control" style="resize: both;" name="question_title" placeholder="질문을 입력하세요~">{{ question.question_title }}</textarea>
+
+
+{% endif %}
+

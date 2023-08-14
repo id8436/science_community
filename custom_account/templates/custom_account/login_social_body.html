@@ -11,7 +11,7 @@
     {% csrf_token %}
 <!--    <input type="hidden" name="next" value="{{request.path}}"> 이걸 쓰면 사용하던 페이지로 리다이렉트가 가능하지만, 메인페이지에서 social계정을 본계정으로 바꿔주어야 하기 때문에 본 페이지로 이동시킨다.-->
     <center>
-    <button type="submit" class="btn btn-light">
+    <button type="submit" class="btn">
         네이버로그인은 아직 미구현.
               <img src="{{ naver_button }}"
                  onmouseover="this.src='{{ naver_button_hover }}'"
@@ -24,7 +24,7 @@
 <form method="post" action="/accounts/kakao/login/">
     {% csrf_token %}
     <center>
-    <button type="submit" class="btn btn-light">
+    <button type="submit" class="btn">
               <img src="{{ kakao_button }}"
                  onmouseover="this.src='{{ kakao_button_hover }}'"
                  onmouseleave="this.src='{{ kakao_button }}'"height="34">
@@ -38,7 +38,7 @@
 <form method="post" action="/accounts/google/login/">
     {% csrf_token %}
     <center>
-    <button type="submit" class="btn btn-light">
+    <button type="submit" class="btn">
               <img src="{{ google_button }}"
                  onmouseover="this.src='{{ google_button_hover }}'"
                  onmouseleave="this.src='{{ google_button }}'"height="34">
@@ -51,7 +51,7 @@
 <form method="post" action="/accounts/facebook/login/">
     {% csrf_token %}
     <center>
-    <button type="submit" class="btn btn-light">
+    <button type="submit" class="btn">
               <img src="{{ facebook_button }}"
                  onmouseover="this.src='{{ facebook_button_hover }}'"
                  onmouseleave="this.src='{{ facebook_button }}'"height="34">

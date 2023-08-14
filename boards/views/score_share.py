@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required #로그인이 있어야 가능함
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
 import json
 from django.utils import timezone  # 시간입력을 위해.
@@ -241,16 +241,17 @@ def subject_descriptive_info_form_download(request, subject_id):
     ws['B4'] = '이 열은 비우기'
     ws.column_dimensions['B'].width = 10
 
-    for i in range(10):  # 기존 틀 생성.
-        ws.cell(row=1, column=i + 3).value = i+1  # 문항번호.
-        ws.cell(row=2, column=i + 3).value = 0  # 문항배점칸.
-        ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
+    #for i in range(10):  # 기존 틀 생성.
+        # 배점반영과 합침.
+        #ws.cell(row=2, column=i + 3).value = 0  # 문항배점칸.
+        #ws.cell(row=3, column=i + 3).value = 0   # 정답칸.
 
     # 기존 입력 데이터 반영.
     if subject.descriptive_distribution:  # 배점정보 반영.
         answers = json.loads(subject.descriptive_distribution)
         for i, answer in enumerate(answers):
-            ws.cell(row=3, column=i+3).value = answer
+            ws.cell(row=1, column=i + 3).value = i + 1  # 문항번호.
+            ws.cell(row=2, column=i+3).value = answer
 
     scores = subject.score_set.all()
     for i, score in enumerate(scores):

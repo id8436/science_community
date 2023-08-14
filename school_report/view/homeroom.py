@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect, resolve_url, H
 from .. import models  # 모델 호출.
 from ..forms import HomeroomForm, AnnouncementForm
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from custom_account.decorator import custom_login_required as login_required
 import openpyxl
 import random
 @login_required()
@@ -39,11 +39,8 @@ def main(request, homeroom_id):
 
     # 선생님, 혹은 학생객체 가져오기.
     homeroom_student = check.Check_student(request, homeroom).in_homeroom_and_none()
-    print(homeroom_student)
-    if homeroom_student != None:
-        context['homeroom_student'] = homeroom_student
-    else:
-        context['homeroom_teacher'] = check.Check_teacher(request, homeroom).in_homeroom_and_none()  # 선생님객체.
+    context['homeroom_student'] = homeroom_student
+    context['homeroom_teacher'] = check.Check_teacher(request, homeroom).in_homeroom_and_none()  # 선생님객체.
 
     classroom_list = homeroom.classroom_set.all()
     context['classroom_list'] = classroom_list
