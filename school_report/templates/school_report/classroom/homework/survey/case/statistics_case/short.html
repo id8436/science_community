@@ -1,0 +1,6 @@
+<div id="inputContainer">
+    <div>설문유형: 단답형, 총 {{question.answer_count}}개의 응답.</div>
+    {% for row in question.answers %}
+        {{row.contents}}({{row.count}}개 {{row.percentage}}%)<br>
+    {% endfor %}
+</div>

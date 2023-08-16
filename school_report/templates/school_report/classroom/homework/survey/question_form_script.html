@@ -1,0 +1,127 @@
+
+<script>
+// select를 선택했을 때 바로 반응하게 하려면 이벤트리스너를 넣어주어야 한다고..
+// 이 함수는 페이지가 로드될 때 호출되며, 문서 내의 모든 select 요소에 대해 처리를 합니다.
+window.onload = function() {
+  document.querySelectorAll('select[name="question_type"]').forEach(handleOptionChange);
+};
+
+// select값을 바꿀 때.
+function handleOptionChange(selectElement) {
+  selectElement.dataset.originalValue = selectElement.value;  // 현재 선택된 값을 데이터 속성에 할당
+
+  selectElement.onmousedown = function() {
+    this.dataset.originalValue = this.value;
+  };
+
+  selectElement.onchange = function() {
+    var inputElements = selectElement.closest('.card-body').querySelectorAll('input[type="text"], textarea');
+    var hasContent = Array.from(inputElements).some(function(inputElement) {
+      return inputElement.value !== '';
+    });
+
+    if (hasContent) {
+      var confirmed = confirm('이전에 입력된 내용이 삭제됩니다. 계속하시겠습니까?');
+      if (!confirmed) {
+        this.value = this.dataset.originalValue;
+        return;
+      }
+    }
+
+// 기존 title textarea의 내용을 지우는 부분
+  var cardBody = this.closest('.card-body');  // 현재 selectElement가 속한 '문항' 요소를 찾습니다.
+  if (cardBody) {
+    var textarea = cardBody.querySelector('textarea[name="question_title"]');
+    if (textarea) {
+      textarea.value = '';
+    }
+  }
+    {% include "school_report/classroom/homework/survey/segment/switch.html" %}
+
+  };
+}
+
+  function addOption(button) {
+    var item = button.closest('.multiple-choice-item'); // 클릭한 버튼이 속한 아이템
+    var inputContainer = item.parentNode; // 클릭한 버튼이 속한 아이템의 부모 요소를 가져옴
+
+    var newItem = document.createElement('div');
+    newItem.classList.add('multiple-choice-item');
+    newItem.classList.add('d-flex');
+
+    var optionNumber = inputContainer.childElementCount + 1; // 순번 계산
+
+    var optionNumberElement = document.createElement('span'); // 순번을 나타내는 요소
+    optionNumberElement.textContent = optionNumber + '. '; // 순번 텍스트 설정
+
+    var inputElement = document.createElement('input');
+    inputElement.setAttribute('type', 'text');
+    inputElement.setAttribute('class', 'form-control');
+    inputElement.setAttribute('name', 'option');
+    inputElement.setAttribute('placeholder', '내용을 기입해주세요~');
+
+    var removeButton = document.createElement('button');
+    removeButton.setAttribute('type', 'button');
+    removeButton.setAttribute('class', 'btn btn-outline-danger btn-remove');
+    removeButton.setAttribute('onclick', 'removeOption(this)');
+    removeButton.textContent = '-';
+
+    var addButton = document.createElement('button');
+    addButton.setAttribute('type', 'button');
+    addButton.setAttribute('class', 'btn btn-outline-primary btn-add');
+    addButton.setAttribute('onclick', 'addOption(this)');
+    addButton.textContent = '+';
+
+    newItem.appendChild(optionNumberElement); // 순번 요소 추가
+    newItem.appendChild(inputElement);
+    newItem.appendChild(removeButton);
+    newItem.appendChild(addButton);
+
+    inputContainer.insertBefore(newItem, item.nextSibling); // 클릭한 버튼의 다음에 추가
+
+    updateOptionNumbers(inputContainer); // 순번 업데이트
+  }
+
+  function updateOptionNumbers(inputContainer) {
+    var items = inputContainer.getElementsByClassName('multiple-choice-item');
+
+    for (var i = 0; i < items.length; i++) {
+      var optionNumberElement = items[i].querySelector('span'); // 각 아이템의 순번 요소 가져오기
+      optionNumberElement.textContent = (i + 1) + '. '; // 순번 업데이트
+    }
+  }
+
+
+  function removeOption(button) {
+    var item = button.closest('.multiple-choice-item');
+    var inputContainer = item.parentNode;
+
+    // 현재 항목의 인덱스
+    var currentIndex = Array.from(inputContainer.children).indexOf(item);
+
+    // 항목을 제거
+    inputContainer.removeChild(item);
+
+    // 제거한 항목 이후의 multiple-choice-item 클래스를 가진 항목들의 순번을 업데이트
+    var multipleChoiceItems = inputContainer.getElementsByClassName('multiple-choice-item');
+    for (var i = currentIndex; i < multipleChoiceItems.length; i++) {
+      var currentItem = multipleChoiceItems[i];
+      var inputElement = currentItem.querySelector('input[type="text"]');
+      inputElement.setAttribute('name', 'option' + (i + 1));
+    }
+    updateOptionNumbers(inputContainer); // 순번 업데이트
+  }
+
+
+</script>
+
+<script>
+function handleCheckboxChange(checkbox) {
+    var hiddenField = checkbox.parentNode.querySelector('input[name="is_essential"]');
+    if (checkbox.checked) {
+        hiddenField.value = 'True';
+    } else {
+        hiddenField.value = 'False';
+    }
+}
+</script>

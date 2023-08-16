@@ -1,0 +1,64 @@
+<div id="inputContainer">
+    <div>설문유형: 숫자형, 총 {{question.answer_count}}개의 응답.</div>
+    최소 {{question.lower_lim}}, 최대 {{question.upper_lim}}
+<table class="table table-hover" id="score_table">
+<thead>
+<tr class="thead-dark">
+    <th>평균</th>
+    <th>분산</th>
+    <th>표준편차</th>
+    <th>최빈값</th>
+    <th>중위수</th>
+    <th>최소값</th>
+    <th>최대값</th>
+    <th>왜도</th>
+    <th>첨도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+    <td>{{question.info.mean}}</td>
+    <td>{{question.info.var}}</td>
+    <td>{{question.info.std}}</td>
+    <td>{{question.info.mode}}</td>
+    <td>{{question.info.median}}</td>
+    <td>{{question.info.max}}</td>
+    <td>{{question.info.min}}</td>
+    <td>{{question.info.skew}}</td>
+    <td>{{question.info.kurtosis}}</td>
+</tr>
+</tbody>
+</table>
+
+<div id="{{forloop.counter}}_chart" style="height: 300px; width: 100%;"></div>
+
+</div>
+
+<script>
+window.addEventListener('load', function() {
+
+//Better to construct options first and then pass it as a parameter
+var options = {
+	title: {
+		text: "{{subject}}"
+	},
+    axisY: {
+		title: "수",
+		suffix: "",
+		},
+	data: [
+	{
+		// Change type to "doughnut", "line", "splineArea", etc.
+		type: "column",
+		dataPoints: [
+            {% for level, count in question.data_dict.items %}
+                { label: "{{level}}",  y: {{count}}  },
+            {% endfor %}
+		]
+	}
+	]
+};
+
+$("#{{forloop.counter}}_chart").CanvasJSChart(options);
+})
+</script>

@@ -125,7 +125,7 @@ class AnnoIndividual(models.Model):
 # 아래는 천천히 구현해보자. 과제제출.
 class Homework(models.Model):
     school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.
+    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.  # 학급이나 학교에서 다대다로 가져가는 게 편할듯.
     classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author")
     subject = models.CharField(max_length=100)  # 제목

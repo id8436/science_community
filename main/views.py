@@ -34,7 +34,7 @@ def main_show(request):
                 return render(request, 'custom_account/login_main.html')
         # 로그인 전 접속했던 주소로 리다이렉트 하자.
         url = request.session.get('before_login')  # 기존 주소 획득.
-        if url != None:
+        if url is not None:
             del request.session['before_login']
             return redirect(url)
         return render(request, 'main/main.html', context)

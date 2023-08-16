@@ -1,0 +1,21 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+<!-- 차트그리기용 -->
+{% load static %}
+<script type="text/javascript" src="{% static 'for chart/jquery.canvasjs.min.js' %}"></script>
+
+<!-- 기본적으로 아래 기초 1문항과 같음. -->
+{% for question in question_list %}
+      <div id="question{{forloop.counter}}" class="card my-3">
+          {{question.question_title}} {%if question.is_essential %}필수응답{% endif %}
+        <div class="card-body">
+  <!-- 형식에 따라 다른 html 호출. -->
+  {% include "school_report/classroom/homework/survey/case/statistics_case/"|add:question.question_type|add:".html" with question=question %}
+        </div>
+      </div>
+{% endfor %}
+
+
+{% endblock %}

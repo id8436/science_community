@@ -33,10 +33,10 @@ def compound_interest(request):
 
 from school_report.models import HomeworkSubmit
 def do_DB(request):
-    '''과제에 학생 배치시키는 게 아니라, 유저모델 대응시키기.'''
-    object = HomeworkSubmit.objects.all()
-    for i in object:
-        user = i.to_student.admin
-        i.to_user = user
-        i.save()
+    # 반영함. 별 문제 없으면 지우자.'''과제에 학생 배치시키는 게 아니라, 유저모델 대응시키기.'''
+    # object = HomeworkSubmit.objects.all()
+    # for i in object:
+    #     user = i.to_student.admin
+    #     i.to_user = user
+    #     i.save()
     return render(request, 'utility/main.html', {})

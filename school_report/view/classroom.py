@@ -47,7 +47,7 @@ def main(request, classroom_id):
     classroom = get_object_or_404(models.Classroom, pk=classroom_id)
     context ={'classroom': classroom}
 
-    homework_list = classroom.homework_set.all()
+    homework_list = classroom.homework_set.order_by('-create_date')#all()
     context['homework_list'] = homework_list
     return render(request, 'school_report/classroom/main.html', context)
 
@@ -73,7 +73,10 @@ def homework_create(request, classroom_id):
                 student_list = models.Student.objects.filter(homeroom=classroom.homeroom)
                 for student in student_list:
                     homework_distribution(homework, student.admin)  # 유저모델을 대응시킨다.
-                    Notification.objects.create(to_user=student.admin, official=True, classification=12, type=2, from_user=request.user, message=classroom, url=resolve_url("school_report:homework_detail", homework.id))
+                    try:
+                        Notification.objects.create(to_user=student.admin, official=True, classification=12, type=2, from_user=request.user, message=classroom, url=resolve_url("school_report:homework_detail", homework.id))
+                    except Exception as e:
+                        print(e)  # 학생 중 등록이 안한 학생은 to_user에서 에러가 난다.
                 homework_distribution(homework, request.user)  # 작성자도 대응시킨다.
 
             return redirect('school_report:classroom_main', classroom.id)  # 작성이 끝나면 작성한 글로 보낸다.

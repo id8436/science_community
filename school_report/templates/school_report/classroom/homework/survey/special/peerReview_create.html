@@ -1,0 +1,32 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+학생에 대한 설문을 만들 수는 있지만, 기존 설문을 없앨 수 있어, 삭제기능은 만들지 않았습니다.
+  <form action="#" method="POST">
+    {% csrf_token %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>대상 학생</th>
+          <th>생성 여부</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for student in student_list %}
+          <td>
+            {{student}}
+          </td>
+          <td><input type="checkbox"
+                     {%if student.submit %}checked disabled
+                     {%else %}name="user_list" value="{{student.id}}" {%endif%}></td>
+          {% endfor %}
+        </tr>
+        <!-- 추가적인 설문 종류와 설명을 필요에 따라 행을 추가할 수 있습니다 -->
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary" onclick="alert('삭제는 안됩니다?')">설문 제작</button>
+  </form>
+
+{% endblock %}

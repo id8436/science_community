@@ -1,0 +1,31 @@
+<!-- multiple-choice.html의 아랫부분 복사. -->
+<div>설문유형: 드롭다운(단일선택), 총 {{question.answer_count}}개의 응답.</div>
+<div id="{{forloop.counter}}_chart" style="height: 300px; width: 100%;"></div>
+<script>
+
+window.addEventListener('load', function() {
+
+//Better to construct options first and then pass it as a parameter
+var options = {
+    animationEnabled: true,
+	title: {
+		text: "{{subject}}"
+	},
+	data: [
+	{
+		// Change type to "doughnut", "line", "splineArea", etc.
+		type: "pie",
+		startAngle: 240,
+        indexLable: "{lable} {y}",
+		dataPoints: [
+            {% for data in question.data_dict %}
+                { label: "{{data.contents}}",  y: {{data.percentage}}  },
+            {% endfor %}
+		]
+	}
+	]
+};
+
+$("#{{forloop.counter}}_chart").CanvasJSChart(options);
+})
+</script>
