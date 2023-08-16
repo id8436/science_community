@@ -93,8 +93,43 @@ $(document).ready(function(){
 
 
 {% if survey %}
-
-
+<table class="table table-hover" id="submit_list">
+    <thead>
+    <tr class="table-info">
+        <th>제출자</th>
+        <th>상태</th>
+        <th>제출시각</th>
+        <th>제출내용</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if submit_list %}
+    {% for annoIndividual in submit_list %}
+    <tr>
+        <td>{{annoIndividual.who}}</td>
+        {% if annoIndividual.check %}
+        <td>제출</td>
+        <td>{{annoIndividual.submit_date|date:'m.d H:i'}}</td>
+        {% elif annoIndividual.read %}
+        <td class="table-secondary" colspan="2">읽음</td>
+        {% else %}
+        <td class="table-danger" colspan="2">미열람</td>
+        {% endif %}
+        <td>
+            {% if survey %}
+            <a href="{% url 'school_report:homework_survey_submit' annoIndividual.id%}" class="btn btn-info">
+                {% if annoIndividual.title %}{{annoIndividual.title}}{%endif%}설문하기</a>
+            <a href="{% url 'school_report:homework_survey_statistics' annoIndividual.id%}" class="btn btn-info">설문 통계</a>
+            {% else %}
+            {{annoIndividual.content}}
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+{% else %}
 {% if individual_announcement %}
 <div>
     {{individual_announcement.to_student}}
@@ -139,7 +174,7 @@ $(document).ready(function(){
 
 </div>
 {% endif %}
-{% else %}
+
 {% endif %}
 
 
