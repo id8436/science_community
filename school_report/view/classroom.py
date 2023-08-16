@@ -162,7 +162,7 @@ def homework_detail(request, posting_id):
     if posting.author == request.user:  # 과제의 제출자라면...
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
         for submit in submit_list:
-            submit.who = '본인'  # 설문자 정보를 담기.
+            submit.who = submit.to_student  # 설문자 정보를 담기.
     elif teacher:
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
         for submit in submit_list:
