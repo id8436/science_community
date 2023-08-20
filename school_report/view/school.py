@@ -117,6 +117,7 @@ def subject_main(request, subject_id):
     subject = get_object_or_404(models.Subject, pk=subject_id)
     context = {'subject': subject}
     context['classroom_list'] = subject.classroom_set.all().order_by('homeroom__name')
+    context['homework_list'] = subject.homework_set.order_by('-create_date')
     return render(request, 'school_report/school/subject/main.html', context)
 def create_performance_score(request, subject_id):
     subject = get_object_or_404(models.Subject, pk=subject_id)

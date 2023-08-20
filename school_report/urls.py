@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views #해당 앱의 뷰를 불러온다.
-from .view import homeroom, classroom, school
+from .view import homeroom, classroom, school, subject
 app_name = 'school_report'
 
 urlpatterns = [
@@ -16,6 +16,8 @@ urlpatterns = [
     path('subject_create/<int:school_id>/', school.subject_create, name='subject_create'),
     path('subject_main/<int:subject_id>/', school.subject_main, name='subject_main'),
     path('create_performance_score/<int:subject_id>/', school.create_performance_score, name='create_performance_score'),
+    path('subject_homework/<int:subject_id>/', subject.subject_homework_create, name='subject_homework_create'),
+    path('subject_homework/detail/<int:posting_id>/', subject.subject_homework_detail, name='subject_homework_detail'),
 
     #교사명단
     path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),

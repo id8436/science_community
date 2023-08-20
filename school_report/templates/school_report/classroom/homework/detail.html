@@ -77,9 +77,7 @@ $(document).ready(function(){
         {% endif %}
         <td>
             {% if survey %}
-            <a href="{% url 'school_report:homework_survey_submit' annoIndividual.id%}" class="btn btn-info">
-                {% if annoIndividual.title %}{{annoIndividual.title}}{%endif%}설문하기</a>
-            <a href="{% url 'school_report:homework_survey_statistics' annoIndividual.id%}" class="btn btn-info">설문 통계</a>
+            설문제출
             {% else %}
             {{annoIndividual.content}}
             {% endif %}
@@ -89,11 +87,12 @@ $(document).ready(function(){
     {% endif %}
     </tbody>
 </table>
+    아래는 학생들이 보는 화면.
 {%endif%}
 
 
 {% if survey %}
-<table class="table table-hover" id="submit_list">
+<table class="table table-hover" id="submit_status">
     <thead>
     <tr class="table-info">
         <th>제출자</th>
@@ -103,29 +102,27 @@ $(document).ready(function(){
     </tr>
     </thead>
     <tbody>
-    {% if submit_list %}
-    {% for annoIndividual in submit_list %}
+    {% if private_submit %}
     <tr>
-        <td>{{annoIndividual.who}}</td>
-        {% if annoIndividual.check %}
+        <td>{{private_submit.who}}</td>
+        {% if private_submit.check %}
         <td>제출</td>
-        <td>{{annoIndividual.submit_date|date:'m.d H:i'}}</td>
-        {% elif annoIndividual.read %}
+        <td>{{private_submit.submit_date|date:'m.d H:i'}}</td>
+        {% elif private_submit.read %}
         <td class="table-secondary" colspan="2">읽음</td>
         {% else %}
         <td class="table-danger" colspan="2">미열람</td>
         {% endif %}
         <td>
             {% if survey %}
-            <a href="{% url 'school_report:homework_survey_submit' annoIndividual.id%}" class="btn btn-info">
-                {% if annoIndividual.title %}{{annoIndividual.title}}{%endif%}설문하기</a>
-            <a href="{% url 'school_report:homework_survey_statistics' annoIndividual.id%}" class="btn btn-info">설문 통계</a>
+            <a href="{% url 'school_report:homework_survey_submit' private_submit.id%}" class="btn btn-info">
+                {% if private_submit.title %}{{private_submit.title}}{%endif%}설문하기</a>
+            <a href="{% url 'school_report:homework_survey_statistics' private_submit.id%}" class="btn btn-info">설문 통계</a>
             {% else %}
-            {{annoIndividual.content}}
+            {{private_submit.content}}
             {% endif %}
         </td>
     </tr>
-    {% endfor %}
     {% endif %}
     </tbody>
 </table>

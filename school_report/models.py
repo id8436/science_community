@@ -1,6 +1,10 @@
 from django.db import models
 from django.conf import settings
-
+'''의견. 훗날 앱 자체를 재구성해보자.
+1. 학교, 교실, 교과교실, 교과 등 객체는 하나의 모델로 type 처리해서 활용할 수 있지 않을까? board 모델로 활용해도 괜찮을듯.
+2. 댓글모델 같은 건.. 여러 모델에서 끌어다 쓸 수 있으니, 댓글모델에서 상위모델로 지정하지 않고 독립적으로 두는 편이 좋겠다.(좋아요나 이런 것도...)
+3. 모델별 하위 함수를 두어, 해당 객체로 이동하는 url 함수를 짜두면... 이런저런 일에 편해지겠지.
+'''
 
 class School(models.Model):
     name = models.CharField(max_length=30, blank=False)
@@ -126,6 +130,7 @@ class AnnoIndividual(models.Model):
 class Homework(models.Model):
     school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.  # 학급이나 학교에서 다대다로 가져가는 게 편할듯.
+    subject_object = models.ForeignKey('subject', on_delete=models.CASCADE, null=True, blank=True)  # 교과... 생각해보면, 학교, 학급, 교실, 교과 다 한 모델로 처리 가능하지 않나..
     classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author")
     subject = models.CharField(max_length=100)  # 제목
@@ -149,7 +154,7 @@ class HomeworkSubmit(models.Model):
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
     submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
-        return self.to_student.name
+        return str(self.to_user)
 class HomeworkQuestion(models.Model):
     '''과제제출 하위의 물음 하나하나.'''
     homework = models.ForeignKey('Homework', on_delete=models.CASCADE)

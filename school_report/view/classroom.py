@@ -47,7 +47,9 @@ def main(request, classroom_id):
     classroom = get_object_or_404(models.Classroom, pk=classroom_id)
     context ={'classroom': classroom}
 
-    homework_list = classroom.homework_set.order_by('-create_date')#all()
+    subject_homework_list = classroom.base_subject.homework_set.order_by('-create_date')
+    context['subject_homework_list'] = subject_homework_list
+    homework_list = classroom.homework_set.order_by('-create_date')
     context['homework_list'] = homework_list
     return render(request, 'school_report/classroom/main.html', context)
 
@@ -121,15 +123,23 @@ def homework_delete(request, posting_id):
         messages.error(request, '삭제권한이 없습니다. 꼼수쓰지 마라;')
         return redirect('school_report:homework_detail', posting_id=posting.id)
     messages.success(request, '삭제 성공~!')
-    classroom = posting.classroom
     posting.delete()
-    return redirect('school_report:classroom_main', classroom_id=classroom.id)
+    if posting.classroom:
+        classroom = posting.classroom
+        return redirect('school_report:classroom_main', classroom_id=classroom.id)
+    if posting.subject_object:
+        subject_object = posting.subject_object
+        return redirect('school_report:subject_main', subject_object.id)
 def homework_detail(request, posting_id):
     '''과제 상세페이지와 과제제출 기능.'''
     context = {}
     posting = get_object_or_404(models.Homework, pk=posting_id)
     context['posting'] = posting
-    classroom = posting.classroom
+    if posting.subject_object:
+        school = posting.subject_object.school
+    else:
+        classroom = posting.classroom
+        school = classroom.school
 
     if request.method == 'POST':  # 과제를 제출한 경우.
         homework_submit = get_object_or_404(models.HomeworkSubmit, base_homework=posting, to_user=request.user)
@@ -157,24 +167,31 @@ def homework_detail(request, posting_id):
             individual_announcement.append(submit)
     context['individual_announcement'] = individual_announcement
     # 학생과 교사 가르기.
-    student = check.Check_student(request, classroom.homeroom).in_classroom_and_none()
-    teacher = check.Check_teacher(request, classroom.homeroom.school).check_in_school()
-    if posting.author == request.user:  # 과제의 제출자라면...
+    student = check.Check_student(request, school).check_in_school()
+    teacher = check.Check_teacher(request, school).check_in_school()
+    # 아래 작성자에 대한 건 빼도 괜찮지 않을까?
+    # if posting.author == request.user:  # 과제의 제출자라면...
+    #     submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
+    #     for submit in submit_list:
+    #         #student = models.Student.objects.get(admin=submit.to_user, school=classroom.school)
+    #         submit.who = 'QHS'  #student  # 설문자 정보를 담기.
+    if teacher:
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
         for submit in submit_list:
-            #student = models.Student.objects.get(admin=submit.to_user, school=classroom.school)
-            submit.who = 'QHS'#student  # 설문자 정보를 담기.
-    elif teacher:
-        submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
-        for submit in submit_list:
-            submit.who = teacher  # 설문자 정보를 담기.
-    elif student:
-        submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
-        for submit in submit_list:
-            submit.who = student
-    else:
-        return check.Check_student(request, classroom).redirect_to_classroom()  # 리다이렉트용.
+            try:
+                student_check = models.Student.objects.get(admin=submit.to_user, school=school)
+                submit.who = student_check  # 설문자 정보를 담기.
+            except:
+                teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
+                submit.who = teacher_check
     context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
+
+    private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
+    if student != None:
+        private_submit.who = student
+    elif teacher != None:
+        private_submit.who = teacher
+    context['private_submit'] = private_submit  # 열람자의 정보 담기.
 
     context['submit_list'] = submit_list  # 여기 수정해야 함. 일반인들이 본인의 설문을 볼 수 있게!
     return render(request, 'school_report/classroom/homework/detail.html', context)
@@ -271,10 +288,13 @@ def homework_survey_submit(request, submit_id):
             question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
 
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        classroom = posting.classroom
-        student = check.Check_student(request, classroom.homeroom).in_classroom_and_none()
+        if posting.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
+            school = posting.classroom.school
+        if posting.subject_object:
+            school = posting.subject_object.school
+        student = check.Check_student(request, school).in_school_and_none()
         if student == None:  # 학급에 속한 경우에만 가능.
-            teacher = check.Check_teacher(request, classroom.homeroom).in_classroom_and_none()
+            teacher = check.Check_teacher(request, school).in_school_and_none()
             if teacher == None:
                 return redirect('school_report:homework_detail', posting_id=posting.id)
 
@@ -331,9 +351,9 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
     question_list = homework.homeworkquestion_set.all()
     context = {}
     for question in question_list:
-        answers = models.HomeworkAnswer.objects.filter(submit=submit, question=question)
+        answers = models.HomeworkAnswer.objects.filter(question=question)
         question.answer_count = answers.count()  # 갯수 따로 저장.
-        origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입 저장.
+        origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
         match question.question_type:  # 중복되는 작동을 짧게 줄이기 위해.
             case 'long':
                 question.question_type = 'short'
@@ -415,7 +435,7 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
                 df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
                 question.data_dict = df_dict
         question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
-    context = {'question_list': question_list}
+    context['question_list'] = question_list
     return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
 
 from django.http import FileResponse, Http404
