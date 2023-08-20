@@ -182,8 +182,11 @@ def homework_detail(request, posting_id):
                 student_check = models.Student.objects.get(admin=submit.to_user, school=school)
                 submit.who = student_check  # 설문자 정보를 담기.
             except:
-                teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
-                submit.who = teacher_check
+                try:
+                    teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
+                    submit.who = teacher_check
+                except:
+                    pass  # 어떤 이유에서인지 모르겠지만, 학생과 교사 양 쪽 다 에러가 뜨곤 함.
     context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
 
     private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
