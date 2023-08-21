@@ -109,8 +109,11 @@ def subject_homework_detail(request, posting_id):
                 student_check = models.Student.objects.get(admin=submit.to_user, school=school)
                 submit.who = student_check  # 설문자 정보를 담기.
             except:
-                teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
-                submit.who = teacher_check
+                try:  # 에러가 뜨긴 하는데.. 학생과 선생 두쪽에서 모두 객체가 없을 수가 있나;;
+                    teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
+                    submit.who = teacher_check
+                except:
+                    pass
     context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
 
     private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
