@@ -114,6 +114,7 @@ def subject_homework_detail(request, posting_id):
                     submit.who = teacher_check
                 except:
                     submit.who = str(submit.to_user)+'(에러남, 교사, 학생객체 모두 없음. 학생등록 안한 경우.)'
+        context['submit_list'] = submit_list  # 하위 객체들의 설문 모음.
     context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
 
     private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
@@ -123,5 +124,5 @@ def subject_homework_detail(request, posting_id):
         private_submit.who = teacher
     context['private_submit'] = private_submit  # 열람자의 정보 담기.
 
-    context['submit_list'] = submit_list  # 여기 수정해야 함. 일반인들이 본인의 설문을 볼 수 있게!
+
     return render(request, 'school_report/classroom/homework/detail.html', context)
