@@ -1,4 +1,4 @@
-<label for="question{{ question.id }}-response">{{ question.question_title|safe }}</label>
+<label for="question{{ question.id }}-response">{{ question.question_title|linebreaks }}</label>
 <input type="number" class="form-control" id="question{{ question.id }}-response"
        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
        min="{{question.lower_lim}}" max="{{question.upper_lim}}"

@@ -1,4 +1,4 @@
 
-<label for="question{{ question.id }}-response">{{ question.question_title|safe }}</label>
+<label for="question{{ question.id }}-response">{{ question.question_title|linebreaks }}</label>
 <input type="text" class="form-control" id="question{{ question.id }}-response"
        placeholder="응답해주세요~" name="response{{question.id}}" value="{{ question.response }}">

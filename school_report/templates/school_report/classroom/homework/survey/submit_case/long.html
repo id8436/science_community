@@ -1,3 +1,3 @@
-<label for="question{{ question.id }}-response">{{ question.question_title|safe }}</label>
+<label for="question{{ question.id }}-response">{{ question.question_title|linebreaks }}</label>
 <textarea class="form-control" id="question{{ question.id }}-response" rows="3" placeholder="당신의 응답!"
           name="response{{question.id}}">{{ question.response }}</textarea>

@@ -1,4 +1,4 @@
-<label>{{ question.question_title|safe }}</label>
+<label>{{ question.question_title|linebreaks }}</label>
 <div class="question" data-upperlim="{{question.upper_lim}}" class="multiple_choice">
 
 {% if question.upper_lim <= 1%}
