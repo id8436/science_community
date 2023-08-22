@@ -1,5 +1,5 @@
 
-<label>{{ question.question_title }}</label>
+<label>{{ question.question_title|safe }}</label>
 
 <div><select name="response{{question.id}}">
 {% for option in question.options %}

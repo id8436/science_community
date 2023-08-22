@@ -113,7 +113,7 @@ def subject_homework_detail(request, posting_id):
                     teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
                     submit.who = teacher_check
                 except:
-                    submit.who = str(submit.to_user)+'(에러남, 교사, 학생객체 모두 없음.)'
+                    submit.who = str(submit.to_user)+'(에러남, 교사, 학생객체 모두 없음. 학생등록 안한 경우.)'
     context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
 
     private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)

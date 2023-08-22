@@ -1,4 +1,4 @@
-<div><label >{{ question.question_title }}</label>
+<div><label >{{ question.question_title|safe }}</label>
 (10MB 이내)</div>
 
 {% if question.response.name %}
