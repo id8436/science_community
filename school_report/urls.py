@@ -60,6 +60,7 @@ urlpatterns = [
     path('classroom/homework/modify/<int:posting_id>/', classroom.homework_modify, name='homework_modify'),
     path('classroom/homework/delete/<int:posting_id>/', classroom.homework_delete, name='homework_delete'),
     path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
+    path('classroom/homework/copy/<int:homework_id>/', classroom.homework_copy, name='homework_copy'),
     # 설문 관련.
     path('classroom/homework/survey_create/<int:posting_id>/', classroom.homework_survey_create, name='homework_survey_create'),
     path('classroom/homework/survey_submit/<int:submit_id>/', classroom.homework_survey_submit, name='homework_survey_submit'),

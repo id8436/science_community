@@ -4,6 +4,7 @@ from django.conf import settings
 1. 학교, 교실, 교과교실, 교과 등 객체는 하나의 모델로 type 처리해서 활용할 수 있지 않을까? board 모델로 활용해도 괜찮을듯.
 2. 댓글모델 같은 건.. 여러 모델에서 끌어다 쓸 수 있으니, 댓글모델에서 상위모델로 지정하지 않고 독립적으로 두는 편이 좋겠다.(좋아요나 이런 것도...)
 3. 모델별 하위 함수를 두어, 해당 객체로 이동하는 url 함수를 짜두면... 이런저런 일에 편해지겠지.
+4. 관리자가 여럿일 수 있으니, 이에 대한 반영도 할 수 있게 조정되어야 할듯.
 '''
 
 class School(models.Model):
@@ -55,6 +56,7 @@ class Classroom(models.Model):
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)  # 연결할 모델.
     subject = models.CharField(max_length=10)  # 과목명  # 상위 과목의 과목명으로 연결될 거니까, 25년이 지나면 지워도 괜찮을듯. 그때 위의 null과 블랭크 조건 없애자.
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
+    # 나중에 메인관리자나 관리집단도 유저모델에 직접 연결시키자.
     name = models.CharField(max_length=25, null=True, blank=True)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯? 역시, 25년이 지나면 지워도 괜찮을듯.
     def __str__(self):
         return str(self.homeroom) + ' ' + str(self.base_subject)
@@ -128,10 +130,12 @@ class AnnoIndividual(models.Model):
 
 # 아래는 천천히 구현해보자. 과제제출.
 class Homework(models.Model):
+    # 아래의 school은 곧장 연결되는 것으로.. 없을 수도 있음.
     school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.  # 학급이나 학교에서 다대다로 가져가는 게 편할듯.
     subject_object = models.ForeignKey('subject', on_delete=models.CASCADE, null=True, blank=True)  # 교과... 생각해보면, 학교, 학급, 교실, 교과 다 한 모델로 처리 가능하지 않나..
     classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
+    # 위 4개 중 하나의 모델로 연결되어 있음.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author")
     subject = models.CharField(max_length=100)  # 제목
     content = models.TextField()  # 내용
@@ -143,6 +147,23 @@ class Homework(models.Model):
     is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
     def __str__(self):
         return self.subject
+    def copy_create(self, classroom_list, subject_list):
+        '''특정 모델에서 진행되는 카피. 객체를 불러온 후 실행시켜야 한다.'''
+        copied_instance = Homework.objects.create(
+            school=self.school, homeroom=self.homeroom, subject_object=self.subject_object, classroom=self.classroom,
+            author=self.author, subject=self.subject, content=self.content, deadline=self.deadline, is_secret=self.is_secret, is_special=self.is_special)
+        # 과제 하위의 설문 질문 복사 및 homework와 연결.
+        homework_questions = self.homeworkquestion_set
+        for homework_question in homework_questions:
+            homework_questionc.copy_create(copied_instance)
+        # 과제 하위의 제출객체 복사 및 homework와 연결.
+        homwork_submits = self.homeworksubmit_set.all()
+        for homwork_submit in homwork_submits:
+            homwork_submits.copy_create(copied_instance)
+        # 그리고 과제를 배부해야지.
+        return copied_instance
+
+
 class HomeworkSubmit(models.Model):
     '''간단 과제제출, 동료평가 설문나누기용.'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
@@ -155,8 +176,13 @@ class HomeworkSubmit(models.Model):
     submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
         return str(self.to_user)
+    def copy_create(self, homework_ob):
+        copied_instance = HomeworkSubmit.objects.create(base_homework=homework_ob,
+            to_user=self.to_user, to_student=self.to_student, title=self.title,
+            content=self.content)
+        return copied_instance
 class HomeworkQuestion(models.Model):
-    '''과제제출 하위의 물음 하나하나.'''
+    '''과제제출 하위의 설문 하나하나.'''
     homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
     question_title = models.TextField()  # 질문.
     question_type = models.TextField()  # 질문유형. 단답형? 숫자? 등등등
@@ -168,6 +194,12 @@ class HomeworkQuestion(models.Model):
     options = models.TextField(null=True, blank=True)  # 문항정보 담기.
     upper_lim = models.FloatField(default=None, null=True, blank=True)  # 숫자 등에 사용하는 상위 리밋.(최대 글자수,체크박스선택갯수,)
     lower_lim = models.FloatField(default=None, null=True, blank=True)  # 숫자 등에 사용하는 하위 리밋.(최소 글자수,체크박스선택갯수,)
+    def copy_create(self, homework_ob):
+        copied_instance = HomeworkQuestion.objects.create(homework=homework_ob,
+            question_title=self.question_title, question_type=self.question_type, is_essential=self.is_essential,
+            ordering=self.ordering, is_special=self.is_special, options=self.options,
+            upper_lim=self.upper_lim, lower_lim=self.lower_lim)
+        return copied_instance
 
 from datetime import datetime  # 저장경로 관련.
 from os.path import basename  # 파일명 관련.

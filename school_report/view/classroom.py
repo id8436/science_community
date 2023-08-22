@@ -187,7 +187,8 @@ def homework_detail(request, posting_id):
                     submit.who = teacher_check
                 except:
                     pass  # 어떤 이유에서인지 모르겠지만, 학생과 교사 양 쪽 다 에러가 뜨곤 함.
-    context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
+        context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
+    context['submit_list'] = submit_list
 
     private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
     if student != None:
@@ -196,7 +197,6 @@ def homework_detail(request, posting_id):
         private_submit.who = teacher
     context['private_submit'] = private_submit  # 열람자의 정보 담기.
 
-    context['submit_list'] = submit_list  # 여기 수정해야 함. 일반인들이 본인의 설문을 볼 수 있게!
     return render(request, 'school_report/classroom/homework/detail.html', context)
 
 def homework_resubmit(request, submit_id):
@@ -204,7 +204,33 @@ def homework_resubmit(request, submit_id):
     submit.check = False
     submit.save()
     return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
+def homework_copy(request, homework_id):
+    homework = models.Homework.objects.get(id=homework_id)
+    context = {}
+    admin = homework.author
+    if request.method == 'POST':
+        print('포스트 들어옴.')
+        classroom_list = request.POST.getlist('classroom_list')
+        subject_list = request.POST.getlist('subject_list')
+        print(classroom_list)
+        print(subject_list)
+        pass  # 여기부터 복사과정 넣지.
 
+    if homework.school:
+        school = homework.school
+    elif homework.subject_object:
+        school = homework.subject_object.school
+    elif homework.classroom:
+        school = homework.classroom.school
+    # 사용자가 관리하는 객체들을 보여준다.
+    admin_teacher = models.Teacher.objects.get(admin=admin, school=school)
+    classroom_list = models.Classroom.objects.filter(master=admin_teacher, school=school)
+    subject_list = models.Subject.objects.filter(master=admin_teacher, school=school)
+    context['classroom_list'] = classroom_list
+    context['subject_list'] = subject_list
+
+    return render(request, 'school_report/classroom/homework/copy.html', context)
+#    return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
 def homework_survey_create(request, posting_id):
     '''설문의 수정도 이곳에서 처리.'''
     posting = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
