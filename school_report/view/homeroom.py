@@ -136,9 +136,12 @@ def announcement_create(request, homeroom_id):
             for student in student_list:
                 individual, created = models.AnnoIndividual.objects.get_or_create(to_student=student,
                           base_announcement=announcement)
-                Notification.objects.create(to_user=student.admin, official=True, classification=11, type=2,
-                                                   from_user=request.user, message=homeroom,
-                                                   url=resolve_url("school_report:announcement_detail", announcement.id))
+                try:
+                    Notification.objects.create(to_user=student.admin, official=True, classification=11, type=2,
+                                                       from_user=request.user, message=homeroom,
+                                                       url=resolve_url("school_report:announcement_detail", announcement.id))
+                except:
+                    pass  # 학생 인증을 하지 않은 학생계정이 있는 경우 student가 Null이라 에러가 난다.
 
             return redirect('school_report:homeroom_main', homeroom.id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
