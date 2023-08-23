@@ -167,8 +167,8 @@ def homework_detail(request, posting_id):
             individual_announcement.append(submit)
     context['individual_announcement'] = individual_announcement
     # 학생과 교사 가르기.
-    student = check.Check_student(request, school).check_in_school()
-    teacher = check.Check_teacher(request, school).check_in_school()
+    student = check.Check_student(request, school).in_school_and_none()
+    teacher = check.Check_teacher(request, school).in_school_and_none()
     # 아래 작성자에 대한 건 빼도 괜찮지 않을까?
     # if posting.author == request.user:  # 과제의 제출자라면...
     #     submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
