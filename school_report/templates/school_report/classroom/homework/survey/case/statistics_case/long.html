@@ -1,6 +1,6 @@
 <div id="inputContainer">
     <div>설문유형: 장문형, 총 {{question.answer_count}}개의 응답.</div>
     {% for row in question.answers %}
-        {{row.contents}}({{row.count}}개 {{row.percentage}}%)<br>
+        <li>{{row.contents}}<br>({{row.count}}개 {{row.percentage}}%)</li>
     {% endfor %}
 </div>
