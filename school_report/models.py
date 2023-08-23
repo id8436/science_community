@@ -147,20 +147,30 @@ class Homework(models.Model):
     is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
     def __str__(self):
         return self.subject
-    def copy_create(self, classroom_list, subject_list):
-        '''특정 모델에서 진행되는 카피. 객체를 불러온 후 실행시켜야 한다.'''
+    def copy_create(self, classroom_list=None, subject_list=None):
+        '''특정 모델에서 진행되는 카피. 객체의 ID 목록을 받아와 실행한다.'''
         copied_instance = Homework.objects.create(
-            school=self.school, homeroom=self.homeroom, subject_object=self.subject_object, classroom=self.classroom,
+            # school=self.school, homeroom=self.homeroom, subject_object=self.subject_object, classroom=self.classroom,
             author=self.author, subject=self.subject, content=self.content, deadline=self.deadline, is_secret=self.is_secret, is_special=self.is_special)
+        # 학교냐, 교과냐, 교실이냐. 어디에 복사할 것인가.
+        for classroom in classroom_list:
+            classroom_ob = Classroom.objects.get(id=classroom)  # 교실객체 찾기.
+            copied_instance.classroom = classroom_ob
+        for subject in subject_list:
+            subject_ob = Subject.objects.get(id=subject)
+            copied_instance.subject = subject_ob
+
         # 과제 하위의 설문 질문 복사 및 homework와 연결.
-        homework_questions = self.homeworkquestion_set
+        homework_questions = self.homeworkquestion_set.all()  # all()을 붙여야 하나?
         for homework_question in homework_questions:
-            homework_questionc.copy_create(copied_instance)
+            homework_question.copy_create(copied_instance)
         # 과제 하위의 제출객체 복사 및 homework와 연결.
         homwork_submits = self.homeworksubmit_set.all()
         for homwork_submit in homwork_submits:
-            homwork_submits.copy_create(copied_instance)
+            homwork_submit.copy_create(copied_instance)
         # 그리고 과제를 배부해야지.
+
+        copied_instance.save()  # 변경사항은 마지막에 반영.
         return copied_instance
 
 
