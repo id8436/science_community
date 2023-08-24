@@ -173,6 +173,7 @@ def announcement_detail(request, posting_id):
     return render(request, 'school_report/homeroom/announcement/detail.html', context)
 
 def announcement_modify(request, posting_id):
+    '''create와 연결되게 조정하는 편이 좋겠다;;'''
     posting = get_object_or_404(models.Announcement, pk=posting_id)
     if request.user != posting.author:
         messages.error(request, '수정권한이 없습니다')
@@ -188,9 +189,12 @@ def announcement_modify(request, posting_id):
             for submit in submit_list:
                 submit.check = False
                 submit.save()
-                Notification.objects.create(to_user=submit.to_user, official=True, classification=11,
+                try:
+                    Notification.objects.create(to_user=submit.to_user, official=True, classification=11,
                                                    type=3, from_user=request.user, message=posting.homeroom,
                                                    url=resolve_url("school_report:announcement_detail", posting_id))
+                except:
+                    pass  # 학생계정 인증을 안한 사람은 submit.to_user값이 없다.
             return redirect('school_report:announcement_detail', posting_id=posting.id)
     else:  # GET으로 요청된 경우.
         form = AnnouncementForm(instance=posting)  # 해당 모델의 내용을 가져온다!
