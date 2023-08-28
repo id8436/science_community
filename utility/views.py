@@ -44,6 +44,7 @@ def do_DB(request):
                     question = models.HomeworkQuestion.objects.get(homework=homework)
                     answer = models.HomeworkAnswer.objects.get(respondent=user, question=question)
                     answer.contents = submit.content
+                    answer.save()
                 except:
                     pass
     return render(request, 'utility/main.html', {})
