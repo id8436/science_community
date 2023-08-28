@@ -48,8 +48,8 @@ def do_DB(request):
                     answer = models.HomeworkAnswer.objects.get(respondent=user, question=question)
                     answer.contents = submit.content
                     answer.save()
-                except:
-                    pass
+                except Exception as e:
+                    messages.error(e)
     return render(request, 'utility/main.html', {})
 
 '''지난 것들
