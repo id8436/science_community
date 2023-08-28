@@ -49,7 +49,7 @@ def do_DB(request):
                     answer.contents = submit.content
                     answer.save()
                 except Exception as e:
-                    messages.error(e)
+                    messages.error(request, e)
     return render(request, 'utility/main.html', {})
 
 '''지난 것들
