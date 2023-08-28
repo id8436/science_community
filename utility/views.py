@@ -2,6 +2,8 @@ from django.http import HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from .forms import *
 from school_report import models
+from django.contrib import messages  # 메시지 모듈을 불러오고,
+
 
 def main(request):
     return render(request, 'utility/main.html', {})
@@ -42,6 +44,7 @@ def do_DB(request):
                 user = submit.to_user
                 try:  # 질문이 하나인 경우만 뽑아내기 위해.
                     question = models.HomeworkQuestion.objects.get(homework=homework)
+                    messages.info(request, submit)
                     answer = models.HomeworkAnswer.objects.get(respondent=user, question=question)
                     answer.contents = submit.content
                     answer.save()
