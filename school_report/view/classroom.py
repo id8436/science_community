@@ -382,7 +382,7 @@ def homework_survey_submit(request, submit_id):
 def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 바꾸는 게 좋을듯.
     submit = models.HomeworkSubmit.objects.get(id=submit_id)
     homework = submit.base_homework
-    question_list = homework.homeworkquestion_set.order_by(ordering)
+    question_list = homework.homeworkquestion_set.order_by('ordering')
     context = {}
     for question in question_list:
         answers = models.HomeworkAnswer.objects.filter(question=question)
