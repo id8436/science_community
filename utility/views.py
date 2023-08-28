@@ -1,6 +1,7 @@
 from django.http import HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from .forms import *
+from school_report import models
 
 def main(request):
     return render(request, 'utility/main.html', {})
@@ -33,10 +34,26 @@ def compound_interest(request):
 
 from school_report.models import HomeworkSubmit
 def do_DB(request):
-    # 반영함. 별 문제 없으면 지우자.'''과제에 학생 배치시키는 게 아니라, 유저모델 대응시키기.'''
+    homeworks = models.Homework.objects.all()
+    for homework in homeworks:
+        submits = homework.homeworksubmit_set.all()
+        for submit in submits:
+            if submit.content:  # 제출한 내용이 있다면..
+                user = submit.to_user
+                try:  # 질문이 하나인 경우만 뽑아내기 위해.
+                    question = models.HomeworkQuestion.objects.get(homework=homework)
+                    answer = models.HomeworkAnswer.objects.get(respondent=user, question=question)
+                    answer.contents = submit.content
+                except:
+                    pass
+    return render(request, 'utility/main.html', {})
+
+'''지난 것들
+    # 반영함. 별 문제 없으면 지우자. 과제에 학생 배치시키는 게 아니라, 유저모델 대응시키기.
     # object = HomeworkSubmit.objects.all()
     # for i in object:
     #     user = i.to_student.admin
     #     i.to_user = user
     #     i.save()
-    return render(request, 'utility/main.html', {})
+    
+'''

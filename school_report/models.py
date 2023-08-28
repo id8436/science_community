@@ -118,7 +118,7 @@ class Announcement(models.Model):
     def __str__(self):
         return self.subject
 class AnnoIndividual(models.Model):
-    '''개별적으로 전달되는 공지.'''
+    '''개별적으로 전달되는 공지. 과제랑 하나의 모델로 엮어도 크게 문제는 없지 않나? 과제에 announcement를 다는 방식으로.'''
     base_announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE)
     to_student = models.ForeignKey('Student', on_delete=models.CASCADE)  # 각 개별 학생에게 전달되게끔.
     content = models.TextField(default=None, null=True, blank=True)  # 공지 내용.

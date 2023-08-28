@@ -28,8 +28,8 @@
 {% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
     {% if survey %}
         <div><a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문 문항 수정하기</a>
-
             {% if posting.is_special == 'peerReview' %}<a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>{% endif %}
+
         </div>
 
     {% else %}
@@ -121,7 +121,10 @@ $(document).ready(function(){
             {% if survey %}
             <a href="{% url 'school_report:homework_survey_submit' private_submit.id%}" class="btn btn-info">
                 {% if private_submit.title %}{{private_submit.title}}{%endif%}설문하기</a>
+            {% if posting.secret %}결과는 비밀~{%else%}
             <a href="{% url 'school_report:homework_survey_statistics' private_submit.id%}" class="btn btn-info">설문 통계</a>
+<a href="{% url 'school_report:homework_survey_statistics_spreadsheet' private_submit.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>{% endif %}
+
             {% else %}
             {{private_submit.content}}
             {% endif %}
@@ -150,7 +153,7 @@ $(document).ready(function(){
 <script type='text/javascript'>
     $(document).ready(function(){
         $(".homework_submit").on('click', function() {
-        if(confirm("수정하게 되면 제출이 취소됩니다~!")) {
+        if(confirm("수정하게 되면 제출 날짜가 갱신됩니다~!")) {
             location.href = $(this).data('uri');
         }
     });

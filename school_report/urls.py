@@ -65,6 +65,9 @@ urlpatterns = [
     path('classroom/homework/survey_create/<int:posting_id>/', classroom.homework_survey_create, name='homework_survey_create'),
     path('classroom/homework/survey_submit/<int:submit_id>/', classroom.homework_survey_submit, name='homework_survey_submit'),
     path('classroom/homework/survey_statistics/<int:submit_id>/', classroom.homework_survey_statistics, name='homework_survey_statistics'),
+    path('classroom/homework/survey_statistics_spreadsheet/<int:submit_id>/', classroom.homework_survey_statistics_spreadsheet,
+         name='homework_survey_statistics_spreadsheet'),
+
     # 특수설문.
     path('classroom/homework/survey_list/<int:posting_id>/', classroom.homework_survey_list,
          name='homework_survey_list'),

@@ -96,9 +96,12 @@ def homework_modify(request, posting_id):
         messages.error(request, '수정권한이 없습니다')
         return redirect('school_report:homework_detail', posting_id=posting.id)
     if request.method == "POST":
+        is_secret = posting.is_secret  # 비밀설문을 다시 공개로 바꿀 수 없게.
         form = HomeworkForm(request.POST, instance=posting)  # 받은 내용을 객체에 담는다. instance에 제대로 된 걸 넣지 않으면 새로운 인스턴스를 만든다.
         if form.is_valid():
             posting = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
+            if is_secret:
+                posting.is_secret = is_secret
             posting.save()
             # 개별 확인을 위한 개별과제 체크 해제.
             submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
@@ -379,7 +382,7 @@ def homework_survey_submit(request, submit_id):
 def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 바꾸는 게 좋을듯.
     submit = models.HomeworkSubmit.objects.get(id=submit_id)
     homework = submit.base_homework
-    question_list = homework.homeworkquestion_set.all()
+    question_list = homework.homeworkquestion_set.order_by(ordering)
     context = {}
     for question in question_list:
         answers = models.HomeworkAnswer.objects.filter(question=question)
@@ -468,6 +471,51 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
         question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
     context['question_list'] = question_list
     return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
+
+def homework_survey_statistics_spreadsheet(request, submit_id):
+    submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
+    homework = submit.base_homework
+    question_list = homework.homeworkquestion_set.order_by('ordering')
+    if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
+        school = homework.classroom.school
+    elif homework.subject_object:
+        school = homework.subject_object.school
+    # 제출자 명단.
+    submit_list = homework.homeworksubmit_set.all()
+    submit_user_list = []
+    user_name_list = []
+    for submit in submit_list:
+        try:
+            res_user = models.Student.objects.get(admin=submit.to_user, school=school)
+        except:
+            try:
+                res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
+            except:
+                res_user = None
+        submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
+        user_name_list.append(res_user)  # 학생계정 및 선생계정 이름.
+    # 초기 df 만들기.
+    df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list})
+    df = df.set_index('계정')  # 인덱스로 만든다.
+
+    # 질문에 대한 응답 담기.
+    for question in question_list:
+        answer_list = []
+        user_list = []
+        answers = models.HomeworkAnswer.objects.filter(question=question)  # 해당 질문에 대한 답변들 모음.
+        for answer in answers:
+            answer_list.append(answer.contents)
+            user_list.append(answer.respondent)
+        df_answers = pd.DataFrame({'계정': user_list, question.question_title: answer_list})
+        df_answers = df_answers.set_index('계정')  # 합칠 기준이 될 인덱스 지정.
+        # 행을 df로 만들기.
+        df = pd.concat([df, df_answers], axis=1)
+    #df = df.set_index('제출자')
+    #df = df.drop('계정', axis=1)
+    print(df)
+    df = df.to_dict(orient='records')
+    return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', {'data_list':df})
+
 
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
