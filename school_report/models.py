@@ -158,7 +158,7 @@ class Homework(models.Model):
             copied_instance.classroom = classroom_ob
         for subject in subject_list:
             subject_ob = Subject.objects.get(id=subject)
-            copied_instance.subject = subject_ob
+            copied_instance.subject_object = subject_ob
 
         # 과제 하위의 설문 질문 복사 및 homework와 연결.
         homework_questions = self.homeworkquestion_set.all()  # all()을 붙여야 하나?
