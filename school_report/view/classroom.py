@@ -114,7 +114,7 @@ def homework_modify(request, posting_id):
                 elif posting.subject_object:
                     toward = posting.subject_object
                 Notification.objects.create(to_user=submit.to_user, official=True, classification=12,
-                                                              type=3, from_user=request.user, message=posting.classroom,
+                                                              type=3, from_user=request.user, message=toward,
                                                               url=resolve_url("school_report:homework_detail",
                                                                               posting_id))
 
