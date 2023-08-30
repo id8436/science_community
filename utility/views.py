@@ -44,9 +44,9 @@ def do_DB(request):
                 user = submit.to_user
                 try:  # 질문이 하나인 경우만 뽑아내기 위해.
                     question = models.HomeworkQuestion.objects.get(homework=homework)
-                    messages.info(request, submit)
                     answer = models.HomeworkAnswer.objects.get(respondent=user, question=question)
                     answer.contents = submit.content
+                    messages.info(request, str(answer.contents)+'답변반영')
                     answer.save()
                 except Exception as e:
                     messages.error(request, e)
