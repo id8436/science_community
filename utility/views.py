@@ -38,8 +38,9 @@ from school_report.models import HomeworkSubmit
 def do_DB(request):
     homeworks = models.Homework.objects.all()
     questions = models.HomeworkQuestion.objects.filter(question_title="세특 내용 기입하기.")
-    homework = questions.homework
+
     for question in questions:
+        homework = question.homework
         answers = question.homeworkanswer_set.all()
         for answer in answers:
             user = answer.respondent
