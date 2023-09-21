@@ -196,7 +196,7 @@ def homework_detail(request, posting_id):
                 except:
                     pass  # 어떤 이유에서인지 모르겠지만, 학생과 교사 양 쪽 다 에러가 뜨곤 함.
         context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
-        context['submit_list'] = submit_list
+    context['submit_list'] = submit_list
 
     private_submits = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
     for private_submit in private_submits:
