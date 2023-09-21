@@ -3,7 +3,7 @@
 {% block content %}
 
 학생에 대한 설문을 만들 수는 있지만, 기존 설문을 없앨 수 있어, 삭제기능은 만들지 않았습니다.
-  <form action="#" method="POST">
+  <form action="#" method="POST" id="myForm">
     {% csrf_token %}
     <table class="table">
       <thead>
@@ -13,20 +13,31 @@
         </tr>
       </thead>
       <tbody>
+      {% for student in student_list %}
         <tr>
-          {% for student in student_list %}
           <td>
             {{student}}
           </td>
           <td><input type="checkbox"
                      {%if student.submit %}checked disabled
                      {%else %}name="user_list" value="{{student.id}}" {%endif%}></td>
-          {% endfor %}
         </tr>
-        <!-- 추가적인 설문 종류와 설명을 필요에 따라 행을 추가할 수 있습니다 -->
+      {% endfor %}
+<!-- 추가적인 설문 종류와 설명을 필요에 따라 행을 추가할 수 있습니다 -->
       </tbody>
     </table>
-    <button type="submit" class="btn btn-primary" onclick="alert('삭제는 안됩니다?')">설문 제작</button>
+    <input type="submit" class="btn btn-primary" value="설문 제작"></input>
   </form>
+
+
+
+<script>
+document.getElementById('myForm').addEventListener('submit', function (event) {
+    var confirmation = confirm("제출하시겠습니까? 삭제는 불가합니다."); // 확인 메시지를 표시합니다.
+    if (!confirmation) {
+        event.preventDefault(); // 제출을 취소합니다.
+    }
+});
+</script>
 
 {% endblock %}

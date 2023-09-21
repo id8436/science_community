@@ -80,11 +80,14 @@ $(document).ready(function(){
         <td class="table-danger" colspan="2">미열람</td>
         {% endif %}
         <td>
+
             {% if survey %}
             설문제출
             {% else %}
             {{annoIndividual.content}}
             {% endif %}
+            {% if posting.is_special == 'peerReview'%}
+            {{ annoIndividual.to_student }}{% endif %}
         </td>
     </tr>
     {% endfor %}
@@ -106,7 +109,8 @@ $(document).ready(function(){
     </tr>
     </thead>
     <tbody>
-    {% if private_submit %}
+    {% if private_submits %}
+    {% for private_submit in private_submits%}
     <tr>
         <td>{{private_submit.who}}</td>
         {% if private_submit.check %}
@@ -120,7 +124,9 @@ $(document).ready(function(){
         <td>
             {% if survey %}
             <a href="{% url 'school_report:homework_survey_submit' private_submit.id%}" class="btn btn-info">
-                {% if private_submit.title %}{{private_submit.title}}{%endif%}설문하기</a>
+                {% if private_submit.title %}{{private_submit.title}}
+                {% elif posting.is_special == 'peerReview' %}연습
+                {%endif%}설문하기</a>
             {% if posting.secret %}결과는 비밀~{%else%}
             <a href="{% url 'school_report:homework_survey_statistics' private_submit.id%}" class="btn btn-info">설문 통계</a>
 <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' private_submit.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>{% endif %}
@@ -130,6 +136,7 @@ $(document).ready(function(){
             {% endif %}
         </td>
     </tr>
+    {%endfor%}
     {% endif %}
     </tbody>
 </table>

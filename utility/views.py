@@ -36,31 +36,7 @@ def compound_interest(request):
 
 from school_report.models import HomeworkSubmit
 def do_DB(request):
-    homeworks = models.Homework.objects.all()
-    questions = models.HomeworkQuestion.objects.filter(question_title="세특 내용 기입하기.")
-
-    for question in questions:
-        homework = question.homework
-        answers = question.homeworkanswer_set.all()
-        for answer in answers:
-            user = answer.respondent
-            submit = models.HomeworkSubmit.objects.get(base_homework=homework, to_user=user)
-            answer.contents = submit.content
-            answer.save()
-            messages.info(request, str(answer.contents))
-    # for homework in homeworks:
-    #     submits = homework.homeworksubmit_set.all()
-    #     for submit in submits:
-    #         if submit.content:  # 제출한 내용이 있다면..
-    #             user = submit.to_user
-    #             try:  # 질문이 하나인 경우만 뽑아내기 위해.
-    #                 question = models.HomeworkQuestion.objects.get(homework=homework)
-    #                 answer = models.HomeworkAnswer.objects.get(respondent=user, question=question)
-    #                 answer.contents = submit.content
-    #                 messages.info(request, str(answer.contents)+'답변반영')
-    #                 answer.save()
-    #             except Exception as e:
-    #                 messages.error(request, e)
+    pass
     return render(request, 'utility/main.html', {})
 
 '''지난 것들

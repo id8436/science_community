@@ -198,12 +198,13 @@ def homework_detail(request, posting_id):
         context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
         context['submit_list'] = submit_list
 
-    private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
-    if student != None:
-        private_submit.who = student
-    elif teacher != None:
-        private_submit.who = teacher
-    context['private_submit'] = private_submit  # 열람자의 정보 담기.
+    private_submits = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
+    for private_submit in private_submits:
+        if student != None:
+            private_submit.who = student
+        elif teacher != None:
+            private_submit.who = teacher
+    context['private_submits'] = private_submits  # 열람자의 정보 담기.
 
     return render(request, 'school_report/classroom/homework/detail.html', context)
 
@@ -315,6 +316,7 @@ def homework_survey_list(request, posting_id):
         return render(request, address, context)
     return render(request, 'school_report/classroom/homework/survey/special/list.html', context)
 
+@login_required()
 def homework_survey_submit(request, submit_id):
     '''사용자의 설문 제출.'''
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
