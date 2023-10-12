@@ -221,12 +221,13 @@ def get_upload_to(instance, filename):
 class HomeworkAnswer(models.Model):
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자.
     submit = models.ForeignKey('HomeworkSubmit', on_delete=models.CASCADE, blank=True, null=True)  # 동료평가에서 쓰일 평가대상 나누기용 제출.
+    to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. 위 submit은 지워버리는 게 간편할듯.
     question = models.ForeignKey('HomeworkQuestion', on_delete=models.CASCADE)
     contents = models.TextField(default=None, blank=True, null=True)  # 응답, 선택값들 담기.
     file = models.FileField(upload_to=get_upload_to, default=None, blank=True, null=True)  # 각종 파일을 담기 위한 필드.
     memo = models.TextField(default=None, blank=True, null=True)  # 답변이 마무리되었을 때 표준점수 등... 편항을 알기 위해.
     def save(self, *args, **kwargs):
-        '''기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
+        '''업로드 파일이 기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
         try:
             this = HomeworkAnswer.objects.get(id=self.id)
             if this.file != self.file:

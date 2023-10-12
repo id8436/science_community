@@ -207,14 +207,15 @@ def tag_adding_on_posting(request, posting):
             tags_str = tags_str.replace(text, ',')  # 각종 문자들을 ,로 바꾼다.
         tags = tags_str.split(',')  # ,로 구분된 태그 분할.
         for tag in tags:
+            tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
             if not tag:  # tags가 없어서 tag가 없다면
                 continue
-            if tag == '':  # 공백이라면
+            elif tag == '':  # 공백이라면
                 continue
             else:
-                tag = tag.strip()  # 문자열 양쪽에 빈칸이 있을 때 이를 제거한다.
                 tag_, created = Tag.objects.get_or_create(name=tag)  # created엔 새로 만들어졌는지 여부가 True로 나오고, tag_엔 그 태그가 담긴다.
                 posting.tag.add(tag_)  # 요건 특이하게 save()가 필요 없다.
+
 
 def pagenation_answer(request, posting):
     answer_list = posting.answer_set.all()
@@ -262,6 +263,7 @@ def posting_detail_on_board(request, posting_id):
     # 포스팅 정보 추가.
     context['posting'] = posting
     get_categroy_name(category, context)
+    print(posting.tag.all())
     return render(request, 'boards/base/posting/posting_detail.html', context)
 
 def check_boolean(request, posting):  # 생성된 포스팅을 받는다.

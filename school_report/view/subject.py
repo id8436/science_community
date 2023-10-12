@@ -117,12 +117,13 @@ def subject_homework_detail(request, posting_id):
         context['submit_list'] = submit_list  # 하위 객체들의 설문 모음.
     context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
 
-    private_submit = models.HomeworkSubmit.objects.get(base_homework=posting, to_user=request.user)
-    if student != None:
-        private_submit.who = student
-    elif teacher != None:
-        private_submit.who = teacher
-    context['private_submit'] = private_submit  # 열람자의 정보 담기.
+    private_submits = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
+    for private_submit in private_submits:
+        if student != None:
+            private_submit.who = student
+        elif teacher != None:
+            private_submit.who = teacher
+    context['private_submits'] = private_submits  # 열람자의 정보 담기.
 
 
     return render(request, 'school_report/classroom/homework/detail.html', context)

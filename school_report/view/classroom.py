@@ -10,6 +10,8 @@ from . import check
 import json
 import pandas as pd  # 통계용
 import math
+from datetime import datetime
+
 @login_required()
 def create(request, school_id):
     subject = get_object_or_404(models.Subject, pk=school_id)  # 학교로 되어있지만... shcool_id가 아니라 교과아이디.
@@ -343,7 +345,7 @@ def homework_survey_submit(request, submit_id):
             question = models.HomeworkQuestion.objects.get(pk=question_id)
             if question.homework != posting:  # 부정접근 방지.
                 return redirect('school_report:homework_detail', posting_id=posting.id)
-            answer,_ = models.HomeworkAnswer.objects.get_or_create(respondent=request.user, question=question, submit=submit)
+            answer,_ = models.HomeworkAnswer.objects.get_or_create(respondent=request.user, question=question, to_student=submit.to_student)
             # response 태그가 있는 경우.
             response = request.POST.get('response'+question_id)
             if response:
@@ -372,7 +374,7 @@ def homework_survey_submit(request, submit_id):
     for question in question_list:
         try:  # 연동된 제출의 응답 가져오기.
             answer = models.HomeworkAnswer.objects.get(respondent=request.user,
-                                                       question=question, submit=submit)
+                                                       question=question, to_student=submit.to_student)
             question.response = answer.contents  # 기존 답변을 추가하기 위한 과정.
             # 파일이 있다면 반영.
             if answer.file:
@@ -386,13 +388,10 @@ def homework_survey_submit(request, submit_id):
 
     return render(request, 'school_report/classroom/homework/survey/submit.html', context)
 
-def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 바꾸는 게 좋을듯.
-    submit = models.HomeworkSubmit.objects.get(id=submit_id)
-    homework = submit.base_homework
-    question_list = homework.homeworkquestion_set.order_by('ordering')
-    context = {}
+def question_list_statistics(question_list, submit):
+    '''question_list를 받아 통계를 내고 다시 반환.'''
     for question in question_list:
-        answers = models.HomeworkAnswer.objects.filter(question=question)
+        answers = models.HomeworkAnswer.objects.filter(question=question, to_student=submit.to_student)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
         match question.question_type:  # 중복되는 작동을 짧게 줄이기 위해.
@@ -476,8 +475,27 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
                 df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
                 question.data_dict = df_dict
         question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
-    context['question_list'] = question_list
-    return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
+    return question_list
+def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 바꾸는 게 좋을듯.
+    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    homework = submit.base_homework
+    question_list = homework.homeworkquestion_set.order_by('ordering')
+    context = {}
+    # 아래를 어떻게 축약해야 적절하게 될까;;; 흠, 그냥 함수화 해서...? 모델 바꾸려면 힘드니까?
+    if homework.school:
+        school = homework.school
+    elif homework.subject_object:
+        school = homework.subject_object.school
+    elif homework.classroom:
+        school = homework.classroom.school
+    teacher = check.Check_teacher(request, school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
+    if submit.to_student == request.user or teacher:  # 설문대상학생이거나 교사.
+        question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
+        context['question_list'] = question_list
+        return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
+    else:
+        messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
+        return redirect(request.META.get('HTTP_REFERER', None))
 
 def homework_survey_statistics_spreadsheet(request, submit_id):
     submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
@@ -504,12 +522,13 @@ def homework_survey_statistics_spreadsheet(request, submit_id):
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
+    df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
 
     # 질문에 대한 응답 담기.
     for question in question_list:
         answer_list = []
         user_list = []
-        answers = models.HomeworkAnswer.objects.filter(question=question)  # 해당 질문에 대한 답변들 모음.
+        answers = models.HomeworkAnswer.objects.filter(question=question, to_student=submit.to_student)  # 해당 질문에 대한 답변들 모음.
         for answer in answers:
             answer_list.append(answer.contents)
             user_list.append(answer.respondent)
@@ -519,7 +538,6 @@ def homework_survey_statistics_spreadsheet(request, submit_id):
         df = pd.concat([df, df_answers], axis=1)
     #df = df.set_index('제출자')
     #df = df.drop('계정', axis=1)
-    print(df)
     df = df.to_dict(orient='records')
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', {'data_list':df})
 
@@ -562,3 +580,106 @@ def peerreview_create(request, posting_id):
         to_student.submit = submit  # 있으면 True
     context['student_list'] = student_list
     return render(request, 'school_report/classroom/homework/survey/special/peerReview_create.html', context)
+
+
+def peerreview_end(request, posting_id):
+    homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
+    context = {}
+    # 과제 제출자인 경우에만 진행한다.
+    if request.user == homework.author:
+        homework.deadline = datetime.now()  # 현재 시간으로 마감.
+        homework.save()
+
+        # 설문자와, 대상자 목록.
+        homework_submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
+        to_list = []  # 동료평가 대상자의 목록.
+        for submit in homework_submits:
+            to_list.append(submit.to_student)
+        to_list = set(to_list)  # 중복값 제거.
+        user_list = []  # 설문 참여자의 목록.
+        for submit in homework_submits:
+            user_list.append(submit.to_user)
+        user_list = set(user_list)  # 중복값 제거.
+
+        # 필요없을지도. student_mean = {}  # 학생명에 평균을 담을 사전.
+        question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가의 첫번째 질문.
+        for to_student in to_list:
+            # 이건 왜...? question_list = homework.homeworkquestion_set.filter('ordering')
+            answers = models.HomeworkAnswer.objects.filter(to_student=to_student, question=question)
+            df = pd.DataFrame.from_records(answers.values('contents'))
+            if df.empty:
+                continue  # df가 비었다면 패스.
+            df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
+            df = df.astype({'score': float})
+            mean = df.mean(axis=1)[0]  # 평균 구하기.
+            for respondent in user_list:  # 평가자 돌며 평균에서 차 담기.
+                try:  # 응답 안한 사람이 있으면 answer객체가 없기도 하다.
+                    answer = models.HomeworkAnswer.objects.get(respondent=respondent, to_student=to_student, question=question)
+                    answer.memo = (float(answer.contents) - mean)**2  # 평균에서의 차, 제곱 담기.
+                    answer.save()
+                except:
+                    pass
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+        # to_student에 따라 평균 구하고... 사전으로 정리??
+
+def peerreview_statistics(request, posting_id):
+    homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
+    context = {}
+    question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가용.
+    if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
+        school = homework.classroom.school
+    elif homework.subject_object:
+        school = homework.subject_object.school
+    teacher = check.Check_teacher(request, school).in_school_and_none()
+    # 제출자 명단.
+    submit_list = homework.homeworksubmit_set.all()
+    submit_user_list = []  # 설문 참여자.
+    user_name_list = []  # 계정이 아니라 학생명, 교사명을 담을 리스트.
+    to_list = []  # 동료평가 대상자.
+
+    if teacher:
+        for submit in submit_list:
+            try:
+                res_user = models.Student.objects.get(admin=submit.to_user, school=school)
+            except:
+                try:
+                    res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
+                except:
+                    res_user = None
+            submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
+            user_name_list.append(res_user)  # 학생계정 및 선생계정 이름.
+            to_list.append(submit.to_student)  # 동료평가 대상자에 추가.
+
+
+
+    mean_list = []  # 각 응답자의 평균값을 담을 리스트.
+    var_list = []  # 각 응답자의 평균 오차(분산)를 담을 리스트.
+    not_res_list = []  # 응답자들이 평가하지 않은 횟수를 담을 리스트.
+    to_list = set(to_list)  # 중복값 제거.
+    len_to_list = len(to_list)
+    for respondent in submit_user_list:
+        answers = models.HomeworkAnswer.objects.filter(question=question,
+                                                       respondent=respondent)
+        mean = 0
+        count = 0
+        var = 0
+        for answer in answers:
+            count += 1
+            mean += float(answer.contents)
+            var += float(answer.memo)
+        try:  # count=0 이면 나누기 에러.
+            mean = mean/count
+            var = var/count
+        except:
+            pass
+        mean_list.append(mean)
+        var_list.append(var)
+        not_res_list.append(len_to_list - count)
+
+    # 초기 df 만들기.
+    df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '응답평균':mean_list, '분산':var_list,'미응답 개수':not_res_list})
+    df = df.set_index('계정')  # 인덱스로 만든다.
+    df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
+    context['data_list'] = df.to_dict(orient='records')
+    print(df)
+    return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
