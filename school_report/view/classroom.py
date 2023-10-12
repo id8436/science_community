@@ -536,6 +536,7 @@ def homework_survey_statistics_spreadsheet(request, submit_id):
         df_answers = df_answers.set_index('계정')  # 합칠 기준이 될 인덱스 지정.
         # 행을 df로 만들기.
         df = pd.concat([df, df_answers], axis=1)
+        df = df[~df.index.duplicated(keep='firsh')]
     #df = df.set_index('제출자')
     #df = df.drop('계정', axis=1)
     df = df.to_dict(orient='records')
