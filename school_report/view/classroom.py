@@ -534,7 +534,9 @@ def homework_survey_statistics_spreadsheet(request, submit_id):
             user_list.append(answer.respondent)
         df_answers = pd.DataFrame({'계정': user_list, question.question_title: answer_list})
         df_answers = df_answers.set_index('계정')  # 합칠 기준이 될 인덱스 지정.
-        df_answers = df_answers[~df.index.duplicated(keep='first')]  # 중복을 제거해보는데.. 이거 언젠가 문제가 될지도;;
+        messages.success(request, df_answers)
+        return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', {'data_list': df})
+        #df_answers = df_answers[~df.index.duplicated(keep='first')]  # 중복을 제거해보는데.. 이거 언젠가 문제가 될지도;;
         # 행을 df로 만들기.  질문에 따라 하나의 행씩 합치기.
         df = pd.concat([df, df_answers], join='outer', axis=1)
     #df = df.set_index('제출자')
