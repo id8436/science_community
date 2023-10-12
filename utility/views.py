@@ -36,7 +36,7 @@ def compound_interest(request):
 
 from school_report.models import HomeworkSubmit
 def do_DB(request):
-    '''23.10.4기준 반영 안함. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.'''
+    '''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
     answers = models.HomeworkAnswer.objects.all()
     print(answers)
     for answer in answers:
@@ -44,7 +44,7 @@ def do_DB(request):
             print(answer.submit)
             answer.to_student = answer.submit.to_student
         except:
-            pass
+            pass'''
     return render(request, 'utility/main.html', {})
 
 '''지난 것들
