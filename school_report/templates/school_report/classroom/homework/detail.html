@@ -28,9 +28,14 @@
 {% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
     {% if survey %}
         <div><a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문 문항 수정하기</a>
-            {% if posting.is_special == 'peerReview' %}<a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
+            {% if posting.is_special == 'peerReview' %}
+            {% if posting.is_end %}
+            <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
+            <a href="{% url 'school_report:peerreview_statistics' posting.id %}">최종 통계 보기</a>
+            {%else%}
+            <a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
             <a href="{% url 'school_report:peerreview_end' posting.id %}">동료평가 설문 마감하기</a>
-            {% endif %}
+            {% endif %}{% endif %}
 
         </div>
 

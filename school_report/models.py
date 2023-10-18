@@ -146,6 +146,7 @@ class Homework(models.Model):
     deadline = models.DateTimeField(null=True, blank=True)
     is_secret = models.BooleanField(default=False)  # 익명설문 여부.
     is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
+    is_end = models.BooleanField(default=False)  # deadline으로 처리할 수도 있지만.. 특수한 경우를 위해.
     def __str__(self):
         return self.subject
     def copy_create(self, classroom_list=None, subject_list=None):
@@ -218,6 +219,8 @@ from os.path import basename  # 파일명 관련.
 def get_upload_to(instance, filename):
     return 'homework/submit/{}/{}/{}/{}'.format(datetime.now().year, datetime.now().month, datetime.now().day,
                                                 filename)
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 class HomeworkAnswer(models.Model):
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자.
     submit = models.ForeignKey('HomeworkSubmit', on_delete=models.CASCADE, blank=True, null=True)  # 동료평가에서 쓰일 평가대상 나누기용 제출.
@@ -235,3 +238,8 @@ class HomeworkAnswer(models.Model):
         except:
             pass  # when new photo then we do nothing, normal case
         super(HomeworkAnswer, self).save(*args, **kwargs)
+@receiver(pre_delete, sender=HomeworkAnswer)
+def delete_homework_answer_file(sender, instance, **kwargs):
+    # 모델 인스턴스가 삭제되기 전에 파일을 삭제합니다.
+    if instance.file:
+        instance.file.delete(save=False)

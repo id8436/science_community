@@ -61,6 +61,9 @@ urlpatterns = [
     path('classroom/homework/delete/<int:posting_id>/', classroom.homework_delete, name='homework_delete'),
     path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
     path('classroom/homework/copy/<int:homework_id>/', classroom.homework_copy, name='homework_copy'),
+    path('classroom/homework/end_cancel/<int:homework_id>/', classroom.homework_end_cancel, name='homework_end_cancel'),
+
+
     # 설문 관련.
     path('classroom/homework/survey_create/<int:posting_id>/', classroom.homework_survey_create, name='homework_survey_create'),
     path('classroom/homework/survey_submit/<int:submit_id>/', classroom.homework_survey_submit, name='homework_survey_submit'),
@@ -77,4 +80,5 @@ urlpatterns = [
              name='peerreview_end'),  # 동료평가 마감.
     path('classroom/homework/peerreview_statistics/<int:posting_id>/', classroom.peerreview_statistics,
              name='peerreview_statistics'),  # 동료평가 통계 확인.
+
 ]

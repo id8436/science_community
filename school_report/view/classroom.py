@@ -320,9 +320,18 @@ def homework_survey_list(request, posting_id):
 
 @login_required()
 def homework_survey_submit(request, submit_id):
+    '''submit_id는 개별 아이디니... 설문 자체에 접근하게끔 하는 방략을 생각해야 할듯. 설문 ID를 주고..?
+    설문 자체에 대한 링크는 주지 않는 게 좋을듯.'''
     '''사용자의 설문 제출.'''
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
     posting = submit.base_homework
+    # 제출기한이 지났다면 제출되지 않도록.
+    import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
+    deadline = posting.deadline.astimezone(pytz.UTC)
+    if deadline < datetime.now(pytz.UTC) or posting.is_end:  # 데드라인이 지났다면... 안되지.
+        messages.error(request, "이미 제출기한이 지난 과제입니다.")
+        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+
     context = {'posting': posting, 'submit':submit}
     # 설문 정보 불러오기.
     question_list = posting.homeworkquestion_set.all().order_by('ordering')
@@ -335,11 +344,16 @@ def homework_survey_submit(request, submit_id):
             school = posting.classroom.school
         if posting.subject_object:
             school = posting.subject_object.school
-        student = check.Check_student(request, school).in_school_and_none()
-        if student == None:  # 학급에 속한 경우에만 가능.
-            teacher = check.Check_teacher(request, school).in_school_and_none()
-            if teacher == None:
-                return redirect('school_report:homework_detail', posting_id=posting.id)
+        # 본인의 설문인지 검사.
+        if submit.to_user == request.user:
+            student = check.Check_student(request, school).in_school_and_none()
+            if student == None:  # 학급에 속한 경우에만 가능.
+                teacher = check.Check_teacher(request, school).in_school_and_none()
+                if teacher == None:
+                    return redirect('school_report:homework_detail', posting_id=posting.id)
+        else:
+            messages.error(request, '다른 사람의 응답을 할 수는 없어요~')
+            return redirect('school_report:homework_detail', posting_id=posting.id)
 
         for question_id in request.POST.getlist('question'):
             question = models.HomeworkQuestion.objects.get(pk=question_id)
@@ -365,10 +379,10 @@ def homework_survey_submit(request, submit_id):
                     return HttpResponseBadRequest("10MB를 초과합니다.")
                 # 파일을 모델에 저장합니다.
                 answer.file = file  # 업로드.
-
             answer.save()
-            submit.check = True
-            submit.save()
+
+        submit.check = True
+        submit.save()
         return redirect('school_report:homework_detail', posting_id=posting.id)
 
     for question in question_list:
@@ -489,7 +503,7 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
     elif homework.classroom:
         school = homework.classroom.school
     teacher = check.Check_teacher(request, school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
-    if submit.to_student == request.user or teacher:  # 설문대상학생이거나 교사.
+    if submit.to_student == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
         question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
@@ -589,9 +603,12 @@ def peerreview_end(request, posting_id):
     # 과제 제출자인 경우에만 진행한다.
     if request.user == homework.author:
         homework.deadline = datetime.now()  # 현재 시간으로 마감.
+        homework.is_end = True
         homework.save()
 
         # 설문자와, 대상자 목록.
+        delete_list = models.HomeworkSubmit.objects.filter(base_homework=homework, to_student=None)  # 연습용이라 만들어졌던 설문.
+        delete_list.delete()
         homework_submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
         to_list = []  # 동료평가 대상자의 목록.
         for submit in homework_submits:
@@ -620,9 +637,19 @@ def peerreview_end(request, posting_id):
                     answer.save()
                 except:
                     pass
+        messages.success(request, "계산 완료.")
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
         # to_student에 따라 평균 구하고... 사전으로 정리??
-
+def homework_end_cancel(request, homework_id):
+    homework = get_object_or_404(models.Homework, pk=homework_id)  # 과제 찾아오기.
+    context = {}
+    # 과제 제출자인 경우에만 진행한다.
+    if request.user == homework.author:
+        homework.deadline = None
+        homework.is_end = False
+        homework.save()
+        messages.success(request, "과제 마감을 취소하였습니다.")
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 def peerreview_statistics(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
     context = {}
@@ -650,8 +677,10 @@ def peerreview_statistics(request, posting_id):
             submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
             user_name_list.append(res_user)  # 학생계정 및 선생계정 이름.
             to_list.append(submit.to_student)  # 동료평가 대상자에 추가.
-
-
+    # 학생이라면 자기의 결과만 볼 수 있게...하려고 했는데, 이건 고민이 되네.
+    # else:  # 학생이라면 자기의 결과만 볼 수 있게.
+    #     try:
+    #         res_user = models.Student.objects.get(admin=submit.to_user, school=school)
 
     mean_list = []  # 각 응답자의 평균값을 담을 리스트.
     var_list = []  # 각 응답자의 평균 오차(분산)를 담을 리스트.
@@ -678,9 +707,8 @@ def peerreview_statistics(request, posting_id):
         not_res_list.append(len_to_list - count)
 
     # 초기 df 만들기.
-    df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '응답평균':mean_list, '분산':var_list,'미응답 개수':not_res_list})
+    df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '응답평균':mean_list, '분산(벗어남정도)':var_list,'미응답 개수':not_res_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_list'] = df.to_dict(orient='records')
-    print(df)
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
