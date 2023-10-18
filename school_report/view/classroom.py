@@ -326,11 +326,12 @@ def homework_survey_submit(request, submit_id):
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
     posting = submit.base_homework
     # 제출기한이 지났다면 제출되지 않도록.
-    import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
-    deadline = posting.deadline.astimezone(pytz.UTC)
-    if deadline < datetime.now(pytz.UTC) or posting.is_end:  # 데드라인이 지났다면... 안되지.
-        messages.error(request, "이미 제출기한이 지난 과제입니다.")
-        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+    if posting.deadline:
+        import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
+        deadline = posting.deadline.astimezone(pytz.UTC)
+        if deadline < datetime.now(pytz.UTC) or posting.is_end:  # 데드라인이 지났다면... 안되지.
+            messages.error(request, "이미 제출기한이 지난 과제입니다.")
+            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
     context = {'posting': posting, 'submit':submit}
     # 설문 정보 불러오기.
