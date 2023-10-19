@@ -691,6 +691,8 @@ def peerreview_statistics(request, posting_id):
     to_list = set(to_list)  # 중복값 제거.
     len_to_list = len(to_list)
     for respondent in submit_user_list:
+        if respondent == None:
+            continue
         answers = models.HomeworkAnswer.objects.filter(question=question,
                                                        respondent=respondent)
         mean = 0
