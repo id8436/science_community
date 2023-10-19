@@ -703,7 +703,7 @@ def peerreview_statistics(request, posting_id):
                 var += float(answer.memo)
             except:
                 messages.error(request, respondent)
-                messages.error(request, question.question_title)
+                messages.error(request, question.id)
                 messages.error(request, answer.contents)
                 return redirect(request.META.get('HTTP_REFERER', None))
         try:  # count=0 이면 나누기 에러.
