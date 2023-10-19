@@ -632,7 +632,7 @@ def peerreview_end(request, posting_id):
                 continue  # df가 비었다면 패스.
             df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
             df = df.astype({'score': float})
-            mean = df.mean(axis=1)['score']  # 평균 구하기.
+            mean = df.mean(axis=1)[0]  # 평균 구하기.
             for respondent in user_list:  # 평가자 돌며 평균에서 차 담기.
                 try:  # 응답 안한 사람이 있으면 answer객체가 없기도 하다.
                     answer = models.HomeworkAnswer.objects.get(respondent=respondent, to_student=to_student, question=question)
