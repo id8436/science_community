@@ -705,6 +705,7 @@ def peerreview_statistics(request, posting_id):
                 messages.error(request, respondent)
                 messages.error(request, question.id)
                 messages.error(request, answer.contents)
+                messages.error(request, answer.to_student)
                 return redirect(request.META.get('HTTP_REFERER', None))
         try:  # count=0 이면 나누기 에러.
             mean = mean/count
