@@ -185,7 +185,7 @@ class HomeworkSubmit(models.Model):
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
-    submit_date = models.DateTimeField(auto_now=True, null=True, blank=True)  # 과제 제출시간.
+    submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.
     def __str__(self):
         return str(self.to_user)
     def copy_create(self, homework_ob):

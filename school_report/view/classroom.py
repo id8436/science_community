@@ -155,6 +155,7 @@ def homework_detail(request, posting_id):
         homework_submit = get_object_or_404(models.HomeworkSubmit, base_homework=posting, to_user=request.user)
         content = request.POST.get('content')
         homework_submit.content = content
+        homework_submit.submit_date = datetime.now()
         homework_submit.check = True  # 제출표시
         homework_submit.save()
         return redirect('school_report:homework_detail', posting.id)  # 작성이 끝나면 작성한 글로 보낸다.
@@ -383,6 +384,7 @@ def homework_survey_submit(request, submit_id):
             answer.save()
 
         submit.check = True
+        submit.submit_date =datetime.now()
         submit.save()
         return redirect('school_report:homework_detail', posting_id=posting.id)
 
@@ -504,7 +506,7 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
     elif homework.classroom:
         school = homework.classroom.school
     teacher = check.Check_teacher(request, school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
-    if submit.to_student == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+    if submit.to_student.admin == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
         question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
@@ -630,7 +632,7 @@ def peerreview_end(request, posting_id):
                 continue  # df가 비었다면 패스.
             df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
             df = df.astype({'score': float})
-            mean = df.mean(axis=1)[0]  # 평균 구하기.
+            mean = df.mean(axis=1)['score']  # 평균 구하기.
             for respondent in user_list:  # 평가자 돌며 평균에서 차 담기.
                 try:  # 응답 안한 사람이 있으면 answer객체가 없기도 하다.
                     answer = models.HomeworkAnswer.objects.get(respondent=respondent, to_student=to_student, question=question)
