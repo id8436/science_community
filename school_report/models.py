@@ -229,6 +229,8 @@ class HomeworkAnswer(models.Model):
     contents = models.TextField(default=None, blank=True, null=True)  # 응답, 선택값들 담기.
     file = models.FileField(upload_to=get_upload_to, default=None, blank=True, null=True)  # 각종 파일을 담기 위한 필드.
     memo = models.TextField(default=None, blank=True, null=True)  # 동료평가에선 (평균-자기점수)**2이 담김.
+    def __str__(self):
+        return str(self.respondent)
     def save(self, *args, **kwargs):
         '''업로드 파일이 기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
         try:
