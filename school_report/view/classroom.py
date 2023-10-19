@@ -701,14 +701,7 @@ def peerreview_statistics(request, posting_id):
         for answer in answers:
             count += 1
             mean += float(answer.contents)
-            try:
-                var += float(answer.memo)
-            except:
-                messages.error(request, respondent)
-                messages.error(request, question.id)
-                messages.error(request, answer.contents)
-                messages.error(request, answer.id)
-                return redirect(request.META.get('HTTP_REFERER', None))
+            var += float(answer.memo)
         try:  # count=0 이면 나누기 에러.
             mean = mean/count
             var = var/count
