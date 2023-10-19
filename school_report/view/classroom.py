@@ -514,9 +514,9 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
         messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
         return redirect(request.META.get('HTTP_REFERER', None))
 
-def homework_survey_statistics_spreadsheet(request, submit_id):
-    submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
-    homework = submit.base_homework
+def homework_survey_statistics_spreadsheet(request, posting_id):
+    # 과거유산. 문제없음 버리자. submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
+    homework = get_object_or_404(models.Homework, id=posting_id)
     question_list = homework.homeworkquestion_set.order_by('ordering')
     if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
         school = homework.classroom.school

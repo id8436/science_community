@@ -36,7 +36,7 @@
             <a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
             <a href="{% url 'school_report:peerreview_end' posting.id %}">동료평가 설문 마감하기</a>
             {% endif %}{% endif %}
-        <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' private_submit.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
+        <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
         </div>
 
     {% else %}
