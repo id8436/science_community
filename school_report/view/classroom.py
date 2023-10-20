@@ -437,6 +437,7 @@ def question_list_statistics(question_list, submit):
                 df = pd.DataFrame.from_records(answers.values('contents'))
                 df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
                 df = df.astype({'score':float})
+                print(df)
                 # 통계데이터와 인터벌 지정하기.
                 max = df['score'].max()
                 min = df['score'].min()
@@ -462,13 +463,14 @@ def question_list_statistics(question_list, submit):
                         data_dict[key_text] = interval_count
                 question.data_dict = data_dict  # context에 직접 담으면 다른 것들이랑 겹치니까.
                 # 통계데이터 계산
-                question.info['mean'] = df.mean(axis=1)[0]
-                question.info['var']= df.var(axis=1)[0]
-                question.info['std'] = df.std(axis=1)[0]
-                question.info['mode'] = df.mode(axis=1)[0][0]
-                question.info['median'] = df.median(axis=1)[0]
-                question.info['skew'] = df.skew(axis=1)[0]  # 왜도.
-                question.info['kurtosis'] = df.kurtosis(axis=1)[0]
+                question.info['mean'] = df.mean(axis=0)[0]
+                print(df.mean(axis=0)[0])
+                question.info['var']= df.var(axis=0)[0]
+                question.info['std'] = df.std(axis=0)[0]
+                question.info['mode'] = df.mode(axis=0).iloc[0][0]  # 최빈값.
+                question.info['median'] = df.median(axis=0)[0]
+                question.info['skew'] = df.skew(axis=0)[0]  # 왜도.
+                question.info['kurtosis'] = df.kurtosis(axis=0)[0]  # 첨도.
                 question.info['max'] = max
                 question.info['min'] = min
             case 'multiple-choice':
@@ -608,10 +610,16 @@ def peerreview_end(request, posting_id):
         homework.deadline = datetime.now()  # 현재 시간으로 마감.
         homework.is_end = True
         homework.save()
+        question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가의 첫번째 질문.
 
         # 설문자와, 대상자 목록.
         delete_list = models.HomeworkSubmit.objects.filter(base_homework=homework, to_student=None)  # 연습용이라 만들어졌던 설문.
         delete_list.delete()
+        # 어째서인지... DB 관련해 뭔가 문제가 있는 듯한데, 연동된 answer가 안지워져.
+        # 아.. submit과 answer의 연동을 끊고 answer에서 바로 대상자를 지정해서 그래.
+        delete_list = models.HomeworkAnswer.objects.filter(question=question, to_student=None)
+        delete_list.delete()
+
         homework_submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
         to_list = []  # 동료평가 대상자의 목록.
         for submit in homework_submits:
@@ -623,7 +631,6 @@ def peerreview_end(request, posting_id):
         user_list = set(user_list)  # 중복값 제거.
 
         # 필요없을지도. student_mean = {}  # 학생명에 평균을 담을 사전.
-        question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가의 첫번째 질문.
         for to_student in to_list:
             # 이건 왜...? question_list = homework.homeworkquestion_set.filter('ordering')
             answers = models.HomeworkAnswer.objects.filter(to_student=to_student, question=question)
@@ -632,7 +639,7 @@ def peerreview_end(request, posting_id):
                 continue  # df가 비었다면 패스.
             df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
             df = df.astype({'score': float})
-            mean = df.mean(axis=1)[0]  # 평균 구하기.
+            mean = df.mean(axis=0)[0]  # 평균 구하기.
             for respondent in user_list:  # 평가자 돌며 평균에서 차 담기.
                 try:  # 응답 안한 사람이 있으면 answer객체가 없기도 하다.
                     answer = models.HomeworkAnswer.objects.get(respondent=respondent, to_student=to_student, question=question)

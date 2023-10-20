@@ -382,7 +382,7 @@ def subject_answer_info_form_upload(request, subject_id):
 
     return redirect('boards:board_detail', board_id=board.id)
 def subject_descriptive_info_form_upload(request, subject_id):
-    '''객관식 점수 등록'''
+    '''주관식 점수 등록'''
     subject = get_object_or_404(Subject, pk=subject_id)
     board = subject.base_exam
     school = subject.base_exam.school
