@@ -1,0 +1,19 @@
+<!--{# include "df/df_body_fit_frame.html" with dataframe=data_list #} 요 형태로 가져온다.-->
+<table class="table table-striped table-bordered table-hover">
+  <thead>
+    <tr class="table-info">
+      {% for column_name in dataframe.0 %}
+      <th>{{ column_name }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in dataframe %}
+    <tr>
+      {% for value in row.values %}
+      <td>{{ value|safe }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -32,6 +32,7 @@
             <a href="{% url 'school_report:peerreview_statistics' posting.id %}">최종 통계 보기</a>
             {% if posting.is_end %}
             <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
+            <a href="{% url 'school_report:peerreview_who_is_special' posting.id %}">댓글 선발 통계</a>
             {%else%}
             <a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
             <a href="{% url 'school_report:peerreview_end' posting.id %}">동료평가 설문 마감하기</a>
@@ -61,8 +62,9 @@ $(document).ready(function(){
 });
 </script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
 
-
-
+{% if posting.is_special == 'peerReview' %}
+    동료평가 평균 부여 점수 : {{score_mean}}점.
+{% endif %}
 
 <table class="table table-hover" id="submit_list">
     <thead>
@@ -195,7 +197,7 @@ $(document).ready(function(){
 
 {% endif %}
 
-
+</div>
 
 
 

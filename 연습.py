@@ -1,20 +1,22 @@
 import openai
-
-openai.api_key = "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"
-completion = openai.Completion()
+openai.api_key = "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"
+# print(openai.Model.list())
 # 조건
-model = 'gpt-3'  # 선택할 수 있게!
-max_tokens = 1000
-messages = [{'role': 'system',
-                'content':'teacher'},
-            {'role':'assistant',
-                'content':'API 사용법에 대한 설명이 더 필요한가요?'},
-            {'role':'user',
-             'content':'아무 말이나 해봐. respond에 대한 응답값을 보게.'},]
+model = 'text-davinci-003'  # 선택할 수 있게! ex) gpt-3.5-turbo
+max_tokens = 1700  # 입력에 1000정도 사용해서. 출력은 700 이하가 되게끔.
+# messages = [{'role': 'system',
+#              'content': role},
+#             {'role': 'user',
+#              'content': input_text}, ]
 
-respond = completion.create(
-    model = model,
-    messages = messages,
+response = openai.Completion.create(
+    engine=model,
+    prompt='api 사용을 시도해보고 있어. 아무 말이나 해봐~',
+    max_tokens=max_tokens
 )
-print(respond)
-#answer = respond
+# 반
+print(response)
+print('답변')
+print(response['choices'][0]['text'])  # 응답 중 답변만 추출한다.#answer = respond
+response = response['choices'][0]['text']
+response = response.replace('\n', '<br>')  # 탬플릿에서 줄바꿈이 인식되게끔.

@@ -1,0 +1,22 @@
+    {% if question.homework.is_special == 'peerReview' and question.homework.is_end %}
+        동료평가 댓글 선택.
+    <form action="{% url 'school_report:peerreview_select_comment' submit.id%}" method="get">
+<!--  answer.id로 질문의 주인을 찾은 다음, view에서 보낸 submit.content에 해당자 저장.  -->
+        {% for row in question.answers %}
+            <li><input type="radio" name="content" id="answer-{{row.id}}" value="{{row.contents}}">
+            <label for="answer-{{row.id}}">{{row.contents}}</label></li>
+        {% endfor %}
+        <button type="submit" id="submit-button" class="btn btn-primary" onsubmit="return showConfirmation();">댓글 제출</button>
+    </form>
+<script>
+function showConfirmation() {
+  var confirmation = confirm('선택할 수 있는 댓글은 1개 뿐입니다. 제출 해도 따로 표시하지 않고, 새로 제출하면 새 결과로 덮어씁니다.');
+  return confirmation;
+}
+</script>
+
+    {% else %}
+        {% for row in question.answers %}
+            <li>{{row.contents}}<br>({{row.count}}개 {{row.percentage}}%)</li>
+        {% endfor %}
+    {% endif %}

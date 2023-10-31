@@ -4,6 +4,9 @@ from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 class Check_teacher:
+    '''request가 아닌, 유저모델이 담기게끔 해야 확장성이 커진다.
+    아니면 애시당초 model.Student.objects.get(유저, 학교) 이런 식으로 찾든가.
+    '''
     def __init__(self, request, var):
         self.model = models.Teacher
         self.messase_school = "이 학교에 소속된 교사가 아닙니다."

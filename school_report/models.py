@@ -132,6 +132,7 @@ class AnnoIndividual(models.Model):
 # 아래는 천천히 구현해보자. 과제제출.
 class Homework(models.Model):
     # 아래의 school은 곧장 연결되는 것으로.. 없을 수도 있음.
+    # school이나 홈룸은 있으면 다 넣게 하면 어떨까?
     school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.  # 학급이나 학교에서 다대다로 가져가는 게 편할듯.
     subject_object = models.ForeignKey('subject', on_delete=models.CASCADE, null=True, blank=True)  # 교과... 생각해보면, 학교, 학급, 교실, 교과 다 한 모델로 처리 가능하지 않나..
@@ -145,8 +146,9 @@ class Homework(models.Model):
     modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
     is_secret = models.BooleanField(default=False)  # 익명설문 여부.
+    is_secret_student = models.BooleanField(default=False)  # 아직 구현은 안했지만, 학생 대상 익명설문 여부.
     is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
-    is_end = models.BooleanField(default=False)  # deadline으로 처리할 수도 있지만.. 특수한 경우를 위해.
+    is_end = models.BooleanField(default=False)  # pending과도 혼용. deadline으로 처리할 수도 있지만.. 특수한 경우를 위해. api작업에서 작업중임을 표시하기 위해서도.
     def __str__(self):
         return self.subject
     def copy_create(self, classroom_list=None, subject_list=None):
@@ -182,12 +184,12 @@ class HomeworkSubmit(models.Model):
     to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아?
     to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용.
     title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비)
-    content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용.
+    content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
     submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.
-    def __str__(self):
-        return str(self.to_user)
+    # def __str__(self):
+    #     return str(self.to_user)
     def copy_create(self, homework_ob):
         copied_instance = HomeworkSubmit.objects.create(base_homework=homework_ob,
             to_user=self.to_user, to_student=self.to_student, title=self.title,

@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views #해당 앱의 뷰를 불러온다.
 from .view import homeroom, classroom, school, subject
+from .view.special import ai_completion
 app_name = 'school_report'
 
 urlpatterns = [
@@ -70,15 +71,29 @@ urlpatterns = [
     path('classroom/homework/survey_statistics/<int:submit_id>/', classroom.homework_survey_statistics, name='homework_survey_statistics'),
     path('classroom/homework/survey_statistics_spreadsheet/<int:posting_id>/', classroom.homework_survey_statistics_spreadsheet,
          name='homework_survey_statistics_spreadsheet'),
+    path('classroom/homework/spreadsheet_to_excel_download/<int:posting_id>/', classroom.spreadsheet_to_excel_download,
+         name='spreadsheet_to_excel_download'),
+
 
     # 특수설문.
     path('classroom/homework/survey_list/<int:posting_id>/', classroom.homework_survey_list,
          name='homework_survey_list'),  # 특수설문 리스트.
     path('classroom/homework/peerreview_create/<int:posting_id>/', classroom.peerreview_create,
+    # 동료평가
          name='peerreview_create'),  # 동료평가할 때 동료평가 대상 지정.
     path('classroom/homework/peerreview_end/<int:posting_id>/', classroom.peerreview_end,
              name='peerreview_end'),  # 동료평가 마감.
     path('classroom/homework/peerreview_statistics/<int:posting_id>/', classroom.peerreview_statistics,
              name='peerreview_statistics'),  # 동료평가 통계 확인.
-
+    path('classroom/homework/peerreview_select_comment/<int:submit_id>/', classroom.peerreview_select_comment,
+             name='peerreview_select_comment'),  # 동료평가 마감 후 학우들의 평가 선택.
+    path('classroom/homework/peerreview_who_is_special/<int:posting_id>/', classroom.peerreview_who_is_special,
+             name='peerreview_who_is_special'),  # 동료평가. 학우들의 평가 선택 후 카운팅.
+    # 세특 자료.
+    path('classroom/homework/spreadsheet_upload_excel/<int:posting_id>/', classroom.spreadsheet_upload_excel,
+         name='spreadsheet_upload_excel'),  # 세특 자료 엑셀로 올리기.
+    path('classroom/homework/spreadsheet_to_ai/<int:posting_id>/', ai_completion.spreadsheet_to_ai,
+         name='spreadsheet_to_ai'),  # 세특 자료 ai에 던지기.
+    path('classroom/homework/read_response/<int:posting_id>/', ai_completion.read_response,
+         name='read_response'),  # 세특 자료 ai에 던지기.
 ]

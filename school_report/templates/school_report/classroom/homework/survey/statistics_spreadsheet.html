@@ -1,24 +1,52 @@
 {% extends "school_report/section.html" %}
 
 {% block content %}
+{% if posting %}
+<a href="{% url 'school_report:spreadsheet_to_excel_download' posting.id%}">엑셀로 다운받기.</a>
+{% endif %}
+
+{% if posting.is_special == 'TalentEval' %}
+
+<form action="{% url 'school_report:spreadsheet_upload_excel' posting.id %}" method="POST" enctype="multipart/form-data"
+onsubmit="return confirm('경고. 엑셀의 내용으로 학생의 응답을 덮어씁니다.')"">
+        <input type="file" name="uploadedFile" value="파일을 선택해주세요.">
+        {% csrf_token %}
+        <input type="submit" value="엑셀파일 올리기">
+</form>
+
+
+<form action="{% url 'school_report:spreadsheet_to_ai' posting.id %}" method="POST" onsubmit="return confirmSubmission()">
+    <h4>사용할 모델을 선택하세요.(복수선택 가능)</h4>
+    <input type="checkbox" name="ai_model" value="gpt-3.5-turbo" id="gpt-3.5-turbo">
+    <label for="gpt-3.5-turbo">gpt-3.5-turbo</label>
+    <input type="checkbox" name="ai_model" value="text-davinci-003" id="text-davinci-003">
+    <label for="text-davinci-003">text-davinci-003</label>
+    <input type="checkbox" name="ai_model" value="gpt-4" id="gpt-4">
+    <label for="gpt-4">gpt-4</label>
+    {% csrf_token %}
+    <input type="submit" class="btn btn-info" value="세특 초안 만들기.">
+</form>
+<script>
+function confirmSubmission() {
+  // 체크된 체크박스 개수 확인
+  var checkboxes = document.querySelectorAll('input[type=checkbox][name=ai_model]:checked');
+  var count = checkboxes.length;
+
+  // 사용자 확인 메시지 표시
+  return confirm("경고. .- 한번 요청한 작업은 끝날 때까지 멈추지 않습니다.\n\n선택된 모델 수: "+count);
+}
+</script>
+
+<a class="btn btn-success"
+   href="{% url 'school_report:read_response' posting.id%}">초안 보기</a>
+
+{% endif %}
+
 <div class="table-responsive">
-<table class="table table-striped table-bordered table-hover">
-  <thead>
-    <tr class="table-info">
-      {% for column_name in data_list.0 %}
-      <th>{{ column_name }}</th>
-      {% endfor %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in data_list %}
-    <tr>
-      {% for value in row.values %}
-      <td>{{ value }}</td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+  {% include "df/df_body_fit_frame.html" with dataframe=data_list %}
 </div>
+
+
+
+
 {% endblock %}
