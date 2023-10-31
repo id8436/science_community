@@ -762,21 +762,26 @@ def peerreview_statistics(request, posting_id):
                 except:
                     res_user = None
             submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
-            user_name_list.append(res_user)  # 학생계정 및 선생계정 이름.
+            user_name_list.append(res_user)  # 학생계정 및 선생계정 이름. 평가자 목록.
             to_list.append(submit.to_student)  # 동료평가 대상자에 추가.
     # 학생이라면 자기의 결과만 볼 수 있게...하려고 했는데, 이건 고민이 되네.
-    # else:  # 학생이라면 자기의 결과만 볼 수 있게.
-    #     try:
-    #         res_user = models.Student.objects.get(admin=submit.to_user, school=school)
+    else:  # 학생이라면 자기의 결과만 볼 수 있게.
+        res_user = models.Student.objects.get(admin=request.user, school=school)
+        submit_user_list.append(request.user)
+        user_name_list.append(res_user)
+        for submit in submit_list:
+            to_list.append(submit.to_student)  # 평가대상리스트 만들기.
+
     given_mean_list = []  # 평가 대상자가 받은 평균값을 담을 리스트.
     mean_list = []  # 각 응답자의 평균값을 담을 리스트.
     var_list = []  # 각 응답자의 평균 오차(분산)를 담을 리스트.
     not_res_list = []  # 응답자들이 평가하지 않은 횟수를 담을 리스트.
     to_list = set(to_list)  # 중복값 제거.
     len_to_list = len(to_list)
-    for respondent in submit_user_list:
+    for respondent in submit_user_list:  # 유저리스트 돌면서 순회.
         if respondent == None:
             continue
+        # 본인이 답한 것에 대한 통계.
         answers = models.HomeworkAnswer.objects.filter(question=question,
                                                        respondent=respondent)
         mean = 0
