@@ -218,8 +218,11 @@ def homework_detail(request, posting_id):
         for answer in answers:
             score_sum += float(answer.contents)
             count += 1
-        score_mean = score_sum/count
-        context['score_mean'] = score_mean
+        try:  # 아무 평가도 안한 상태에선 count0이라 에러 발생.
+            score_mean = score_sum/count
+            context['score_mean'] = score_mean
+        except:
+            pass
     return render(request, 'school_report/classroom/homework/detail.html', context)
 
 def homework_resubmit(request, submit_id):
