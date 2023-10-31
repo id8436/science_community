@@ -62,8 +62,10 @@ $(document).ready(function(){
 });
 </script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
 
-{% if posting.is_special == 'peerReview' and score_mean %}
+{% if posting.is_special == 'peerReview' %}
+    {% if score_mean %}
     동료평가 평균 부여 점수 : {{score_mean}}점.
+    {% endif %}
     {% if posting.is_end %}
         <a href="{% url 'school_report:peerreview_statistics' posting.id %}">최종 통계 보기</a>
     {% endif %}
