@@ -252,7 +252,7 @@ def posting_detail_on_board(request, posting_id):
             pass
         else:
             messages.error(request, '교사만 접근 가능합니다.')
-            return check.Check_teacher(request, posting.board.school).redirect_to_school()
+            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
     # ----- board_detail 함수와 같은 부분 -----
     board = posting.board
     context_posting = posting_list_hidden(request, board.id)

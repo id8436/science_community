@@ -520,12 +520,11 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
     elif homework.classroom:
         school = homework.classroom.school
     teacher = check.Check_teacher(request, school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
-    try:  # 전체 설문일 땐 누구라도 열람할 수 있게.
-        submit.to_student
-        for_everyone = True
+    try:
+        to_admin = submit.to_student.admin
     except:
-        pass
-    if submit.to_student.admin == request.user or teacher or for_everyone:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+        to_admin =None
+    if to_admin== request.user or teacher or submit.to_student == None:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
         question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.
