@@ -3,8 +3,8 @@
     <form action="{% url 'school_report:peerreview_select_comment' submit.id%}" method="get">
 <!--  answer.id로 질문의 주인을 찾은 다음, view에서 보낸 submit.content에 해당자 저장.  -->
         {% for row in question.answers %}
-            <li><input type="radio" name="content" id="answer-{{row.id}}" value="{{row.contents}}">
-            <label for="answer-{{row.id}}">{{row.contents}}</label></li>
+            <li><input type="radio" name="content" id="answer-{{row.contents}}" value="{{row.contents}}">
+            <label for="answer-{{row.contents}}">{{row.contents}}</label></li>
         {% endfor %}
         <button type="submit" id="submit-button" class="btn btn-primary" onsubmit="return showConfirmation();">댓글 제출</button>
     </form>
