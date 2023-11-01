@@ -103,7 +103,7 @@ $(document).ready(function(){
     아래는 학생들이 보는 화면.<br>
 {%endif%}
 
-
+{{ posting.is_special }}
 {% if posting.is_special == 'peerReview' %}<!--  동료평가에 대하여.  -->
     {% if score_mean %}
     동료평가 평균 부여 점수 : {{score_mean}}점.  부여 분산 : {{variance}}
