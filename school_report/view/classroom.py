@@ -524,7 +524,7 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
         to_admin = submit.to_student.admin
     except:
         to_admin =None
-    if to_admin== request.user or teacher or submit.to_student == None:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+    if to_admin == request.user or teacher or submit.to_student == None:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
         question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.
