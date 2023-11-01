@@ -214,11 +214,14 @@ def homework_detail(request, posting_id):
         question = models.HomeworkQuestion.objects.get(homework=posting, ordering=1)  # 동료평가의 첫번째 질문.
         answers = models.HomeworkAnswer.objects.filter(respondent=request.user, question=question)  # 내가 부여한 것.
         df = pd.DataFrame.from_records(answers.values('contents'))
-        df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
-        score_mean = df['contents'].mean()
-        variance = df['contents'].var()
-        context['score_mean'] = score_mean
-        context['variance'] = variance
+        try:  # 평가한 게 없으면 df가 None이 됨.
+            df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
+            score_mean = df['contents'].mean()
+            variance = df['contents'].var()
+            context['score_mean'] = score_mean
+            context['variance'] = variance
+        except:
+            pass
         # score_sum = 0
         # for answer in answers:
         #     score_sum += float(answer.contents)
