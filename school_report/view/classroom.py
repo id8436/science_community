@@ -772,8 +772,9 @@ def peerreview_statistics(request, posting_id):
             to_list.append(submit.to_student)  # 평가대상리스트 만들기.
 
     given_mean_list = []  # 평가 대상자가 받은 평균값을 담을 리스트.
-    mean_list = []  # 각 응답자의 평균값을 담을 리스트.
+    mean_list = []  # 각 응답자가 받은 평균값을 담을 리스트.
     var_list = []  # 각 응답자의 평균 오차(분산)를 담을 리스트.
+    given_var_list = []  # 평가자가 얼마나 점수를 많이 분포시켰느냐.(무지성으로 한 점수만 찍는 아이들 대비)
     not_res_list = []  # 응답자들이 평가하지 않은 횟수를 담을 리스트.
     to_list = set(to_list)  # 중복값 제거.
     len_to_list = len(to_list)
@@ -814,10 +815,19 @@ def peerreview_statistics(request, posting_id):
         except:
             given_mean = None
         given_mean_list.append(given_mean)
-
+        # given_var 구하기.
+        given_var = 0
+        answers = models.HomeworkAnswer.objects.filter(question=question, respondent=respondent)
+        for answer in answers:
+            given_var += (mean - float(answer.contents)) **2  # 분산.
+        try:
+            given_var = given_var / count
+        except:
+            pass
+        given_var_list.append(given_var)
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '받은 평균':given_mean_list,
-                       '부여점수 평균':mean_list, '부여점수 분산(벗어남정도)':var_list,'미응답 개수':not_res_list})
+                       '부여점수 평균':mean_list, '부여분산(무지성 방지)':given_var_list, '평가점수 분산(벗어남정도)':var_list,'미응답 개수':not_res_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_list'] = df.to_dict(orient='records')

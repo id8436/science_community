@@ -66,49 +66,30 @@ role = '''
 def gpt_response(ai_model, input_text):
     import openai
     openai.api_key = "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"
-    # print(openai.Model.list())
     # 조건
     model = ai_model  # 선택할 수 있게! ex) gpt-3.5-turbo
-    max_tokens = 1700  # 입력에 1000정도 사용해서. 출력은 700 이하가 되게끔.
-    messages = [{'role': 'system',
-                 'content': role},
-                {'role': 'user',
-                 'content': input_text}, ]
+    import tiktoken
+    tokenizer = tiktoken.Tokenizer()
+    tokens = tokenizer.tokenize(input_text)
+    max_tokens = len(tokens) + 700  # 출력은 700 이하가 되게끔.
 
-    response = openai.Completion.create(
-        engine=model,
-        prompt=role,
-        max_tokens=max_tokens
-    )
+    match ai_model:
+        case 'gpt-3.5-turbo' | 'gpt-4':
+            response = openai.Completion.create(engine=model,
+                prompt=role, max_tokens=max_tokens)
+            response = response['choices'][0]['text']
+        case 'text-davinci-003' | 'gpt-3.5-turbo-instruct':
+            messages = [{'role': 'system',
+                         'content': role},
+                        {'role': 'user',
+                         'content': input_text}, ]
+            response = openai.ChatCompletion.create(model=model,
+                messages=messages, max_tokens=max_tokens)
+            response = response['choices'][0]['message']['content']
     # 반
+    print(max_tokens)
     print(response)
     print('답변')
-    print(response['choices'][0]['text'])  # 응답 중 답변만 추출한다.#answer = respond
-    response = response['choices'][0]['text']
     response = response.replace('\n', '<br>')  # 탬플릿에서 줄바꿈이 인식되게끔.
-    return response
-
-def gpt_chat_response(ai_model, input_text):
-    import openai
-    openai.api_key = "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"
-    # print(openai.Model.list())
-    # 조건
-    model = ai_model  # 선택할 수 있게! ex) gpt-3.5-turbo
-    max_tokens = 2000
-    messages = [{'role': 'system',
-                 'content': role},
-                {'role': 'user',
-                 'content': input_text}, ]
-
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        max_tokens=max_tokens
-    )
-    # 반
     print(response)
-    print('답변')
-    print(response['choices'][0]['message']['content'])  # 응답 중 답변만 추출한다.#answer = respond
-    response = response['choices'][0]['message']['content']
-    response = response.replace('\n', '<br>')  # 탬플릿에서 줄바꿈이 인식되게끔.
     return response

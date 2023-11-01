@@ -35,9 +35,7 @@ def api_answer(df, homework, school, ai_models):
             work_df = work_df.set_index('계정')  # 인덱스로 만든다.
         for ai_model in ai_models:
             match ai_model:
-                case 'gpt-3.5-turbo' | 'gpt-4':
-                    response = ai_completion.gpt_chat_response(ai_model, input_text)
-                case 'text-davinci-003' | 'text-curie-003':
+                case 'gpt-3.5-turbo' | 'gpt-4'|'text-davinci-003' | 'text-curie-003' | 'gpt-3.5-turbo-instruct':
                     response = ai_completion.gpt_response(ai_model, input_text)
             work_df[ai_model] = response
             submit.content = work_df.to_json(orient='records')
