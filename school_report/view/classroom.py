@@ -209,20 +209,25 @@ def homework_detail(request, posting_id):
         elif teacher != None:
             private_submit.who = teacher
     context['private_submits'] = private_submits  # 열람자의 정보 담기.
-
+    # 동료평가에서의 기능.
     if posting.is_special == 'peerReview':  # 동료평가의 경우, 지금 부여한 평균 보여주기.
-        count = 0
         question = models.HomeworkQuestion.objects.get(homework=posting, ordering=1)  # 동료평가의 첫번째 질문.
         answers = models.HomeworkAnswer.objects.filter(respondent=request.user, question=question)  # 내가 부여한 것.
-        score_sum = 0
-        for answer in answers:
-            score_sum += float(answer.contents)
-            count += 1
-        try:  # 아무 평가도 안한 상태에선 count0이라 에러 발생.
-            score_mean = score_sum/count
-            context['score_mean'] = score_mean
-        except:
-            pass
+        df = pd.DataFrame.from_records(answers.values('contents'))
+        df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
+        score_mean = df['contents'].mean()
+        variance = df['contents'].var()
+        context['score_mean'] = score_mean
+        context['variance'] = variance
+        # score_sum = 0
+        # for answer in answers:
+        #     score_sum += float(answer.contents)
+        #     count += 1
+        # try:  # 아무 평가도 안한 상태에선 count0이라 에러 발생.
+        #     score_mean = score_sum/count
+        #     context['score_mean'] = score_mean
+        # except:
+        #     pass
     return render(request, 'school_report/classroom/homework/detail.html', context)
 
 def homework_resubmit(request, submit_id):
