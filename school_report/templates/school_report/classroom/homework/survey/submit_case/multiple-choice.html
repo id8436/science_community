@@ -6,7 +6,7 @@
 
     <div>{{forloop.counter}}.
         <span>
-            <input type="radio" name="response{{question.id}}" id="option{{question.id}}-{{forloop.counter}}"
+            <input type="radio" name="option_for{{question.id}}" id="option{{question.id}}-{{forloop.counter}}"
                    value="{{option}}" {%if option == question.response %}checked{%endif%}>
             <label for="option{{question.id}}-{{forloop.counter}}">{{option}}</label>
         </span>

@@ -389,7 +389,7 @@ def homework_survey_submit(request, submit_id):
             if response:
                 answer.contents = response
                 question.respond = response  # 표시를 위해 담기.
-            # option이 있는 경우.
+            # option이 있는 경우. json으로 담는다.
             option = request.POST.getlist('option_for'+question_id)
             if option:
                 answer.contents = json.dumps(option)
@@ -493,10 +493,10 @@ def question_list_statistics(question_list, submit):
                 question.info['kurtosis'] = df.kurtosis(axis=0)[0]  # 첨도.
                 question.info['max'] = max
                 question.info['min'] = min
-            case 'multiple-choice':
+            case 'multiple-choice':  # 2개 이상 동시 선택을 위해 json으로 저장한다.
                 df = pd.DataFrame({})  # 빈 df 제작.
                 for answer in answers:
-                    selects = json.loads(answer.contents)  # 리스트로 받는다.
+                    selects = answer.contents  # 리스트로 받는다. json.loads를 안해도 된다고...??
                     if not isinstance(selects, list):  # 숫자형이거나, 다른 데이터 1개인 경우.
                         df = df.append({'contents': selects}, ignore_index=True)  # 대답을 담는다.
                     else:
