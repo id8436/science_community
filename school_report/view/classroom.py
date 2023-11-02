@@ -141,6 +141,7 @@ def homework_delete(request, posting_id):
     if posting.subject_object:
         subject_object = posting.subject_object
         return redirect('school_report:subject_main', subject_object.id)
+@login_required()
 def homework_detail(request, posting_id):
     '''과제 상세페이지와 과제제출 기능.'''
     context = {}
