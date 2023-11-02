@@ -392,7 +392,7 @@ def homework_survey_submit(request, submit_id):
             # option이 있는 경우. json으로 담는다.
             option = request.POST.getlist('option_for'+question_id)
             if option:
-                answer.contents = json.dumps(option)
+                answer.contents = json.dumps(option, ensure_ascii=False)
             # file이 있는 경우.
             file = request.FILES.get('response' + question_id)
             if file:
