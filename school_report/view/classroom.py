@@ -449,7 +449,7 @@ def question_list_statistics(question_list, submit):
                 df['percentage'] = df['contents'].map(contents_percentage)
                 df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
                 # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
-                df.set_index('contents', inplace=True)
+                # df.set_index('contents', inplace=True)  # 인덱스 설정 하면 값이 안나와.
                 #df = df.sort_values('count', ascending=False).reset_index(drop=False)  # 정렬은 필요 없지;
                 df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
                 question.answers = df_dict
