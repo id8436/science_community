@@ -18,17 +18,17 @@ onsubmit="return confirm('경고. 엑셀의 내용으로 학생의 응답을 덮
 <form action="{% url 'school_report:spreadsheet_to_ai' posting.id %}" method="POST" onsubmit="return confirmSubmission()">
     <h4>사용할 모델을 선택하세요.(복수선택 가능)</h4>
     <input type="checkbox" name="ai_model" value="text-davinci-003" id="text-davinci-003">
-    <label for="text-davinci-003">text-davinci-003</label>
+    <label for="text-davinci-003">text-davinci-003(50포인트)</label>
     <input type="checkbox" name="ai_model" value="gpt-3.5-turbo" id="gpt-3.5-turbo">
-    <label for="gpt-3.5-turbo">gpt-3.5-turbo</label>
+    <label for="gpt-3.5-turbo">gpt-3.5-turbo(50포인트)</label>
     <input type="checkbox" name="ai_model" value="gpt-3.5-turbo-instruct" id="gpt-3.5-turbo-instruct">
-    <label for="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct</label>
+    <label for="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct(50포인트)</label>
     <input type="checkbox" name="ai_model" value="gpt-4" id="gpt-4">
-    <label for="gpt-4">gpt-4</label>
+    <label for="gpt-4">gpt-4(100포인트)</label>
 
-
+    <button type="submit" formaction="" class="btn btn-info">예상금액 산출하기</button>
     {% csrf_token %}
-    <input type="submit" class="btn btn-info" value="세특 초안 만들기.">
+    <input type="submit" class="btn btn-info" value="세특 초안 만들기">
 </form>
 <script>
 function confirmSubmission() {

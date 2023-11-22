@@ -72,3 +72,19 @@ class Notification(models.Model):
     created_date = models.DateTimeField(auto_now_add='True')
     def __str__(self):
         return self.message
+
+class Debt(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    amount = models.IntegerField()
+    debt_cause = models.TextField()  # 빚 생성 상세이유.
+    is_paid = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add='True')  # 빚 생성일.
+    timestamp_paid = models.DateTimeField(auto_now='True')  # 빚 값은 날.
+
+class Point(models.Model):
+    '''포인트 충전, 소비. 변동에 관하여.'''
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    amount = models.IntegerField()  # +,- 정수로 기록.
+    transaction_detail = models.TextField()  # 변동 상세 이유.
+    timestamp = models.DateTimeField(auto_now_add='True')
+    payment_method = models.TextField()  # 결제방법. 소모의 경우, '내부 소모'

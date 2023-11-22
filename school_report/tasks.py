@@ -27,7 +27,6 @@ def api_answer(df, homework, school, ai_models):
         for question in question_list:
             input_text += question.question_title + ':' + str(row[question.question_title]) + '\n'
         # 학생의 과제 제출 객체 획득.
-
         try:
             work_df = pd.read_json(submit.content)  # 기존 과제 추출.
         except:

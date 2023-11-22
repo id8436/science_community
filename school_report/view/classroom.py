@@ -390,7 +390,7 @@ def homework_survey_submit(request, submit_id):
             if response:
                 answer.contents = response
                 question.respond = response  # 표시를 위해 담기.
-            # option이 있는 경우. json으로 담는다.
+            # option이 있는 경우. json으로 담는다.(객관식 선택의 경우임.)
             option = request.POST.getlist('option_for'+question_id)
             if option:
                 answer.contents = json.dumps(option, ensure_ascii=False)
@@ -445,12 +445,12 @@ def question_list_statistics(question_list, submit):
                 # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
                 contents_count = df['contents'].value_counts()
                 contents_percentage = df['contents'].value_counts(normalize=True) * 100
+                df['count'] = contents_count
+                df['percentage'] = contents_percentage
                 df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
                 # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
                 df.set_index('contents', inplace=True)
-                df['count'] = contents_count
-                df['percentage'] = contents_percentage
-                df = df.sort_values('count', ascending=False).reset_index(drop=False)
+                #df = df.sort_values('count', ascending=False).reset_index(drop=False)  # 정렬은 필요 없지;
                 df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
                 question.answers = df_dict
             case 'numeric':
@@ -745,7 +745,7 @@ def homework_end_cancel(request, homework_id):
         messages.success(request, "과제 마감을 취소하였습니다.")
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 def peerreview_statistics(request, posting_id):
-    '''표 형식으로 제시.'''
+    '''표 형식으로 제시. 최종 통계.'''
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
     context = {}
     question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가용.
@@ -772,7 +772,6 @@ def peerreview_statistics(request, posting_id):
             submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
             user_name_list.append(res_user)  # 학생계정 및 선생계정 이름. 평가자 목록.
             to_list.append(submit.to_student)  # 동료평가 대상자에 추가.
-    # 학생이라면 자기의 결과만 볼 수 있게...하려고 했는데, 이건 고민이 되네.
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
         res_user = models.Student.objects.get(admin=request.user, school=school)
         submit_user_list.append(request.user)
@@ -786,7 +785,8 @@ def peerreview_statistics(request, posting_id):
     given_var_list = []  # 평가자가 얼마나 점수를 많이 분포시켰느냐.(무지성으로 한 점수만 찍는 아이들 대비)
     not_res_list = []  # 응답자들이 평가하지 않은 횟수를 담을 리스트.
     to_list = set(to_list)  # 중복값 제거.
-    len_to_list = len(to_list)
+    len_to_list = len(to_list)  # 미응답자 계산을 위함.
+    special_comment_list = []  # 특별 설문으로 몇 번이나 선정되었는지.
     for respondent in submit_user_list:  # 유저리스트 돌면서 순회.
         if respondent == None:
             continue
@@ -808,7 +808,7 @@ def peerreview_statistics(request, posting_id):
         mean_list.append(mean)
         var_list.append(var)
         not_res_list.append(len_to_list - count)
-        # 받은 평균 담기.
+        # 받은 평균 담기. +특별설문 선정 횟수 계산.
         given_mean = 0
         count = 0
         try:  # 선생님은 학생객체가 없어 애러 뜸.
@@ -821,8 +821,12 @@ def peerreview_statistics(request, posting_id):
                 given_mean = given_mean / count
             except:
                 pass
+            special_content = str(to_student.student_code) + to_student.name
+            special_count = models.HomeworkSubmit.objects.filter(base_homework=homework, content=special_content).count
         except:
             given_mean = None
+            special_count = None
+        special_comment_list.append(special_count)
         given_mean_list.append(given_mean)
         # given_var 구하기.
         given_var = 0
@@ -836,7 +840,8 @@ def peerreview_statistics(request, posting_id):
         given_var_list.append(given_var)
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '받은 평균':given_mean_list,
-                       '부여점수 평균':mean_list, '부여분산(무지성 방지)':given_var_list, '평가점수 분산(벗어남정도)':var_list,'미응답 개수':not_res_list})
+                       '부여점수 평균':mean_list, '부여분산(무지성 방지)':given_var_list, '평가점수 분산(벗어남정도)':var_list,'미응답 수':not_res_list,
+                       '특수댓글 수':special_comment_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_list'] = df.to_dict(orient='records')
@@ -867,6 +872,7 @@ def peerreview_select_comment(request, submit_id):
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
 def peerreview_who_is_special(request, posting_id):
+    '''여기 말고 스프레드시트에 합쳐서 나타내면 계수에 더 좋지 않나?'''
     homework = get_object_or_404(models.Homework, pk=posting_id)
     context = {}
     if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.

@@ -5,6 +5,7 @@ from django.contrib import messages
 from school_report import models  # 모델 호출.
 from school_report import tasks
 import pandas as pd
+import math
 @login_required()
 def spreadsheet_to_ai(request, posting_id):
     '''세특 작성을 위한... ai의 연산 시작'''
@@ -25,7 +26,7 @@ def spreadsheet_to_ai(request, posting_id):
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
         tasks.api_answer(df, homework, school, ai_models)  # 정보를 주고 task에서 수행.
-
+    messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     return redirect(request.META.get('HTTP_REFERER', None))
 @login_required()
 def read_response(request, posting_id):
@@ -47,9 +48,49 @@ def read_response(request, posting_id):
             # work_df = work_df.set_index('계정')  # 인덱스로 만든다.
         merged_df = pd.concat([merged_df, work_df], axis=0, ignore_index=True)
     context['data_list'] = merged_df.to_dict(orient='records')
-    if homework.is_end == True:
+    if homework.is_end == True:  # 작업진행여부 불리언.
         messages.error(request, '아직 ai의 작업이 진행중입니다.')
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
+
+def count_ai_use_point(request, homework, df):
+    '''모델을 사용함에 있어 포인트가 얼마나 들지 파악.(결제할 때에도 이용.)'''
+    from school_report.view.special.ai_price_list import price_list
+    from tiktoken import Tokenizer  # pip install tiktoken
+    tokenizer = Tokenizer()
+    text_list = []  # ai에 넣을 텍스트를 여기에 넣어 반환한다.
+    total_charge = 0  # 여기에 총 금액을 담아 반환한다.
+    # 질문 목록 획득.
+    question_list = []
+    for question in df.columns[2:]:
+        question = models.HomeworkQuestion.objects.get(homework=homework, question_title=question)
+        question_list.append(question)
+    # 열 순회.
+    for index in df.index:
+        row = df.loc[index]
+        # ai에 넣을 텍스트 제작.
+        input_text = ''
+        for question in question_list:
+            input_text += question.question_title + ':' + str(row[question.question_title]) + '\n'
+        tokens = len(list(tokenizer.tokenize(input_text)))  # 토큰화 하여 계산.
+        tokens_for_count = tokens.copy() / 1000  # 복사용 토큰. 1천개당 계산을 위해 정리.
+        tokens_for_count = math.ceil(tokens_for_count)  # 올림 처리.
+        text_list.append(input_text)  # 최종 text_list에 합치기.
+        for ai_model in ai_models:
+            for ai_model in ai_models:
+                match ai_model:
+                    case 'gpt-3.5-turbo' | 'text-davinci-003' | 'text-curie-003' | 'gpt-3.5-turbo-instruct':
+                        if tokens >= 4096:
+                            messages.error(request, '선택하신 '+ai_model +'은 입력 데이터가 4096을 넘을 수 없습니다.')
+                            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+                    case 'gpt-4':
+                        if tokens >= 8192:
+                            messages.error(request, '선택하신 ' + ai_model + '은 입력 데이터가 8192를 넘을 수 없습니다.')
+                price_per_1000 = price_list[ai_model]  # 1000토큰 당 가격 가져오기.
+                total_charge += tokens_for_count * price_per_1000
+    print(text_list)
+    print(total_charge)
+    return text_list, total_charge
+
 
 role = '''
 너는 대한민국의 교사야. 학생들을 평가해서 과목별 세부능력 특기사항을 기록할거야.
@@ -65,7 +106,8 @@ role = '''
 '''
 def gpt_response(ai_model, input_text):
     import openai
-    openai.api_key = "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"
+    from config.secret import GPT_KEY  # API 키는 비밀로 보관.
+    openai.api_key = GPT_KEY
     # 조건
     model = ai_model  # 선택할 수 있게! ex) gpt-3.5-turbo
     import tiktoken
