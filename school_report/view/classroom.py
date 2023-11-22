@@ -445,8 +445,8 @@ def question_list_statistics(question_list, submit):
                 # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
                 contents_count = df['contents'].value_counts()
                 contents_percentage = df['contents'].value_counts(normalize=True) * 100
-                df['count'] = contents_count
-                df['percentage'] = contents_percentage
+                df['count'] = df['contents'].map(contents_count)
+                df['percentage'] = df['contents'].map(contents_percentage)
                 df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
                 # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
                 df.set_index('contents', inplace=True)
