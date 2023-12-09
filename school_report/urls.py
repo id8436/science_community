@@ -92,8 +92,11 @@ urlpatterns = [
     # 세특 자료.
     path('classroom/homework/spreadsheet_upload_excel/<int:posting_id>/', classroom.spreadsheet_upload_excel,
          name='spreadsheet_upload_excel'),  # 세특 자료 엑셀로 올리기.
+    path('classroom/homework/info_how_much_point_taken/<int:posting_id>/', ai_completion.info_how_much_point_taken,
+         name='info_how_much_point_taken'),  # 소비 포인트 계산.
     path('classroom/homework/spreadsheet_to_ai/<int:posting_id>/', ai_completion.spreadsheet_to_ai,
          name='spreadsheet_to_ai'),  # 세특 자료 ai에 던지기.
     path('classroom/homework/read_response/<int:posting_id>/', ai_completion.read_response,
-         name='read_response'),  # 세특 자료 ai에 던지기.
+         name='read_response'),  # ai가 만든 세특 자료 보기.
+
 ]

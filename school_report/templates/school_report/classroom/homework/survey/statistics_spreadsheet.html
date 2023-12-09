@@ -2,53 +2,74 @@
 
 {% block content %}
 {% if posting %}
-<a href="{% url 'school_report:spreadsheet_to_excel_download' posting.id%}">엑셀로 다운받기.</a>
+<a href="{% url 'school_report:spreadsheet_to_excel_download' posting.id%}">엑셀로 양식 다운받기.</a>
 {% endif %}
 
 {% if posting.is_special == 'TalentEval' %}
 
-<form action="{% url 'school_report:spreadsheet_upload_excel' posting.id %}" method="POST" enctype="multipart/form-data"
-onsubmit="return confirm('경고. 엑셀의 내용으로 학생의 응답을 덮어씁니다.')">
-        <input type="file" name="uploadedFile" value="파일을 선택해주세요.">
+    <form action="{% url 'school_report:spreadsheet_upload_excel' posting.id %}" method="POST" enctype="multipart/form-data"
+    onsubmit="return confirm('경고. 엑셀의 내용으로 학생의 응답을 덮어씁니다.')">
+            <input type="file" name="uploadedFile" value="파일을 선택해주세요.">
+            {% csrf_token %}
+            <input type="submit" value="엑셀파일 올리기">
+    </form>
+
+    <!-- 모델 추가에 대한 안내사항. ai_model_info_list.py에 관련 정보들 기입할 것.-->
+    <form action="{% url 'school_report:spreadsheet_to_ai' posting.id %}" method="POST" onsubmit="return confirmSubmission()">
         {% csrf_token %}
-        <input type="submit" value="엑셀파일 올리기">
+        <h4>사용할 모델을 선택하세요.(복수선택 가능)</h4>
+            <h5 class="border-bottom my-3 py-2">GPT 계열</h5>
+        <input type="checkbox" name="ai_model" value="text-davinci-003" id="text-davinci-003">
+            <label for="text-davinci-003">text-davinci-003(10포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-3.5-turbo" id="gpt-3.5-turbo">
+            <label for="gpt-3.5-turbo">gpt-3.5-turbo(10포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-3.5-turbo-instruct" id="gpt-3.5-turbo-instruct">
+            <label for="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct(10포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-4" id="gpt-4">
+            <label for="gpt-4">gpt-4(100포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-4-1106-preview" id="gpt-4-1106-preview">
+            <label for="gpt-4-1106-preview">gpt-4-1106-preview(50포인트)</label>
+
+        <br>
+        <button type="submit" formaction="{% url 'school_report:info_how_much_point_taken' posting.id %}" class="btn btn-info">예상금액 산출하기</button>
+        <input type="submit" class="btn btn-info" value="AI로 세특 초안 만들기">
+<!-- form은 여기서 끝인데, 표의 라디오버튼을 이용할 경우가 있어 폼 닫기를 뒤로 미뤘음. -->
+
+    <h3>당부의 말</h3>
+    <li>100포인트는 100원 정도라 생각하시면 됩니다.(응답 토큰 700자 정도까지 합한 값이 나옵니다.)</li>
+    <li>시험을 위해 한 학생에 대해서만 실행해 보세요~(내용이 없는 학생도 요청이 들어가니, 유의해주세요~)</li>
+    <li>모델별로 토큰 계산법이 다르기도 합니다.</li>
+
+    <script>
+    function confirmSubmission() {
+      // 체크된 체크박스 개수 확인
+      var checkboxes = document.querySelectorAll('input[type=checkbox][name=ai_model]:checked');
+      var count = checkboxes.length;
+      // 표에 학생 선택 체크박스.
+      var pk_checks = document.querySelectorAll('input[type=checkbox][name=pk_checks]:checked');
+      var keys = pk_checks.length;
+      // 사용자 확인 메시지 표시
+      return confirm("경고.\n- 한번 요청한 작업은 끝날 때까지 멈추지 않습니다.\n선택된 모델 수: "+count
+      +", 선택된 학생 수: "+keys);
+    }
+    </script>
+
+    <a class="btn btn-success"
+       href="{% url 'school_report:read_response' posting.id%}">AI 초안 보기</a>
+
+<div class="table-responsive">
+  {% include "df/df_body_fit_frame_with_checkbox.html" with dataframe=data_list %}
+</div>
+
 </form>
 
-
-<form action="{% url 'school_report:spreadsheet_to_ai' posting.id %}" method="POST" onsubmit="return confirmSubmission()">
-    <h4>사용할 모델을 선택하세요.(복수선택 가능)</h4>
-    <input type="checkbox" name="ai_model" value="text-davinci-003" id="text-davinci-003">
-    <label for="text-davinci-003">text-davinci-003(50포인트)</label>
-    <input type="checkbox" name="ai_model" value="gpt-3.5-turbo" id="gpt-3.5-turbo">
-    <label for="gpt-3.5-turbo">gpt-3.5-turbo(50포인트)</label>
-    <input type="checkbox" name="ai_model" value="gpt-3.5-turbo-instruct" id="gpt-3.5-turbo-instruct">
-    <label for="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct(50포인트)</label>
-    <input type="checkbox" name="ai_model" value="gpt-4" id="gpt-4">
-    <label for="gpt-4">gpt-4(100포인트)</label>
-
-    <button type="submit" formaction="" class="btn btn-info">예상금액 산출하기</button>
-    {% csrf_token %}
-    <input type="submit" class="btn btn-info" value="세특 초안 만들기">
-</form>
-<script>
-function confirmSubmission() {
-  // 체크된 체크박스 개수 확인
-  var checkboxes = document.querySelectorAll('input[type=checkbox][name=ai_model]:checked');
-  var count = checkboxes.length;
-
-  // 사용자 확인 메시지 표시
-  return confirm("경고. .- 한번 요청한 작업은 끝날 때까지 멈추지 않습니다.\n\n선택된 모델 수: "+count);
-}
-</script>
-
-<a class="btn btn-success"
-   href="{% url 'school_report:read_response' posting.id%}">초안 보기</a>
-
-{% endif %}
-
+{% else %}
 <div class="table-responsive">
   {% include "df/df_body_fit_frame.html" with dataframe=data_list %}
 </div>
+{% endif %}
+
+
 
 
 

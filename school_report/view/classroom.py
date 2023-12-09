@@ -542,6 +542,7 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
         messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
         return redirect(request.META.get('HTTP_REFERER', None))
 def make_spreadsheet_df(request, posting_id):
+    '''응답에 대한 df를 제작.'''
     homework = get_object_or_404(models.Homework, id=posting_id)
     question_list = homework.homeworkquestion_set.order_by('ordering')
     if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
@@ -553,19 +554,24 @@ def make_spreadsheet_df(request, posting_id):
     submit_user_list = []
     user_name_list = []
     student_code_list = []
+    user_pk_list = []  # ai에 보낼 학생을 선택하기 위해.
     for submit in submit_list:
         try:  # 교사계정도 제출자에 포함하기 위해.
             res_user = models.Student.objects.get(admin=submit.to_user, school=school)
             student_code = res_user.student_code
+            user_pk = res_user.admin.id
         except:
             try:
                 res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
                 student_code = None
+                user_pk = res_user.admin.id
             except:
                 res_user = None
+                user_pk = None
         submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
         user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
         student_code_list.append(student_code)
+        user_pk_list.append(user_pk)  # ai 세특 저장용.
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '학번': student_code_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
@@ -587,15 +593,19 @@ def make_spreadsheet_df(request, posting_id):
         df = pd.concat([df, df_answers], join='outer', axis=1)
     # df = df.set_index('제출자')
     # df = df.drop('계정', axis=1)
-    return df
+    return df, user_pk_list
 @login_required()
 def homework_survey_statistics_spreadsheet(request, posting_id):
     # 과거유산. 문제없음 버리자. submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
     homework = get_object_or_404(models.Homework, id=posting_id)
     context = {'posting':homework}
 
-    df = make_spreadsheet_df(request, posting_id)
+    df, user_pk_list = make_spreadsheet_df(request, posting_id)
     df = df.to_dict(orient='records')
+    if homework.is_special == 'TalentEval':
+        question_title = df[0]  # 기존 df의 첫번째 행을 가져온다.
+        context['columns'] = question_title
+        df = zip(user_pk_list, df)
     context['data_list'] = df
 
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)

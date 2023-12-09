@@ -148,7 +148,7 @@ class Homework(models.Model):
     is_secret = models.BooleanField(default=False)  # 익명설문 여부.
     is_secret_student = models.BooleanField(default=False)  # 아직 구현은 안했지만, 학생 대상 익명설문 여부.
     is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
-    is_end = models.BooleanField(default=False)  # pending과도 혼용. deadline으로 처리할 수도 있지만.. 특수한 경우를 위해. api작업에서 작업중임을 표시하기 위해서도.
+    is_end = models.BooleanField(default=False)  # pending과도 혼용. deadline으로 처리할 수도 있지만.. 특수한 경우를 위해. False를 진행중으로. api작업에서 작업중임을 표시하기 위해서도.
     def __str__(self):
         return self.subject
     def copy_create(self, classroom_list=None, subject_list=None):
@@ -184,7 +184,7 @@ class HomeworkSubmit(models.Model):
     to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아?
     to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용.
     title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비)
-    content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정.
+    content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정. # ai세특에서 df 저장하는 용도.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
     submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.

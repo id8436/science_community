@@ -1,1 +1,0 @@
-price_list = {'gpt-3.5-turbo': 50, 'gpt-4': 100, 'text-davinci-003': 50}
