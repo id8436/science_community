@@ -23,13 +23,12 @@ def spreadsheet_to_ai(request, posting_id):
     #     school = homework.subject_object.school
 
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
-    print('delay로 들어갑니다.')
     #나중에 아래 함수의 delay 속성으로 진행하자.
     if homework.is_end == False:
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
-        tasks.api_answer(request, posting_id, ai_models)  # 정보를 주고 task에서 수행.
+        tasks.api_answer.delay(request, posting_id, ai_models)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     return redirect(request.META.get('HTTP_REFERER', None))
 @login_required()
