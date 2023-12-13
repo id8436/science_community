@@ -1,0 +1,13 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+체크 스프레드시트
+<div class="table-responsive">
+  {% include "df/df_body_fit_frame.html" with dataframe=data_list %}
+</div>
+
+
+
+
+{% endblock content %}

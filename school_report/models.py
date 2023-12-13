@@ -37,7 +37,7 @@ class Homeroom(models.Model):
         return self.name
     class Meta:
         unique_together = (
-            ('school', 'grade', 'cl_num')
+            ('school', 'name')
         )
 class Subject(models.Model):
     '''학교 하위의, 클래스룸을 만들기 위한 교과.'''
@@ -94,7 +94,7 @@ class Student(models.Model):
     school = models.ForeignKey('School', on_delete=models.CASCADE)
     homeroom = models.ManyToManyField('Homeroom')
     #number = models.IntegerField()  # 학생번호. 지우자.
-    student_code = models.CharField(max_length=20, null=True, blank=True)  # 학생 인증코드.(학번 등)
+    student_code = models.CharField(max_length=20)  # 학생 인증코드.(학번 등)
     name = models.CharField(max_length=10)  # 학생 이름.
     obtained = models.BooleanField(default=False)
     code = models.TextField(null=True, blank=True)
@@ -181,10 +181,12 @@ class Homework(models.Model):
 class HomeworkSubmit(models.Model):
     '''간단 과제제출, 동료평가 설문나누기용.'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
+    # to_user에서 학생이 아직 등록하지 않은 상태라면? 경고를 주기라도 해야 할듯.
     to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아?
     to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용.
     title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비)
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정. # ai세특에서 df 저장하는 용도.
+    ## check, read 등이 아니라 하나의 status로 바꾸면 어때? 하나로 표현하게.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
     submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.

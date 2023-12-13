@@ -566,12 +566,15 @@ def make_spreadsheet_df(request, posting_id):
                 student_code = None
                 user_pk = res_user.admin.id
             except:
-                res_user = None
-                user_pk = None
+                continue
         submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
-        user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
+        try:  # 등록을 안한 학생계정 등이 있을 때 res_user가 None이다.
+            user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
+            user_pk_list.append(user_pk)  # ai 세특 저장용.
+        except:
+            user_name_list.append(None)
+            user_pk_list.append(None)
         student_code_list.append(student_code)
-        user_pk_list.append(user_pk)  # ai 세특 저장용.
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '학번': student_code_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
@@ -595,6 +598,57 @@ def make_spreadsheet_df(request, posting_id):
     # df = df.drop('계정', axis=1)
     return df, user_pk_list
 @login_required()
+def homework_check_spreadsheet(request, classroom_id):
+    '''classroom 과제 제출 여부를 한 df로 확인하기 위한 함수.'''
+    classroom = get_object_or_404(models.Classroom, id=classroom_id)
+    context = {}
+    # 관련자만 접근하게끔.
+    school = classroom.homeroom.school
+    student = check.Check_student(request, school).in_school_and_none()
+    teacher = check.Check_teacher(request, school).in_school_and_none()
+    if teacher:
+        homeroom = classroom.homeroom
+        student_list = models.Student.objects.filter(homeroom=homeroom)  # 홈룸에 등록된 학생목록.
+        student_list = list(student_list)
+        homework_list = models.Homework.objects.filter(classroom=classroom)
+        info_dic = {'student':student_list}
+        for homework in homework_list:
+            info_dic[homework.subject] = []  # 과제명으로 사전key, 리스트 만들기.
+            for student in student_list:
+                try:  # 동료평가 등 특수설문에서 에러.(과제 부여가 안된 경우에도)
+                    submit = models.HomeworkSubmit.objects.get(base_homework=homework, to_user=student.admin)
+                    if submit.check:
+                        info_dic[homework.subject].append("제출")
+                    elif submit.read:
+                        info_dic[homework.subject].append("읽음")
+                    else:
+                        info_dic[homework.subject].append("미열람")
+                except:
+                    info_dic[homework.subject].append("특수상황")
+        print(info_dic)
+        df = pd.DataFrame(info_dic)
+        df_dict = df.to_dict(orient='records')
+        #print(df)
+    elif student:  # 학생인 경우.
+        homework_list = models.Homework.objects.filter(classroom=classroom)
+        info_dic = {'student': student}
+        for homework in homework_list:
+            info_dic[homework.subject] = []  # 과제명으로 사전key, 리스트 만들기.
+            try:
+                submit = models.HomeworkSubmit.objects.get(base_homework=homework, to_user=student.admin)
+                if submit.check:
+                    info_dic[homework.subject].append("제출")
+                elif submit.read:
+                    info_dic[homework.subject].append("읽음")
+            except:  # 동료평가 등 특수설문에서 에러.(과제 부여가 안된 경우에도)
+                info_dic[homework.subject].append("특수상황")
+        df = pd.DataFrame(info_dic)
+        df_dict = df.to_dict(orient='records')
+
+    context['data_list'] = df_dict
+    return render(request, 'school_report/classroom/homework/check_spreadsheet.html', context)
+
+@login_required()
 def homework_survey_statistics_spreadsheet(request, posting_id):
     # 과거유산. 문제없음 버리자. submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
     homework = get_object_or_404(models.Homework, id=posting_id)
@@ -609,7 +663,6 @@ def homework_survey_statistics_spreadsheet(request, posting_id):
     context['data_list'] = df
 
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
-
 
 @login_required()
 def spreadsheet_to_excel_download(request, posting_id):

@@ -18,6 +18,7 @@ urlpatterns = [
     path('subject_main/<int:subject_id>/', school.subject_main, name='subject_main'),
     path('create_performance_score/<int:subject_id>/', school.create_performance_score, name='create_performance_score'),
     path('subject_homework/<int:subject_id>/', subject.subject_homework_create, name='subject_homework_create'),
+    path('subject_homework_check/<int:subject_id>/', subject.subject_homework_check, name='subject_homework_check'),
     path('subject_homework/detail/<int:posting_id>/', subject.subject_homework_detail, name='subject_homework_detail'),
 
     #교사명단
@@ -61,6 +62,7 @@ urlpatterns = [
     path('classroom/homework/modify/<int:posting_id>/', classroom.homework_modify, name='homework_modify'),
     path('classroom/homework/delete/<int:posting_id>/', classroom.homework_delete, name='homework_delete'),
     path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
+    path('classroom/homework/check/<int:classroom_id>/', classroom.homework_check_spreadsheet, name='homework_check_spreadsheet'),
     path('classroom/homework/copy/<int:homework_id>/', classroom.homework_copy, name='homework_copy'),
     path('classroom/homework/end_cancel/<int:homework_id>/', classroom.homework_end_cancel, name='homework_end_cancel'),
 
