@@ -2,8 +2,11 @@ from celery import shared_task
 from . import models
 from .view.special import ai_completion
 from custom_account.view import payment
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+
 @shared_task
-def api_answer(request_user, pk_list, posting_id, ai_models, contents_list, submit_list, total_charge):
+def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_list, total_charge):
     '''테스크 처리.'''
     #  시작하기 전에 점검부터
     from school_report.view.special.ai_completion import make_ai_input_data
@@ -63,4 +66,5 @@ def api_answer(request_user, pk_list, posting_id, ai_models, contents_list, subm
     homework.save()
     # 나중에 작업 끝날 때 정산.
     cause_text = str(len(contents_list)) + "건에 대한 AI 연산."
-    payment.payment(user=request_user, amount=total_charge, cause=cause_text)
+    user = get_object_or_404(get_user_model(), id=request_user_id)
+    payment.payment(user=user, amount=total_charge, cause=cause_text)

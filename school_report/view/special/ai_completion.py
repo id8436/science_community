@@ -36,7 +36,7 @@ def spreadsheet_to_ai(request, posting_id):
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
         pk_list = request.POST.getlist("pk_checks")
-        tasks.api_answer.delay(request.user, pk_list, posting_id, ai_models, contents_list, submit_list, total_charge)  # 정보를 주고 task에서 수행.
+        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_list, total_charge)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     messages.info(request, '예상 소요 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
