@@ -3,16 +3,13 @@ from . import models
 from .view.special import ai_completion
 from custom_account.view import payment
 @shared_task
-def api_answer(request, posting_id, ai_models):
+def api_answer(request_user, pk_list, posting_id, ai_models, contents_list, submit_list, total_charge):
     '''테스크 처리.'''
     #  시작하기 전에 점검부터
-    from school_report.view.special.ai_completion import count_ai_use_point, make_ai_input_data
-    pk_list = request.POST.getlist("pk_checks")
-    contents_list, submit_list = make_ai_input_data(posting_id, pk_list)
+    from school_report.view.special.ai_completion import make_ai_input_data
 
-    # 아래는 개발 끝나면 풀자.
-    # homework.is_end = False  # False = pending
-    # homework.save()
+    # 들어오기 직전 밖에서도 이 작업을 거치긴 하는데...
+    #contents_list, submit_list = make_ai_input_data(posting_id, pk_list)
 
     # # 요 아래 것들... 따로 df 만들어서...구해도 될듯.
     # # 질문 목록 획득.
@@ -40,6 +37,8 @@ def api_answer(request, posting_id, ai_models):
         school = homework.classroom.school
     if homework.subject_object:
         school = homework.subject_object.school
+    homework.is_end = False  # False = pending
+    homework.save()
 
     # 학생의 과제 제출 객체 획득, 변경.
     import pandas as pd
@@ -63,6 +62,5 @@ def api_answer(request, posting_id, ai_models):
     homework.is_end = True
     homework.save()
     # 나중에 작업 끝날 때 정산.
-    total_charge = count_ai_use_point(request, contents_list, ai_models)
     cause_text = str(len(contents_list)) + "건에 대한 AI 연산."
-    payment.payment(user=request.user, amount=total_charge, cause=cause_text)
+    payment.payment(user=request_user, amount=total_charge, cause=cause_text)
