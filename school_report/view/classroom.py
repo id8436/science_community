@@ -666,7 +666,7 @@ def homework_survey_statistics_spreadsheet(request, posting_id):
 
 @login_required()
 def spreadsheet_to_excel_download(request, posting_id):
-    df = make_spreadsheet_df(request, posting_id)
+    df, user_pk_list = make_spreadsheet_df(request, posting_id)
     from main.view import df_funcs
     response = df_funcs.df_to_excel_download(df, '설문결과')
     return response
