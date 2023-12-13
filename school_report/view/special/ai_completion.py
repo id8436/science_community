@@ -8,6 +8,8 @@ import pandas as pd
 import math
 from django.contrib.auth import get_user_model
 from custom_account.models import Debt
+import openai
+
 
 @login_required()
 def spreadsheet_to_ai(request, posting_id):
@@ -167,7 +169,6 @@ role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 
 max_tokens = 700
 def gpt_response(ai_model, input_text):
     '''ai에 던지고 응답을 받는 본 기능.'''
-    import openai
     from config.secret import GPT_KEY  # API 키는 비밀로 보관.
     openai.api_key = GPT_KEY
 
