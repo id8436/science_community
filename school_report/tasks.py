@@ -6,33 +6,12 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
 @shared_task
-def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_list, total_charge):
+def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_list, total_charge):
     '''테스크 처리.'''
     #  시작하기 전에 점검부터
-    from school_report.view.special.ai_completion import make_ai_input_data
 
     # 들어오기 직전 밖에서도 이 작업을 거치긴 하는데...
     #contents_list, submit_list = make_ai_input_data(posting_id, pk_list)
-
-    # # 요 아래 것들... 따로 df 만들어서...구해도 될듯.
-    # # 질문 목록 획득.
-    # question_list = []
-    # for question in df.columns[2:]:
-    #     question = models.HomeworkQuestion.objects.get(homework=homework, question_title=question)
-    #     question_list.append(question)
-    # # 열 순회.
-    # for index in df.index:
-    #     row = df.loc[index]
-    #     try:  # 제대로 된 데이터인지.
-    #         student = models.Student.objects.get(school=school, student_code=int(row['학번']))
-    #         submit = models.HomeworkSubmit.objects.get(base_homework=homework, to_user=student.admin)
-    #     except:
-    #         # messages.error(request, '적절하지 않은 학번의 경우 건너뜁니다. ' + str(row[0]))
-    #         continue
-    #     # ai에 넣을 텍스트 제작.
-    #     input_text = ''
-    #     for question in question_list:
-    #         input_text += question.question_title + ':' + str(row[question.question_title]) + '\n'
 
     # submit에 내용 저장할 때 정보를 담기 위해 school이 필요해서.
     homework = models.Homework.objects.get(id=posting_id)
@@ -45,7 +24,8 @@ def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_lis
 
     # 학생의 과제 제출 객체 획득, 변경.
     import pandas as pd
-    for input_text, submit in zip(contents_list, submit_list):
+    for input_text, submit_id in zip(contents_list, submit_id_list):
+        submit = models.HomeworkSubmit.objects.get(id=submit_id)
         try:
             work_df = pd.read_json(submit.content)  # 기존 과제 추출.
         except:

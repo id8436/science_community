@@ -25,7 +25,7 @@ def spreadsheet_to_ai(request, posting_id):
     # 가격 계산 앞부분과 동일.
     pk_list = request.POST.getlist("pk_checks")
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
-    contents_list, submit_list = make_ai_input_data(posting_id, pk_list)
+    contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
 
     total_charge = count_ai_use_point(request, contents_list, ai_models)
@@ -35,8 +35,7 @@ def spreadsheet_to_ai(request, posting_id):
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
-        pk_list = request.POST.getlist("pk_checks")
-        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_list, total_charge)  # 정보를 주고 task에서 수행.
+        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     messages.info(request, '예상 소요 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
@@ -76,7 +75,7 @@ def info_how_much_point_taken(request, posting_id):
     pk_list = request.POST.getlist("pk_checks")
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
 
-    contents_list, submit_list = make_ai_input_data(posting_id, pk_list)
+    contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
 
     total_charge = count_ai_use_point(request, contents_list, ai_models)  # 정보를 주고 task에서 수행.
@@ -93,10 +92,12 @@ def make_ai_input_data(posting_id, pk_list):
     question_list = homework.homeworkquestion_set.order_by('ordering')
     contents_list = []  # 질문과 답변을 모은 개인 전체 텍스트를 담을 리스트.
     submit_list = []  # 대상 학생의 submit리스트.
+    submit_id_list = []  # task에 올릴 때 json화 해야 하는데, 모델을 보낼 수 없어..ㅜ
     for pk in pk_list:
         response_user = get_object_or_404(get_user_model(), id=pk)
         submit = models.HomeworkSubmit.objects.get(to_user=response_user, base_homework=homework)
         submit_list.append(submit)
+        submit_id_list.append(submit.id)
         content = ''  # 텍스트를 담을...
         for question in question_list:
             try:
@@ -107,7 +108,7 @@ def make_ai_input_data(posting_id, pk_list):
             except:
                 pass
         contents_list.append(content)
-    return contents_list, submit_list
+    return contents_list, submit_id_list
 def count_ai_use_point(request, contents_list, ai_models):
     '''모델을 사용함에 있어 포인트가 얼마나 들지 파악.(결제할 때에도 이용.)'''
     from school_report.view.special.ai_model_info_list import price_list, max_tocken_list
