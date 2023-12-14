@@ -706,7 +706,7 @@ def spreadsheet_upload_excel(request, posting_id):
         except:
             messages.error(request, '적절하지 않은 학번의 경우 건너뜁니다. ' + str(row[0]))
             continue
-        for question in question_list:
+        for question_title, question in zip(df.columns[2:], question_list):
             answer, _ = models.HomeworkAnswer.objects.get_or_create(question=question, respondent=student.admin)
             answer.contents = row[question.question_title]  # 질문의 열에 있는 정보를 담는다.
             answer.save()
