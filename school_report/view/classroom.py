@@ -693,9 +693,8 @@ def spreadsheet_upload_excel(request, posting_id):
     for question_title in df.columns[2:]:
         i += 1
         question, _ = models.HomeworkQuestion.objects.get_or_create(homework=homework, ordering=i)
-        question.title = question_title
+        question.question_title = question_title
         question.save()
-        #question = models.HomeworkQuestion.objects.get(homework=homework, question_title=question)
         question_list.append(question)
 
     # 2단계. df를 읽으며 학생 목록 호출. 및 넣기.
@@ -708,7 +707,7 @@ def spreadsheet_upload_excel(request, posting_id):
             continue
         for question_title, question in zip(df.columns[2:], question_list):
             answer, _ = models.HomeworkAnswer.objects.get_or_create(question=question, respondent=student.admin)
-            answer.contents = row[question.question_title]  # 질문의 열에 있는 정보를 담는다.
+            answer.contents = row[question_title]  # 질문의 열에 있는 정보를 담는다.
             answer.save()
 
     messages.success(request, '업로드 완료!')
