@@ -200,8 +200,8 @@ class HomeworkSubmit(models.Model):
 class HomeworkQuestion(models.Model):
     '''과제제출 하위의 설문 하나하나.'''
     homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
-    question_title = models.TextField()  # 질문.
-    question_type = models.TextField()  # 질문유형. 단답형? 숫자? 등등등
+    question_title = models.TextField(null=True)  # 질문.
+    question_type = models.TextField(null=True)  # 질문유형. 단답형? 숫자? 등등등
     is_essential = models.BooleanField(default=False)  # 필수로 답해야 하는지 여부.
     # 순번 및 특수기능.
     ordering = models.IntegerField(null=True, blank=True)  # 질문의 순번.

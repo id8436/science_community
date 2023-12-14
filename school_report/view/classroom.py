@@ -566,7 +566,8 @@ def make_spreadsheet_df(request, posting_id):
                 student_code = None
                 user_pk = res_user.admin.id
             except:
-                continue
+                student_code = None
+                pass  # res_user 없을 때에도 담게끔.
         submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
         try:  # 등록을 안한 학생계정 등이 있을 때 res_user가 None이다.
             user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
@@ -688,8 +689,13 @@ def spreadsheet_upload_excel(request, posting_id):
 
     # 1단계. 질문 목록 호출.
     question_list = []
-    for question in df.columns[2:]:
-        question = models.HomeworkQuestion.objects.get(homework=homework, question_title=question)
+    i = 0
+    for question_title in df.columns[2:]:
+        i += 1
+        question, _ = models.HomeworkQuestion.objects.get_or_create(homework=homework, ordering=i)
+        question.title = question_title
+        question.save()
+        #question = models.HomeworkQuestion.objects.get(homework=homework, question_title=question)
         question_list.append(question)
 
     # 2단계. df를 읽으며 학생 목록 호출. 및 넣기.
