@@ -568,13 +568,14 @@ def make_spreadsheet_df(request, posting_id):
             except:
                 student_code = None
                 pass  # res_user 없을 때에도 담게끔.
-        submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
         try:  # 등록을 안한 학생계정 등이 있을 때 res_user가 None이다.
             user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
             user_pk_list.append(user_pk)  # ai 세특 저장용.
+            submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
         except:
             user_name_list.append(None)
             user_pk_list.append(None)
+            submit_user_list.append(None)
         student_code_list.append(student_code)
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '학번': student_code_list})
