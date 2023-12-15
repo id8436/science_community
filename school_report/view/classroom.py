@@ -569,9 +569,10 @@ def make_spreadsheet_df(request, posting_id):
                 student_code = None  # res_user 없을 때에도 담게끔.
         # 각 열 제작.
         try:  # 등록을 안한 학생계정 등이 있을 때 res_user가 None이다.
-            user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
-            user_pk_list.append(user_pk)  # ai 세특 저장용.
-            submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
+            if res_user.name and user_pk and submit.to_user:
+                user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
+                user_pk_list.append(user_pk)  # ai 세특 저장용.
+                submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
         except:
             user_name_list.append(None)
             user_pk_list.append(None)
