@@ -283,6 +283,7 @@ def subject_descriptive_info_form_download(request, subject_id):
     return response
 
 def subject_answer_info_form_upload(request, subject_id):
+    '''과목 객관식 정보 업로드.'''
     subject = get_object_or_404(Subject, pk=subject_id)
     board = subject.base_exam
     school = subject.base_exam.school
