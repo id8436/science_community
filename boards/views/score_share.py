@@ -61,7 +61,6 @@ def statistical_of_score(request, subject):
         for score in score_list:
             if score == origin_score:
                 same_count[i] += 1
-
     df = pd.DataFrame(code_list)
     df['score'] = score_list
     df['rank_num'] = df['score'].rank(method='min', ascending=False).astype(int)  # 소수점 없이 정수로 반환.
@@ -82,6 +81,7 @@ def result_main(request, board_id):
         if subject.score_set.count() < 1:
             continue  # 등록된 정보가 없으면 에러가 나니, 패스.
         df = statistical_of_score(request, subject)
+        print(df)
         # 점수 리스트를 구했으니, 이를 조작해 다양한 걸 얻을 수 있다.
         subject_info = calculate_score(df['score'])  # 해당 과목의 평균, 분산, 표준편차 등 데이터를 얻는다.
         subject_data[subject] = subject_info  # 교과와 교과정보를 한데 담아 보낸다.

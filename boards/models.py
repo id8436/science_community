@@ -61,12 +61,12 @@ class Subject(models.Model):
 class Score(models.Model):
     user = models.ForeignKey('Exam_profile', on_delete=models.CASCADE, null=False)  # 프로파일을 생성해 담자.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE, null=False)
-    score = models.IntegerField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
-    real_score = models.IntegerField(default=None, null=True, blank=True)  # 생성 후 입력해서 null이 필요하다. 객관식 점수.
+    score = models.FloatField(null=True, blank=True)  # 한 번 기입하면 변경이 불가능. 아니, 이력이 남게 하면 어때?
+    real_score = models.FloatField(default=None, null=True, blank=True)  # 생성 후 입력해서 null이 필요하다. 객관식 점수.
     answer = models.TextField(null=True, blank=True)  # 시험에서의 응답을 담기 위한 것. Json으로 받는다.
-    descriptive_score = models.IntegerField(default=None, null=True, blank=True)  # 서술형점수.
+    descriptive_score = models.FloatField(default=None, null=True, blank=True)  # 서술형점수.
     descriptive = models.TextField(null=True, blank=True)  # 서술형 배점정보(응시자가 받은 점수).
-    real_total_score = models.IntegerField(default=None, null=True, blank=True)
+    real_total_score = models.FloatField(default=None, null=True, blank=True)
     def __str__(self):
         return str(self.user)
     # class Meta:  # 학생 인증할 때 옮기는 데... 유니크 제한이 방해가 된다.
