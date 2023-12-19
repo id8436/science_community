@@ -116,10 +116,14 @@ def homework_modify(request, posting_id):
                     toward = posting.classroom
                 elif posting.subject_object:
                     toward = posting.subject_object
-                Notification.objects.create(to_user=submit.to_user, official=True, classification=12,
+                try:  # 학생이 등록을 안한 경우, 유저 모델이 없음.
+                    to_user = submit.to_user
+                    Notification.objects.create(to_user=to_user, official=True, classification=12,
                                                               type=3, from_user=request.user, message=toward,
                                                               url=resolve_url("school_report:homework_detail",
                                                                               posting_id))
+                except:
+                    pass
 
             return redirect('school_report:homework_detail', posting_id=posting.id)
     else:  # GET으로 요청된 경우.
