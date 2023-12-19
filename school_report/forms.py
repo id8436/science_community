@@ -27,4 +27,4 @@ class AnnouncementForm(forms.ModelForm):
 class HomeworkForm(forms.ModelForm):
     class Meta:
         model = Homework
-        fields = ['subject', 'content', 'deadline', 'is_secret']
+        fields = ['subject', 'content', 'deadline', 'is_secret', 'is_secret_student']

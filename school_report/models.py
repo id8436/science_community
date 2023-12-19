@@ -145,7 +145,7 @@ class Homework(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
-    is_secret = models.BooleanField(default=False)  # 익명설문 여부.
+    is_secret = models.BooleanField(default=False)  # 익명설문 여부.(교사에게도)
     is_secret_student = models.BooleanField(default=False)  # 아직 구현은 안했지만, 학생 대상 익명설문 여부.
     is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
     is_end = models.BooleanField(default=False)  # pending과도 혼용. deadline으로 처리할 수도 있지만.. 특수한 경우를 위해. False를 진행중으로. api작업에서 작업중임을 표시하기 위해서도.
