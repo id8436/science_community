@@ -26,7 +26,7 @@ def spreadsheet_to_ai(request, posting_id):
 
     # 가격 계산 앞부분과 동일.
     pk_list = request.POST.getlist("pk_checks")
-    token_num = request.POST.get('token_num')
+    token_num = int(request.POST.get('token_num'))
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
     contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
@@ -77,7 +77,7 @@ def read_response(request, posting_id):
 def info_how_much_point_taken(request, posting_id):
     '''포인트가 얼마나 들지 계산하고 반환.'''
     pk_list = request.POST.getlist("pk_checks")
-    token_num = request.POST.get('token_num')
+    token_num = int(request.POST.get('token_num'))
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
 
     contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
