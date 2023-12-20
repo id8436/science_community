@@ -30,6 +30,8 @@
         <input type="checkbox" name="ai_model" value="gpt-4-1106-preview" id="gpt-4-1106-preview">
             <label for="gpt-4-1106-preview">gpt-4-1106-preview(50포인트)</label>
 
+        <br>(필수)완성할 토큰 갯수.(대충 700개면 700자. 나이스에서 1500바이트 나옵니다.)
+            <input type="number" name="token_num" value="700">
         <br>
         <button type="submit" formaction="{% url 'school_report:info_how_much_point_taken' posting.id %}" class="btn btn-info">예상금액 산출하기</button>
         <input type="submit" class="btn btn-info" value="AI로 세특 초안 만들기">

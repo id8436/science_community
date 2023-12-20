@@ -26,18 +26,19 @@ def spreadsheet_to_ai(request, posting_id):
 
     # 가격 계산 앞부분과 동일.
     pk_list = request.POST.getlist("pk_checks")
+    token_num = request.POST.get('token_num')
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
     contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
 
-    total_charge = count_ai_use_point(request, contents_list, ai_models)
+    total_charge = count_ai_use_point(request, contents_list, ai_models, token_num)
 
     #나중에 아래 함수의 delay 속성으로 진행하자.
     if homework.is_end == False:
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
-        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge)  # 정보를 주고 task에서 수행.
+        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
         #tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     messages.info(request, '예상 소요 포인트: '+str(total_charge))
@@ -76,12 +77,13 @@ def read_response(request, posting_id):
 def info_how_much_point_taken(request, posting_id):
     '''포인트가 얼마나 들지 계산하고 반환.'''
     pk_list = request.POST.getlist("pk_checks")
+    token_num = request.POST.get('token_num')
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
 
     contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
 
-    total_charge = count_ai_use_point(request, contents_list, ai_models)  # 정보를 주고 task에서 수행.
+    total_charge = count_ai_use_point(request, contents_list, ai_models, token_num)  # 정보를 주고 task에서 수행.
     messages.info(request, '예상 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
 def make_ai_input_data(posting_id, pk_list):
@@ -112,7 +114,7 @@ def make_ai_input_data(posting_id, pk_list):
                 pass
         contents_list.append(content)
     return contents_list, submit_id_list
-def count_ai_use_point(request, contents_list, ai_models):
+def count_ai_use_point(request, contents_list, ai_models, token_num):
     '''모델을 사용함에 있어 포인트가 얼마나 들지 파악.(결제할 때에도 이용.)'''
     from school_report.view.special.ai_model_info_list import price_list, max_tocken_list
     total_charge = 0  # 여기에 총 금액을 담아 반환한다.
@@ -148,7 +150,7 @@ def count_ai_use_point(request, contents_list, ai_models):
             if num_tokens >= max_tocken_list[ai_model]:  # 글자수 제한 반려.
                 messages.error(request, '선택하신 '+ai_model +'은 입력 데이터가 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.')
                 return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
-            tokens_for_count = (num_tokens + max_tokens) / 1000  # 복사용 토큰. 1천개당 계산을 위해 정리.  # 반환토큰까지 고려.
+            tokens_for_count = (num_tokens + token_num) / 1000  # 복사용 토큰. 1천개당 계산을 위해 정리.  # 반환토큰까지 고려.
             tokens_for_count = math.ceil(tokens_for_count)  # 올림 처리. 1000개 당 가격을 매기기 위해.
             price_per_1000 = price_list[ai_model]  # 1000토큰 당 가격 가져오기.
             total_charge += (tokens_for_count) * price_per_1000
@@ -166,7 +168,7 @@ role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 
 "교과서의 연습 문제를 풀면서 다양한 방식의 풀이를 탐구하며 뉴턴역학 외에 라그랑주 역학, 헤밀턴 역학이 있다는 사실을 알게 됨. 역학에서의 작용이 항상 최소가 된다는 것에 의문을 느끼고, 컴퓨터가 효율을 높이게끔 발달하듯 자연이 최적의 효율로 움직이려 한다는 해석을 제시함. 뉴턴역학과 다른 철학, 과정을 거친 풀이가 같은 결과를 낸다는 것에 흥미를 느꼈다는 소감을 남김."
 위 조건을 토대로 적절한 세부능력 및 특기사항을 기록해보아라. 다음은 작성 기초 데이터들이다.'''
 max_tokens = 700
-def gpt_response(ai_model, input_text):
+def gpt_response(ai_model, input_text, token_num):
     '''ai에 던지고 응답을 받는 본 기능.'''
     from config.secret import GPT_KEY  # API 키는 비밀로 보관.
     openai.api_key = GPT_KEY
@@ -176,7 +178,7 @@ def gpt_response(ai_model, input_text):
     match mechanism_list[ai_model]:
         case 'Completion':
             response = openai.Completion.create(engine=ai_model,
-                prompt=role+input_text, max_tokens=max_tokens)
+                prompt=role+input_text, max_tokens=token_num)
             response = response['choices'][0]['text']
         case 'ChatCompletion':
             messages = [{'role': 'system',
@@ -184,12 +186,8 @@ def gpt_response(ai_model, input_text):
                         {'role': 'user',
                          'content': input_text}, ]
             response = openai.ChatCompletion.create(model=ai_model,
-                messages=messages, max_tokens=max_tokens)
+                messages=messages, max_tokens=token_num)
             response = response['choices'][0]['message']['content']
     # 반
-    print(max_tokens)
-    print(response)
-    print('답변(위는 \\n(엔터) 처리 전임.')
     response = response.replace('\n', '<br>')  # 탬플릿에서 줄바꿈이 인식되게끔.
-    print(response)
     return response
