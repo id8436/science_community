@@ -1,4 +1,24 @@
 <!--{# include "df/df_body_fit_frame.html" with dataframe=data_list #} 요 형태로 가져온다.-->
+
+<!--표를 곧바로 엑셀로 다운받을 수 있게 하려구.-->
+<script src="https://unpkg.com/tableexport.jquery.plugin/libs/FileSaver/FileSaver.min.js"></script>
+<script src="https://unpkg.com/tableexport.jquery.plugin/libs/js-xlsx/xlsx.core.min.js"></script>
+<script src="https://unpkg.com/tableexport.jquery.plugin/tableExport.min.js"></script>
+<script>
+$(function(){
+    $("table").tableExport({
+        formats: ["xlsx"],    // 사용할 수 있는 형식들 (예: "xlsx","txt", "csv", "xls")
+        bootstrap: false,
+        fileName: "table",    // 파일 이름
+        position: "bottom",   // 버튼 위치 (top, bottom)
+        ignoreRows: null,     // 무시할 행의 인덱스 (0 이상)
+        ignoreCols: null,     // 무시할 열의 인덱스 (0 이상)
+        ignoreCSS: ".tableexport-ignore"    // 무시할 CSS 클래스
+    });
+});
+</script>
+<!--여기까지 엑셀 관련.-->
+
 <table class="table table-striped table-bordered table-hover">
   <thead>
     <tr class="table-info">

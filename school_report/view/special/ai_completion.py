@@ -65,7 +65,6 @@ def read_response(request, posting_id):
     context['data_list'] = merged_df.to_dict(orient='records')
     if homework.is_end == False:  # 작업진행여부 불리언.
         messages.error(request, '아직 ai의 작업이 진행중입니다.')
-        return redirect(request.META.get('HTTP_REFERER', None))
     debts = Debt.objects.filter(user=request.user, is_paid=False)
     if debts:
         total_debt = 0  # 빚 알려주기용.
@@ -99,6 +98,8 @@ def make_ai_input_data(posting_id, pk_list):
     submit_list = []  # 대상 학생의 submit리스트.
     submit_id_list = []  # task에 올릴 때 json화 해야 하는데, 모델을 보낼 수 없어..ㅜ
     for pk in pk_list:
+        if pk == None:
+            continue  # 유저모델에 대한 정보 없으면 다음으로 넘기게끔.
         response_user = get_object_or_404(get_user_model(), id=pk)
         submit = models.HomeworkSubmit.objects.get(to_user=response_user, base_homework=homework)
         submit_list.append(submit)
