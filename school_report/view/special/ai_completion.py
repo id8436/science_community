@@ -137,10 +137,10 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
     for ai_model in ai_models:
         # GPT의 경우 모델별로 인코딩 방법이 조금씩 다름.
         import tiktoken
-        # try:
-        encoding = tiktoken.encoding_for_model(ai_model)
-        # except KeyError:
-        #     encoding = tiktoken.get_encoding("cl100k_base")
+        try:
+            encoding = tiktoken.encoding_for_model(ai_model)
+        except KeyError:
+            encoding = tiktoken.get_encoding("cl100k_base")
 
         # for index in df.index:
         #     row = df.loc[index]
