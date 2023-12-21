@@ -9,7 +9,7 @@ import math
 from django.contrib.auth import get_user_model
 from custom_account.models import Debt
 import openai
-
+import time
 
 @login_required()
 def spreadsheet_to_ai(request, posting_id):
@@ -158,6 +158,9 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
     return total_charge
 
 
+import google.generativeai as genai
+from config.secret import Google_AI_KEY
+
 role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 세부능력, 특기사항을 기록할 것임. 활동 데이터는 '활동명:활동내용'의 형식으로 제공됨. 다음의 까다로운 요구사항에 따라 글을 작성해야 함:
 - 객관적인 사실만 기입.
 - 주어를 빼고 작성.
@@ -175,20 +178,28 @@ def gpt_response(ai_model, input_text, token_num):
     openai.api_key = GPT_KEY
 
     from school_report.view.special.ai_model_info_list import mechanism_list
-
-    match mechanism_list[ai_model]:
-        case 'Completion':
-            response = openai.Completion.create(engine=ai_model,
-                prompt=role+input_text, max_tokens=token_num)
-            response = response['choices'][0]['text']
-        case 'ChatCompletion':
-            messages = [{'role': 'system',
-                         'content': role},
-                        {'role': 'user',
-                         'content': input_text}, ]
-            response = openai.ChatCompletion.create(model=ai_model,
-                messages=messages, max_tokens=token_num)
-            response = response['choices'][0]['message']['content']
+    try:  # GPT 모델에만 해당하는 채팅, 완성 구분.
+        match mechanism_list[ai_model]:
+            case 'Completion':
+                response = openai.Completion.create(engine=ai_model,
+                    prompt=role+input_text, max_tokens=token_num)
+                response = response['choices'][0]['text']
+            case 'ChatCompletion':
+                messages = [{'role': 'system',
+                             'content': role},
+                            {'role': 'user',
+                             'content': input_text}, ]
+                response = openai.ChatCompletion.create(model=ai_model,
+                    messages=messages, max_tokens=token_num)
+                response = response['choices'][0]['message']['content']
+    except:
+        pass
+    if ai_model == 'gemini-pro':
+        genai.configure(api_key=Google_AI_KEY)
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(role+input_text)
+        response = response.text
+        time.sleep(2)
     # 반
     response = response.replace('\n', '<br>')  # 탬플릿에서 줄바꿈이 인식되게끔.
     return response
