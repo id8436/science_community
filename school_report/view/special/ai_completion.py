@@ -38,8 +38,8 @@ def spreadsheet_to_ai(request, posting_id):
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
-        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
-        #tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge)  # 정보를 주고 task에서 수행.
+        #tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
+        tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     messages.info(request, '예상 소요 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
@@ -194,7 +194,7 @@ def gpt_response(ai_model, input_text, token_num):
                 response = response['choices'][0]['message']['content']
     except:
         pass
-    if ai_model == 'gemini-pro':
+    if ai_model == 'gemini-pro':  # 사실, 구글이지만... 큰 문제는 없으니..
         genai.configure(api_key=Google_AI_KEY)
         model = genai.GenerativeModel('gemini-pro')
         response = model.generate_content(role+input_text)

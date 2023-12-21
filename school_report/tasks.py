@@ -36,6 +36,8 @@ def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_
             match ai_model:
                 case 'gpt-3.5-turbo' | 'gpt-4'|'text-davinci-003' | 'text-curie-003' | 'gpt-3.5-turbo-instruct'|'gpt-4-1106-preview':
                     response = ai_completion.gpt_response(ai_model, input_text, token_num)
+                case 'gemini-pro':
+                    response = ai_completion.gpt_response(ai_model, input_text, token_num)  # 사실, 처음엔 함수를 따로 짜려 했으나.. 어쩌다 보니 GPT에 들어가게 되었다.
             work_df[ai_model] = response
             submit.content = work_df.to_json(orient='records')
             submit.save()
