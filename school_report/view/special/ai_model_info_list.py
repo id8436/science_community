@@ -9,4 +9,4 @@ max_tocken_list = {'gpt-3.5-turbo': 4096, 'gpt-3.5-turbo-instruct':4096,
 
 mechanism_list = {'gpt-3.5-turbo': 'ChatCompletion', 'gpt-3.5-turbo-instruct':'Completion',
                    'gpt-4': 'ChatCompletion', 'text-davinci-003': 'Completion',
-                  'gpt-4-1106-preview':'ChatCompletion'}
+                  'gpt-4-1106-preview':'ChatCompletion','gemini-pro':'google'}

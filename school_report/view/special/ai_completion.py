@@ -9,7 +9,6 @@ import math
 from django.contrib.auth import get_user_model
 from custom_account.models import Debt
 import openai
-import time
 
 @login_required()
 def spreadsheet_to_ai(request, posting_id):
@@ -32,14 +31,15 @@ def spreadsheet_to_ai(request, posting_id):
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
 
     total_charge = count_ai_use_point(request, contents_list, ai_models, token_num)
-
     #나중에 아래 함수의 delay 속성으로 진행하자.
+    if type(total_charge) == type(redirect(request.META.get('HTTP_REFERER', None))):
+        return redirect(request.META.get('HTTP_REFERER', None))
     if homework.is_end == False:
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
-        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
-        #tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
+        #tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
+        tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     messages.info(request, '예상 소요 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
@@ -83,6 +83,7 @@ def info_how_much_point_taken(request, posting_id):
     ai_models = request.POST.getlist('ai_model')  # 사용자가 선택한 모델들.
 
     total_charge = count_ai_use_point(request, contents_list, ai_models, token_num)  # 정보를 주고 task에서 수행.
+
     messages.info(request, '예상 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
 def make_ai_input_data(posting_id, pk_list):
@@ -147,9 +148,9 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
         for text in contents_list:
             num_tokens = len(encoding.encode(text + role))  # 프롬프트 입력값까지 고려해야 해.
             print('토큰갯수')
-            print(num_tokens)
-            if num_tokens >= max_tocken_list[ai_model]:  # 글자수 제한 반려.
-                messages.error(request, '선택하신 '+ai_model +'은 입력 데이터가 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.')
+            print(num_tokens + token_num)
+            if (num_tokens + token_num) >= max_tocken_list[ai_model]:  # 글자수 제한 반려.
+                messages.error(request, '선택하신 '+ai_model +'은 입력 및 출력 데이터의 합이 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.')
                 return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
             tokens_for_count = (num_tokens + token_num) / 1000  # 복사용 토큰. 1천개당 계산을 위해 정리.  # 반환토큰까지 고려.
             tokens_for_count = math.ceil(tokens_for_count)  # 올림 처리. 1000개 당 가격을 매기기 위해.
@@ -178,28 +179,25 @@ def gpt_response(ai_model, input_text, token_num):
     openai.api_key = GPT_KEY
 
     from school_report.view.special.ai_model_info_list import mechanism_list
-    try:  # GPT 모델에만 해당하는 채팅, 완성 구분.
-        match mechanism_list[ai_model]:
-            case 'Completion':
-                response = openai.Completion.create(engine=ai_model,
-                    prompt=role+input_text, max_tokens=token_num)
-                response = response['choices'][0]['text']
-            case 'ChatCompletion':
-                messages = [{'role': 'system',
-                             'content': role},
-                            {'role': 'user',
-                             'content': input_text}, ]
-                response = openai.ChatCompletion.create(model=ai_model,
-                    messages=messages, max_tokens=token_num)
-                response = response['choices'][0]['message']['content']
-    except:
-        pass
+    # GPT 모델에만 해당하는 채팅, 완성 구분.
+    match mechanism_list[ai_model]:
+        case 'Completion':
+            response = openai.Completion.create(engine=ai_model,
+                prompt=role+input_text, max_tokens=token_num)
+            response = response['choices'][0]['text']
+        case 'ChatCompletion':
+            messages = [{'role': 'system',
+                         'content': role},
+                        {'role': 'user',
+                         'content': input_text}, ]
+            response = openai.ChatCompletion.create(model=ai_model,
+                messages=messages, max_tokens=token_num)
+            response = response['choices'][0]['message']['content']
     if ai_model == 'gemini-pro':  # 사실, 구글이지만... 큰 문제는 없으니..
         genai.configure(api_key=Google_AI_KEY)
         model = genai.GenerativeModel('gemini-pro')
         response = model.generate_content(role+input_text)
         response = response.text
-        time.sleep(2)
     # 반
     response = response.replace('\n', '<br>')  # 탬플릿에서 줄바꿈이 인식되게끔.
     return response
