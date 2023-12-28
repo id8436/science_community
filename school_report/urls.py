@@ -65,6 +65,8 @@ urlpatterns = [
     path('classroom/homework/check/<int:classroom_id>/', classroom.homework_check_spreadsheet, name='homework_check_spreadsheet'),
     path('classroom/homework/copy/<int:homework_id>/', classroom.homework_copy, name='homework_copy'),
     path('classroom/homework/end_cancel/<int:homework_id>/', classroom.homework_end_cancel, name='homework_end_cancel'),
+    path('classroom/homework/homework_end/<int:homework_id>/', classroom.homework_end, name='homework_end'),
+
 
 
     # 설문 관련.

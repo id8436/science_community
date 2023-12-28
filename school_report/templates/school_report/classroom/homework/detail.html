@@ -50,6 +50,8 @@
 <a href="{% url 'school_report:homework_modify' posting.id%}" class="btn btn-primary">과제 수정</a>
 <a href="{% url 'school_report:homework_copy' posting.id%}" class="btn btn-info">과제 복사</a>
 <a href="#" data-uri="{% url 'school_report:homework_delete' posting.id  %}" class="posting_delete btn btn-danger">과제 삭제</a>
+    <a href="{% url 'school_report:homework_end' posting.id%}" class="btn btn-primary">과제 마감</a>
+
 </div>
 <!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
 <script type='text/javascript'>

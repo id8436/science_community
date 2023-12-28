@@ -811,6 +811,15 @@ def peerreview_end(request, posting_id):
         messages.success(request, "계산 완료.")
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
         # to_student에 따라 평균 구하고... 사전으로 정리??
+def homework_end(request, homework_id):
+    homework = get_object_or_404(models.Homework, pk=homework_id)  # 과제 찾아오기.
+    # 과제 제출자인 경우에만 진행한다.
+    if request.user == homework.author:
+        homework.deadline = datetime.now()
+        homework.is_end = True
+        homework.save()
+        messages.success(request, "과제를 현 시간으로 마감하였습니다.")
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 def homework_end_cancel(request, homework_id):
     homework = get_object_or_404(models.Homework, pk=homework_id)  # 과제 찾아오기.
     context = {}

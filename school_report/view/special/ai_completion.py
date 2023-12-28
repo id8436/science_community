@@ -38,8 +38,8 @@ def spreadsheet_to_ai(request, posting_id):
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
-        tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
-        #tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
+        #tasks.api_answer.delay(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
+        tasks.api_answer(request.user.id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num)  # 정보를 주고 task에서 수행.
     messages.info(request, '작업을 수행합니다. 데이터에 따라 수행 시간이 달라집니다.')
     messages.info(request, '예상 소요 포인트: '+str(total_charge))
     return redirect(request.META.get('HTTP_REFERER', None))
@@ -110,8 +110,8 @@ def make_ai_input_data(posting_id, pk_list):
             try:
                 answer = models.HomeworkAnswer.objects.get(question=question,
                                                            respondent=response_user)  # 해당 질문에 대한 답변들 모음.
-                content += question.question_title + ":"
-                content += answer.contents + "\n"  # 답변 담고 내리기.
+                content += "\n" + question.question_title + ":"  # 줄바꿈 후 데이터 입력.
+                content += answer.contents
             except:
                 pass
         contents_list.append(content)
@@ -150,7 +150,7 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
             print('토큰갯수')
             print(num_tokens + token_num)
             if (num_tokens + token_num) >= max_tocken_list[ai_model]:  # 글자수 제한 반려.
-                messages.error(request, '선택하신 '+ai_model +'은 입력 및 출력 데이터의 합이 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.')
+                messages.error(request, '선택하신 '+ai_model +'은 입력 및 출력 데이터의 합이 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.'+ '입력데이터'+num_tokens+', 출력토큰'+token_num+'(제한 토큰 갯수를 줄이거나 입력 내용을 줄이세요~!)')
                 return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
             tokens_for_count = (num_tokens + token_num) / 1000  # 복사용 토큰. 1천개당 계산을 위해 정리.  # 반환토큰까지 고려.
             tokens_for_count = math.ceil(tokens_for_count)  # 올림 처리. 1000개 당 가격을 매기기 위해.
@@ -162,17 +162,14 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
 import google.generativeai as genai
 from config.secret import Google_AI_KEY
 
-role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 세부능력, 특기사항을 기록할 것임. 활동 데이터는 '활동명:활동내용'의 형식으로 제공됨. 다음의 까다로운 요구사항에 따라 글을 작성해야 함:
+role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 세부능력, 특기사항을 기록할 것임. 활동 데이터는 '활동명:활동내용'의 형식으로 제공됨. 다음의 까다로운 요구사항에 따라 글을 작성해야 함.
 - 객관적인 사실만 기입.
 - 주어를 빼고 작성.
-- 모든 문장은 음슴체로 끝나야 함 (~함, ~임, ~음).
+- 모든 문장은 음슴체로 끝나야 함(~함, ~임, ~음).
 - 중복되는 내용은 제외.
 - 한 문단으로 작성.
-
-다음은 활동 데이터 예시임:
-"교과서의 연습 문제를 풀면서 다양한 방식의 풀이를 탐구하며 뉴턴역학 외에 라그랑주 역학, 헤밀턴 역학이 있다는 사실을 알게 됨. 역학에서의 작용이 항상 최소가 된다는 것에 의문을 느끼고, 컴퓨터가 효율을 높이게끔 발달하듯 자연이 최적의 효율로 움직이려 한다는 해석을 제시함. 뉴턴역학과 다른 철학, 과정을 거친 풀이가 같은 결과를 낸다는 것에 흥미를 느꼈다는 소감을 남김."
-위 조건을 토대로 적절한 세부능력 및 특기사항을 기록해보아라. 다음은 작성 기초 데이터들이다.'''
-max_tokens = 700
+위 조건을 토대로 적절한 세부능력 및 특기사항을 기록해줘. 다음은 작성 기초 데이터들임.'''
+max_tokens = 700  # 없어질 변수.
 def gpt_response(ai_model, input_text, token_num):
     '''ai에 던지고 응답을 받는 본 기능.'''
     from config.secret import GPT_KEY  # API 키는 비밀로 보관.
