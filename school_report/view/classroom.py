@@ -703,6 +703,7 @@ def spreadsheet_upload_excel(request, posting_id):
         i += 1
         question, _ = models.HomeworkQuestion.objects.get_or_create(homework=homework, ordering=i)
         question.question_title = question_title
+        question.question_type = 'long'
         question.save()
         question_list.append(question)
 
