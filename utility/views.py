@@ -97,9 +97,11 @@ def do_DB(request):
             school = classroom.school
         elif base_homework.homeroom:
             school = base_homework.homeroom.school
-        else: # base_homework.homework_box
+        elif base_homework.homework_box: # base_homework.homework_box
             box = base_homework.homework_box
             school = box.get_school_model()
+        else:
+            pass
         i.to_profile = models.Profile.objects.filter(admin=old_user, school=school).first()
         try:  # None인 경우는 에러처리되니 넘기자.
             target_user = i.to_student.admin
