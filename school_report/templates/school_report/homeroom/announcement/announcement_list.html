@@ -1,0 +1,30 @@
+<!-- 필요한 변수명.
+announcement_list, teacher
+object  # 학교, 교실, 교과 무엇인지.
+-->
+
+<h5>공지목록</h5>
+{% if teacher %}
+    <a href="{% url 'school_report:announcement_create' object.announcebox.id %}">공지 등록</a>
+{% endif %}
+<table class="table table-hover" id="student_list">
+    <thead>
+    <tr class="table-info">
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성일자</th>
+
+    </tr>
+    </thead>
+    <tbody>
+    {% if announcement_list %}
+    {% for announcement in announcement_list %}
+    <tr>
+        <td><a href="{% url 'school_report:announcement_detail' announcement.id %}">{{announcement.subject}}</td>
+        <td>{{announcement.author}}</td>
+        <td>{{announcement.create_date}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>

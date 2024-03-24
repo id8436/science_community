@@ -27,7 +27,7 @@ onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 �
     {% if teacher_list_resistered %}
     {% for teacher in teacher_list_resistered %}
     <tr>
-        <td>{{teacher.name}}</td>
+        <td>{{teacher.name}}<a href="{% url 'school_report:teacher_delete' teacher.id %}">(삭제. 신중히 누르기. 추후 상세버튼 만들어서 수정, 담임학급 등 보자.)</a></td>
     </tr>
     {% endfor %}
     {% endif %}

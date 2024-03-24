@@ -8,7 +8,7 @@ class SchoolForm(forms.ModelForm):
 class HomeroomForm(forms.ModelForm):
     class Meta:
         model = Homeroom
-        fields = ['name', 'grade', 'cl_num']
+        fields = ['name']
 class SubjectForm(forms.ModelForm):
     class Meta:
         model = Subject

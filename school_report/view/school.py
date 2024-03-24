@@ -17,11 +17,10 @@ def main(request, school_id):
     context['homeroom_list'] = school.homeroom_set.all().order_by('name')
     context['subject_list'] = school.subject_set.all().order_by('subject_name')
     context['classroom_list'] = school.classroom_set.all().order_by('homeroom__name', 'name')
-
     # 교사여부.
-    context['teacher'] = check.Check_teacher(request, school).in_school_and_none()
+    context['teacher'] = check.Teacher(user=request.user, school=school, request=request).in_school_and_none()
     # 학생여부.
-    context['student'] = check.Check_student(request, school).in_school_and_none()
+    context['student'] = check.Student(user=request.user, school=school, request=request).in_school_and_none()
     # 시험문제목록.
     category = Board_category.objects.get(id=6)
     context['category'] = category  # 게시판 생성 때 카테고리 아이디도 필요해서.
@@ -54,7 +53,6 @@ def name_trimming(name):
 def school_create(request):
     context = {}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        print(request.POST)
         form = SchoolForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
         if form.is_valid():  # 문제가 없으면 다음으로 진행.
             school = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
@@ -65,9 +63,12 @@ def school_create(request):
             board_name = str(school.name) + " 교직원 게시판"
             board_name, _ = Board_name.objects.get_or_create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;; 역대 게시판을 모을 수 있다는 점에선 좋지만... 검색해도 될듯?)
             category = Board_category.objects.get(pk=7)  # 교직원게시판의 카테고리.
-            board, _ = Board.objects.get_or_create(board_name=board_name, category=category, enter_year=school.year, author=request.user)
+            board, _ = Board.objects.get_or_create(board_name=board_name, category=category, enter_year=school.year, author=request.user, school=school)
             school.teacher_board_id = board.id  # 게시판 지정.
             school.save()
+            # 과제박스 생성.
+            homework_box, created = models.HomeworkBox.objects.get_or_create(school=school)
+            announce_box, created = models.AnnounceBox.objects.get_or_create(school=school)
             return redirect('school_report:school_main', school_id=school.id)
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = SchoolForm()
@@ -92,33 +93,7 @@ def school_modify(request, school_id):
         # 태그를 문자열화 하여 form과 함께 담는다.
     context = {'form': form}
     return render(request, 'school_report/school/school_modify.html', context)
-@login_required()
-def subject_create(request, school_id):
-    '''교과 생성.'''
-    context = {}
-    school = get_object_or_404(models.School, pk=school_id)
-    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        form = SubjectForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
-        if form.is_valid():  # 문제가 없으면 다음으로 진행.
-            subject = form.save(commit=False)
-            subject.school = school
-            teacher = check.Check_teacher(request, school).in_school_and_none()
-            subject.master = teacher
-            name = name_trimming(subject.subject_name)  # 이름에서 공백 제거해 적용.
-            subject.subject_name = name
-            subject.save()
-            messages.info(request, str(subject.subject_name)+' 생성에 성공하였습니다.')
-            return redirect('school_report:school_main', school_id=school.id)
-    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
-        form = SubjectForm()
-    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
-    return render(request, 'school_report/school/subject/subject_create.html', context)
-def subject_main(request, subject_id):
-    subject = get_object_or_404(models.Subject, pk=subject_id)
-    context = {'subject': subject}
-    context['classroom_list'] = subject.classroom_set.all().order_by('homeroom__name')
-    context['homework_list'] = subject.homework_set.order_by('-create_date')
-    return render(request, 'school_report/school/subject/main.html', context)
+
 def create_performance_score(request, subject_id):
     subject = get_object_or_404(models.Subject, pk=subject_id)
     category = get_object_or_404(Board_category, pk=6)  # 점수게시판 생성을 위해.
@@ -136,7 +111,7 @@ def download_excel_form(request, school_id):
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
     ws['A1'] = '이름'
-    ws['B1'] = '담임학급명(선택사항)'
+    ws['B1'] = '(선택사항)담임학급명(학년, 반보다 우선)'
     ws['C1'] = '학년(선택사항)'
     ws['D1'] = '반(선택사항)'
     students = school.teacher_set.all()
@@ -174,17 +149,21 @@ def upload_excel_form(request, school_id):
         if request.user == school.master:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 name = data[0]
-                homeroom_name = data[1]
-                teacher, created = models.Teacher.objects.get_or_create(name=name, school=school)
+                if data[1]:
+                    homeroom_name = data[1]
+                else:
+                    homeroom_name = f'{data[1]}학년 {data[2]}반'
+                teacher, created = models.Profile.objects.get_or_create(name=name, school=school)
                 teacher.code = random.randint(100000, 999999)  # 코드 지정.
+                teacher.position = 'teacher'
+                teacher.save()
 
                 # 학급정보가 있다면 그냥 만들어버리기.
                 if homeroom_name != None:  # 학급, 학년정보가 있다면.
                     # 가능하면 교사 1인이 홈룸 1개 갖게끔...
                     homeroom, created = models.Homeroom.objects.get_or_create(school=school, name=homeroom_name)
-                    homeroom.master = teacher
+                    homeroom.master_profile = teacher
                     homeroom.save()
-                teacher.save()
 
     return redirect('school_report:teacher_assignment', school_id=school_id)  # 필요에 따라 렌더링.
 
@@ -195,7 +174,7 @@ def teacher_code_input(request, school_id):
     if request.method == 'POST':  # 포스트로 요청이 들어온다면...
         code = request.POST.get('code')
         try:
-            teacher = models.Teacher.objects.filter(school=school, code=code)[0]  # 해당 계정 중 1번째.
+            teacher = models.Profile.objects.filter(school=school, code=code)[0]  # 해당 계정 중 1번째.
             if teacher.obtained == True:
                 messages.error(request, '이미 누군가 등록한 프로필입니다.')
                 return render(request, 'school_report/school/teacher_code_input.html', context)
@@ -206,7 +185,7 @@ def teacher_code_input(request, school_id):
     return render(request, 'school_report/school/teacher_code_input.html', context)
 
 def teacher_code_confirm(request, teacher_id):
-    teacher = get_object_or_404(models.Teacher, pk=teacher_id)
+    teacher = get_object_or_404(models.Profile, pk=teacher_id)
     context={'teacher':teacher}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면...
         code = request.POST.get('code')
@@ -224,17 +203,27 @@ def teacher_code_confirm(request, teacher_id):
             return render(request, 'school_report/school/teacher_code_confirm.html', context)
 
     return render(request, 'school_report/school/teacher_code_confirm.html', context)
-
+def teacher_delete(request, teacher_id):
+    teacher = get_object_or_404(models.Profile, pk=teacher_id)
+    school = teacher.school
+    if school.master == request.user:
+        messages.error(request, "삭제하였습니다.")
+        teacher.delete()
+        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+    else:
+        messages.error(request, '관리자만이 가능합니다.')
+        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
 @login_required()
-def assignment(request, school_id):
+def teacher_assignment(request, school_id):
+    '''관리자가 보는 교사 명단'''
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
     if school.master == request.user:
-        teacher_list_resistered = models.Teacher.objects.filter(school=school, obtained=True)  # 학교 내에 등록된 프로필만 가져온다.
+        teacher_list_resistered = models.Profile.objects.filter(school=school, obtained=True)  # 학교 내에 등록된 프로필만 가져온다.
         context['teacher_list_resistered'] = teacher_list_resistered
 
-        teacher_list_unresistered = models.Teacher.objects.filter(school=school, obtained=False)  # 등록 안한 사람만 반환.
+        teacher_list_unresistered = models.Profile.objects.filter(school=school, obtained=False)  # 등록 안한 사람만 반환.
         context['teacher_list_unresistered'] = teacher_list_unresistered
         return render(request, 'school_report/school/assignment.html', context)
 
@@ -291,7 +280,7 @@ def school_student_upload_excel_form(request, school_id):
             pass
         else:
             messages.error(request, '이 기능은 관리자만이 가능합니다.')
-            return check.Check_teacher(request, school).redirect_to_school()
+            return check.Teacher(request, school).redirect_to_school()
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
@@ -348,7 +337,7 @@ def school_student_upload_excel_form(request, school_id):
 def student_code_input(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
-    student = check.Check_student(request,school).in_school_and_none()
+    student = check.Student(request, school).in_school_and_none()
     if student == None:
         pass
     else:

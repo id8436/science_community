@@ -12,9 +12,10 @@ import pandas as pd  # 통계용
 import math
 from datetime import datetime
 import openpyxl
-
+from school_report.view import homework
 @login_required()
 def create(request, school_id):
+    '''교과와 학급이 만들어진 상태에서 교과를 학급에 배정.'''
     subject = get_object_or_404(models.Subject, pk=school_id)  # 학교로 되어있지만... shcool_id가 아니라 교과아이디.
     school = subject.school
     context = {'subject': subject, 'school': school}
@@ -28,216 +29,57 @@ def create(request, school_id):
         homeroom_list.remove(homeroom)
 
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        teacher = check.Check_teacher(request, school).in_school_and_none()
-        if teacher == None:
-            messages.error(request, "학교에 등록된 교사가 아닙니다.")
-            context['form'] = ClassroomForm(request.POST)
-            return render(request, 'school_report/classroom/create.html', context)
+        # teacher = check.Check_teacher(request, school).in_school_and_none()  # 옛날에. 선생모델.
+        check_teacher = check.Teacher(user=request.user, school=school, request=request)
+        profile = check_teacher.in_school()
+        if profile == None:
+            return check_teacher.redirect_to_school()
         #form = ClassroomForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
         #if form.is_valid():  # 문제가 없으면 다음으로 진행.
         homeroom_list = request.POST.getlist('homeroom_list')
         for homeroom_id in homeroom_list:  # 받은 데이터에 해당하는 걸 넣는다.
             homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
-            classroom, _ = models.Classroom.objects.get_or_create(base_subject=subject, master=teacher, school=school, homeroom=homeroom)
+            classroom, _ = models.Classroom.objects.get_or_create(base_subject=subject, master_profile=profile, school=school, homeroom=homeroom)
+            homework_box, created = models.HomeworkBox.objects.get_or_create(classroom=classroom)
+            announce_box, created = models.AnnounceBox.objects.get_or_create(classroom=classroom)
         return redirect('school_report:subject_main', subject_id=subject.id)  # 작성이 끝나면 작성한 글로 보낸다.
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         #form = ClassroomForm()
         pass
     #context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/classroom/create.html', context)
-
 def main(request, classroom_id):
     classroom = get_object_or_404(models.Classroom, pk=classroom_id)
     context ={'classroom': classroom}
-
-    subject_homework_list = classroom.base_subject.homework_set.order_by('-create_date')
+    # 선생님, 혹은 학생객체 가져오기.
+    context['student'] = check.Student(request=request, user=request.user,
+                                                classroom=classroom).in_homeroom_and_none()
+    context['teacher'] = check.Teacher(request=request, user=request.user,
+                                                school=classroom.school).in_school_and_none()  # 선생님객체.
+    # 교과과제목록.
+    homework_box = classroom.base_subject.homeworkbox
+    subject_homework_list = homework_box.homework_set.order_by('-create_date')
+    #subject_homework_list = classroom.base_subject.homework_set.order_by('-create_date')
     context['subject_homework_list'] = subject_homework_list
-    homework_list = classroom.homework_set.order_by('-create_date')
+    # 교실과제목록.
+    homework_box = classroom.homeworkbox
+    homework_list = homework_box.homework_set.order_by('-create_date')
     context['homework_list'] = homework_list
     return render(request, 'school_report/classroom/main.html', context)
 
 @login_required()
-def homework_create(request, classroom_id):
-    '''교과교실에서 작성. .'''
+def homework_create(request, classroom_id):# homework에 box_id 보내면서 없애도 될듯.
     classroom = get_object_or_404(models.Classroom, pk=classroom_id)
-    context = {}
-    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        form = HomeworkForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
-        if form.is_valid():  # 문제가 없으면 다음으로 진행.
-            homework = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
-            homework.author = request.user  # 추가한 속성 author 적용
-            homework.classroom = classroom  # 게시판 지정.
-            homework.save()
-
-            # 개별 확인을 위한 개별과제 생성.
-            # 개별 부여할 사람을 탬플릿에서 받는 것도 괜찮을듯...? 흠... []
-            userlist = request.POST.getlist('user')
-            if userlist:  # 특정 방법으로 유저리스트가 전달된 경우.
-                pass # 나중에 짜자. 들어오는 방법에 대한 논의가 필요하겠네.
-            else:  # 유저리스트가 없으면 class에서 작성한 것으로 판단하고,
-                student_list = models.Student.objects.filter(homeroom=classroom.homeroom)
-                for student in student_list:
-                    homework_distribution(homework, student.admin)  # 유저모델을 대응시킨다.
-                    try:
-                        Notification.objects.create(to_user=student.admin, official=True, classification=12, type=2, from_user=request.user, message=classroom, url=resolve_url("school_report:homework_detail", homework.id))
-                    except Exception as e:
-                        print(e)  # 학생 중 등록이 안한 학생은 to_user에서 에러가 난다.
-                homework_distribution(homework, request.user)  # 작성자도 대응시킨다.
-
-            return redirect('school_report:classroom_main', classroom.id)  # 작성이 끝나면 작성한 글로 보낸다.
-    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
-        form = HomeworkForm()
-    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
-    return render(request, 'school_report/classroom/homework/create.html', context)
-def homework_distribution(homework, user):
-    '''과제 분배.'''
-    individual, created = models.HomeworkSubmit.objects.get_or_create(to_user=user,
-                                                                      base_homework=homework)
+    homework_box = models.HomeworkBox.objects.get(classroom=classroom)
+    return homework.create(request, homework_box_id=homework_box.id)
 def homework_modify(request, posting_id):
-    posting = get_object_or_404(models.Homework, pk=posting_id)
-    if request.user != posting.author:
-        messages.error(request, '수정권한이 없습니다')
-        return redirect('school_report:homework_detail', posting_id=posting.id)
-    if request.method == "POST":
-        is_secret = posting.is_secret  # 비밀설문을 다시 공개로 바꿀 수 없게.
-        form = HomeworkForm(request.POST, instance=posting)  # 받은 내용을 객체에 담는다. instance에 제대로 된 걸 넣지 않으면 새로운 인스턴스를 만든다.
-        if form.is_valid():
-            posting = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
-            if is_secret:
-                posting.is_secret = is_secret
-            posting.save()
-            # 개별 확인을 위한 개별과제 체크 해제.
-            submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
-            for submit in submit_list:
-                submit.check = False
-                submit.save()
-                toward = ''
-                if posting.classroom:
-                    toward = posting.classroom
-                elif posting.subject_object:
-                    toward = posting.subject_object
-                try:  # 학생이 등록을 안한 경우, 유저 모델이 없음.
-                    to_user = submit.to_user
-                    Notification.objects.create(to_user=to_user, official=True, classification=12,
-                                                              type=3, from_user=request.user, message=toward,
-                                                              url=resolve_url("school_report:homework_detail",
-                                                                              posting_id))
-                except:
-                    pass
-
-            return redirect('school_report:homework_detail', posting_id=posting.id)
-    else:  # GET으로 요청된 경우.
-        form = HomeworkForm(instance=posting)  # 해당 모델의 내용을 가져온다!
-        # 태그를 문자열화 하여 form과 함께 담는다.
-    context = {'form': form}
-    messages.error(request, '수정하면 기존 확인한 학생들의 체크는 "읽지않음"으로 갱신됩니다.')
-    return render(request, 'school_report/classroom/homework/create.html', context)
-def homework_delete(request, posting_id):
-    posting = get_object_or_404(models.Homework, pk=posting_id)
-    if request.user != posting.author:
-        messages.error(request, '삭제권한이 없습니다. 꼼수쓰지 마라;')
-        return redirect('school_report:homework_detail', posting_id=posting.id)
-    messages.success(request, '삭제 성공~!')
-    posting.delete()
-    if posting.classroom:
-        classroom = posting.classroom
-        return redirect('school_report:classroom_main', classroom_id=classroom.id)
-    if posting.subject_object:
-        subject_object = posting.subject_object
-        return redirect('school_report:subject_main', subject_object.id)
+    # 별 기능이 없다면... 고쳐보자 언젠가. 근데 혹시나 쓸 일이 있을지도 모르니. # 지금은 안씀. url 우회해두었으니. 안쓰면 과감하게 지워버리자.
+    return homework.modify(request, posting_id)
 @login_required()
 def homework_detail(request, posting_id):
-    '''과제 상세페이지와 과제제출 기능.'''
-    context = {}
-    posting = get_object_or_404(models.Homework, pk=posting_id)
-    context['posting'] = posting
-    if posting.subject_object:
-        school = posting.subject_object.school
-    else:
-        classroom = posting.classroom
-        school = classroom.school
+    return homework.detail(request, posting_id)
 
-    if request.method == 'POST':  # 과제를 제출한 경우.
-        homework_submit = get_object_or_404(models.HomeworkSubmit, base_homework=posting, to_user=request.user)
-        content = request.POST.get('content')
-        homework_submit.content = content
-        homework_submit.submit_date = datetime.now()
-        homework_submit.check = True  # 제출표시
-        homework_submit.save()
-        return redirect('school_report:homework_detail', posting.id)  # 작성이 끝나면 작성한 글로 보낸다.
-
-    # 위 작동에 문제 없으면 아래 지우자.
-    #student = get_object_or_404(models.Student, admin=request.user, homeroom=classroom.homeroom)  # 학생객체 가져와서...
-
-    individual_announcement = []  # 주어진 과제를 담을 공간.
-    try:  # 과제 하위가 하나일 경우.
-        # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별과제 하나가 늘게끔.
-        individual_announcement, created = models.HomeworkSubmit.objects.get_or_create(to_user=request.user,
-                                                                                       base_homework=posting)
-        individual_announcement.read = True
-        individual_announcement.save()
-    except:
-        sumbits = models.HomeworkSubmit.objects.filter(to_user=request.user, base_homework=posting)
-        for submit in sumbits:
-            submit.read = True
-            submit.save()
-            individual_announcement.append(submit)
-    context['individual_announcement'] = individual_announcement
-    # 학생과 교사 가르기.
-    student = check.Check_student(request, school).in_school_and_none()
-    teacher = check.Check_teacher(request, school).in_school_and_none()
-    # 아래 작성자에 대한 건 빼도 괜찮지 않을까?
-    # if posting.author == request.user:  # 과제의 제출자라면...
-    #     submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
-    #     for submit in submit_list:
-    #         #student = models.Student.objects.get(admin=submit.to_user, school=classroom.school)
-    #         submit.who = 'QHS'  #student  # 설문자 정보를 담기.
-    if teacher:
-        submit_list = models.HomeworkSubmit.objects.filter(base_homework=posting)
-        for submit in submit_list:
-            try:
-                student_check = models.Student.objects.get(admin=submit.to_user, school=school)
-                submit.who = student_check  # 설문자 정보를 담기.
-            except:
-                try:
-                    teacher_check = models.Teacher.objects.get(admin=submit.to_user, school=school)
-                    submit.who = teacher_check
-                except:
-                    pass  # 어떤 이유에서인지 모르겠지만, 학생과 교사 양 쪽 다 에러가 뜨곤 함.
-        context['submit_list'] = submit_list
-    context['survey'] = posting.homeworkquestion_set.exists()  # 설문객체 여부.
-
-    private_submits = models.HomeworkSubmit.objects.filter(base_homework=posting, to_user=request.user)
-    for private_submit in private_submits:
-        if student != None:
-            private_submit.who = student
-        elif teacher != None:
-            private_submit.who = teacher
-    context['private_submits'] = private_submits  # 열람자의 정보 담기.
-    # 동료평가에서의 기능.
-    if posting.is_special == 'peerReview':  # 동료평가의 경우, 지금 부여한 평균 보여주기.
-        question = models.HomeworkQuestion.objects.get(homework=posting, ordering=1)  # 동료평가의 첫번째 질문.
-        answers = models.HomeworkAnswer.objects.filter(respondent=request.user, question=question)  # 내가 부여한 것.
-        df = pd.DataFrame.from_records(answers.values('contents'))
-        try:  # 평가한 게 없으면 df가 None이 됨.
-            df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
-            score_mean = df['contents'].mean()
-            variance = df['contents'].var()
-            context['score_mean'] = score_mean
-            context['variance'] = variance
-        except:
-            pass
-        # score_sum = 0
-        # for answer in answers:
-        #     score_sum += float(answer.contents)
-        #     count += 1
-        # try:  # 아무 평가도 안한 상태에선 count0이라 에러 발생.
-        #     score_mean = score_sum/count
-        #     context['score_mean'] = score_mean
-        # except:
-        #     pass
-    return render(request, 'school_report/classroom/homework/detail.html', context)
-
+########### 이것도 안쓰는 기능 아닌감?
 def homework_resubmit(request, submit_id):
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)
     submit.check = False
@@ -278,7 +120,7 @@ def homework_survey_create(request, posting_id):
     context = {'posting': posting}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         print(request.POST)
-        if posting.author == request.user:  # 과제의 주인인 경우에만 가능.
+        if posting.author_profile.admin == request.user:  # 과제의 주인인 경우에만 가능.
             previous_question = list(posting.homeworkquestion_set.all())  # 기존에 등록되어 있던 질문들. list로 불러야 현재 상황 반영.
             question_type = request.POST.getlist('question_type')
             is_essential = request.POST.getlist('is_essential')
@@ -375,9 +217,9 @@ def homework_survey_submit(request, submit_id):
             school = posting.subject_object.school
         # 본인의 설문인지 검사.
         if submit.to_user == request.user:
-            student = check.Check_student(request, school).in_school_and_none()
+            student = check.Student(request, school).in_school_and_none()
             if student == None:  # 학급에 속한 경우에만 가능.
-                teacher = check.Check_teacher(request, school).in_school_and_none()
+                teacher = check.Teacher(request, school).in_school_and_none()
                 if teacher == None:
                     return redirect('school_report:homework_detail', posting_id=posting.id)
         else:
@@ -532,7 +374,7 @@ def homework_survey_statistics(request, submit_id):  # 나중에 submit id로 �
         school = homework.subject_object.school
     elif homework.classroom:
         school = homework.classroom.school
-    teacher = check.Check_teacher(request, school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
+    teacher = check.Teacher(request, school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
     try:
         to_admin = submit.to_student.admin
     except:
@@ -614,8 +456,8 @@ def homework_check_spreadsheet(request, classroom_id):
     context = {}
     # 관련자만 접근하게끔.
     school = classroom.homeroom.school
-    student = check.Check_student(request, school).in_school_and_none()
-    teacher = check.Check_teacher(request, school).in_school_and_none()
+    student = check.Student(request, school).in_school_and_none()
+    teacher = check.Teacher(request, school).in_school_and_none()
     if teacher:
         homeroom = classroom.homeroom
         student_list = models.Student.objects.filter(homeroom=homeroom)  # 홈룸에 등록된 학생목록.
@@ -735,30 +577,40 @@ def summit_file_download(request, pk):
         raise Http404("File doesn't exist")
 
 def peerreview_create(request, posting_id):
-    posting = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
-    context = {'posting': posting}  # 어떤 과제의 하위로 만들지 전달하기 위해.
-    homeroom = posting.classroom.homeroom  # 학급.
-    student_list = models.Student.objects.filter(homeroom=homeroom)
+    homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
+    context = {'posting': homework}  # 어떤 과제의 하위로 만들지 전달하기 위해.
+    # 과제에 속한 학생 목록 얻기.(동료평가 지정 대상자를 설정함, POST에서 단체에 해당하는 학생에게 과제를 부여하기 위해.)
+    box = homework.homework_box
+    type, id = box.type()
+    if type == 'classroom':
+        homeroom = box.classroom.homeroom
+        student_list = models.Profile.objects.filter(homeroom=homeroom)
+    elif type == 'homeroom':
+        student_list = models.Profile.objects.filter(homeroom=box.homeroom)
+    elif type == 'school':
+        student_list = models.Profile.objects.filter(school=box.school)
+    print(student_list)
+    # 제출한다면.
     if request.method == 'POST':
         user_list = request.POST.getlist('user_list')
         try:  # 기존의 설문은 제거한다.
-            origin = models.HomeworkSubmit.objects.get(base_homework=posting,
+            origin = models.HomeworkSubmit.objects.get(base_homework=homework,
                         to_student=None)
             origin.delete()
         except:  # 없으면 패스.
             pass
         for user in user_list:
-            to_student = models.Student.objects.get(pk=user)
+            target_profile = models.Profile.objects.get(pk=user)
             # 학급의 학생들에게 배정.
-            for student in student_list:
-                submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=posting,
-                to_student=to_student, to_user=student.admin, title=to_student)
-            # 작성자도 대응시킨다.
-            submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=posting,
-            to_student=to_student, to_user=request.user, title=to_student)
-        return redirect('school_report:homework_detail', posting_id=posting.id)
+            for to_profile in student_list:
+                submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
+                target_profile=target_profile, to_profile=to_profile, title=target_profile)
+            # 작성자도 대응시킨다.(확인용)
+            submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
+            target_profile=target_profile, to_profile=to_profile, title=target_profile)
+        return redirect('school_report:homework_detail', posting_id=homework.id)
     for to_student in student_list:  # 동료평가를 만들 수 있는 학생 목록.
-        submit = models.HomeworkSubmit.objects.filter(base_homework=posting ,to_student=to_student).exists()  # 있나 여부만 파악.
+        submit = models.HomeworkSubmit.objects.filter(base_homework=homework ,target_profile=to_student).exists()  # 있나 여부만 파악.
         to_student.submit = submit  # 있으면 True
     context['student_list'] = student_list
     return render(request, 'school_report/classroom/homework/survey/special/peerReview_create.html', context)
@@ -768,34 +620,34 @@ def peerreview_end(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
     context = {}
     # 과제 제출자인 경우에만 진행한다.
-    if request.user == homework.author:
+    if request.user == homework.author_profile.admin:
         homework.deadline = datetime.now()  # 현재 시간으로 마감.
         homework.is_end = True
         homework.save()
         question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가의 첫번째 질문.
 
-        # 설문자와, 대상자 목록.
-        delete_list = models.HomeworkSubmit.objects.filter(base_homework=homework, to_student=None)  # 연습용이라 만들어졌던 설문.
+        # 연습용 submit, answer 지우기.
+        delete_list = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=None)  # 연습용이라 만들어졌던 설문.
         delete_list.delete()
         # 어째서인지... DB 관련해 뭔가 문제가 있는 듯한데, 연동된 answer가 안지워져.
         # 아.. submit과 answer의 연동을 끊고 answer에서 바로 대상자를 지정해서 그래.
-        delete_list = models.HomeworkAnswer.objects.filter(question=question, to_student=None)
+        delete_list = models.HomeworkAnswer.objects.filter(question=question, target_profile=None)
         delete_list.delete()
 
         homework_submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
-        to_list = []  # 동료평가 대상자의 목록.
+        target_list = []  # 동료평가 대상자의 목록.
         for submit in homework_submits:
-            to_list.append(submit.to_student)
-        to_list = set(to_list)  # 중복값 제거.
+            target_list.append(submit.target_profile)
+        target_list = set(target_list)  # 중복값 제거.
         user_list = []  # 설문 참여자의 목록.
         for submit in homework_submits:
-            user_list.append(submit.to_user)
+            user_list.append(submit.to_profile)
         user_list = set(user_list)  # 중복값 제거.
 
         # 필요없을지도. student_mean = {}  # 학생명에 평균을 담을 사전.
-        for to_student in to_list:
+        for target_profile in target_list:
             # 이건 왜...? question_list = homework.homeworkquestion_set.filter('ordering')
-            answers = models.HomeworkAnswer.objects.filter(to_student=to_student, question=question)
+            answers = models.HomeworkAnswer.objects.filter(target_profile=target_profile, question=question)
             df = pd.DataFrame.from_records(answers.values('contents'))
             if df.empty:
                 continue  # df가 비었다면 패스.
@@ -804,7 +656,7 @@ def peerreview_end(request, posting_id):
             mean = df.mean(axis=0)[0]  # 평균 구하기.
             for respondent in user_list:  # 평가자 돌며 평균에서 차 담기.
                 try:  # 응답 안한 사람이 있으면 answer객체가 없기도 하다.
-                    answer = models.HomeworkAnswer.objects.get(respondent=respondent, to_student=to_student, question=question)
+                    answer = models.HomeworkAnswer.objects.get(respondent=respondent, target_profile=target_profile, question=question)
                     answer.memo = (float(answer.contents) - mean)**2  # 평균에서의 차, 제곱 담기.
                     answer.save()
                 except:
@@ -825,7 +677,7 @@ def homework_end_cancel(request, homework_id):
     homework = get_object_or_404(models.Homework, pk=homework_id)  # 과제 찾아오기.
     context = {}
     # 과제 제출자인 경우에만 진행한다.
-    if request.user == homework.author:
+    if request.user == homework.author_profile.admin:
         homework.deadline = None
         homework.is_end = False
         homework.save()
@@ -840,7 +692,7 @@ def peerreview_statistics(request, posting_id):
         school = homework.classroom.school
     elif homework.subject_object:
         school = homework.subject_object.school
-    teacher = check.Check_teacher(request, school).in_school_and_none()
+    teacher = check.Teacher(request, school).in_school_and_none()
     # 제출자 명단.
     submit_list = homework.homeworksubmit_set.all()
     submit_user_list = []  # 설문 참여자.
@@ -941,7 +793,7 @@ def peerreview_select_comment(request, submit_id):
         school = posting.classroom.school
     if posting.subject_object:
         school = posting.subject_object.school
-    to_student = check.Check_student(request, school).in_school_and_none()  # 학생계정 배정.
+    to_student = check.Student(request, school).in_school_and_none()  # 학생계정 배정.
 
     if submit.to_user == request.user:#to_student
         pass
@@ -966,7 +818,7 @@ def peerreview_who_is_special(request, posting_id):
         school = homework.classroom.school
     if homework.subject_object:
         school = homework.subject_object.school
-    teacher = check.Check_teacher(request, school).in_school_and_none()
+    teacher = check.Teacher(request, school).in_school_and_none()
     if teacher == None:
         messages.error(request, "학교에 등록된 교사가 아닙니다.")
         return render(request, 'school_report/classroom/create.html', context)

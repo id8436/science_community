@@ -1,0 +1,32 @@
+<!-- 필요로 하는 변수.
+kind  # 교과과제인가, 교과교실 과제인가. 넣고싶은 이름.
+homework_list, teacher,
+object  # 학교, 교실, 교과 무엇인지.
+-->
+
+
+<h5>{{kind}} 목록</h5>
+    {% if teacher %}
+    <a href="{% url 'school_report:homework_create' object.homeworkbox.id %}">{{kind}} 생성</a>
+    <a href="{% url 'school_report:homework_check_spreadsheet' object.homeworkbox.id %}">{{kind}} 제출여부 확인</a>
+    {% endif %}
+<table class="table table-hover" id="student_list">
+    <thead>
+    <tr class="table-info">
+        <th>제목</th>
+        <th>작성자</th>
+        <th>마감일자</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if homework_list %}
+    {% for homework in homework_list %}
+    <tr>
+        <td><a href="{% url 'school_report:homework_detail' homework.id %}">{{homework.subject}}</td>
+        <td>{{homework.author_profile}}</td>
+        <td>{{homework.deadline}}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>

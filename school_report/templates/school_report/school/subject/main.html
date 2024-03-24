@@ -16,30 +16,18 @@
 <h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
     {% include "school_report/classroom/list.html" %}
 
-<a href="{% url 'school_report:subject_homework_create' subject.id %}">교과 공통 과제 생성</a>
+<a href="{% url 'school_report:homework_create' subject.homeworkbox.id %}">교과 공통 과제 생성</a>
 <a href="{% url 'school_report:subject_homework_check' subject.id %}">교과 공통 과제 제출여부 확인</a>
 
 
-<h5>과제목록</h5>
-<table class="table table-hover" id="student_list">
-    <thead>
-    <tr class="table-info">
-        <th>제목</th>
-        <th>작성자</th>
-        <th>마감일자</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% if homework_list %}
-    {% for homework in homework_list %}
-    <tr>
-        <td><a href="{% url 'school_report:subject_homework_detail' homework.id %}">{{homework.subject}}</td>
-        <td>{{homework.author}}</td>
-        <td>{{homework.deadline}}</td>
-    </tr>
-    {% endfor %}
-    {% endif %}
-    </tbody>
-</table>
+{% with subject as object %}
+<!-- 일반과제 -->
+{% with '교과과제' as kind %}
+    {% include "school_report/classroom/homework/homework_list.html" %}
+{% endwith %}
+<!-- 공지 리스트. -->
+    {% include "school_report/homeroom/announcement/announcement_list.html" %}
+
+{% endwith %}
 
 {% endblock %}

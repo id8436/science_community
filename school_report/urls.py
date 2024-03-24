@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views #해당 앱의 뷰를 불러온다.
-from .view import homeroom, classroom, school, subject
+from .view import homeroom, classroom, school, subject, homework, announcement
 from .view.special import ai_completion
 app_name = 'school_report'
 
@@ -14,19 +14,21 @@ urlpatterns = [
     path('school/school_list/', school.list, name='school_list'),
     path('meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
     # 과목, 교과 관련
-    path('subject_create/<int:school_id>/', school.subject_create, name='subject_create'),
-    path('subject_main/<int:subject_id>/', school.subject_main, name='subject_main'),
+    path('subject_create/<int:school_id>/', subject.create, name='subject_create'),
+    path('subject_main/<int:subject_id>/', subject.main, name='subject_main'),
     path('create_performance_score/<int:subject_id>/', school.create_performance_score, name='create_performance_score'),
-    path('subject_homework/<int:subject_id>/', subject.subject_homework_create, name='subject_homework_create'),
+    #path('subject_homework/<int:subject_id>/', subject.subject_homework_create, name='subject_homework_create'),
     path('subject_homework_check/<int:subject_id>/', subject.subject_homework_check, name='subject_homework_check'),
-    path('subject_homework/detail/<int:posting_id>/', subject.subject_homework_detail, name='subject_homework_detail'),
+    #path('subject_homework/detail/<int:posting_id>/', homework.detail, name='subject_homework_detail'),
 
     #교사명단
-    path('school/teacher_assignment/<int:school_id>/', school.assignment, name='teacher_assignment'),
+    path('school/teacher_assignment/<int:school_id>/', school.teacher_assignment, name='teacher_assignment'),
     path('school/download_excel_form/<int:school_id>/', school.download_excel_form, name='school_download_excel_form'),
     path('school/upload_excel_form/<int:school_id>/', school.upload_excel_form, name='school_upload_excel_form'),
     path('school/teacher_code_input/<int:school_id>/', school.teacher_code_input, name='teacher_code_input'),
     path('school/teacher_code_confirm/<int:teacher_id>/', school.teacher_code_confirm, name='teacher_code_confirm'),
+    path('school/teacher_delete/<int:teacher_id>/', school.teacher_delete, name='teacher_delete'),
+
     #학생명단
     path('school/student_assignment/<int:school_id>/', school.student_assignment, name='student_assignment'),
     path('school/student_download_excel_form/<int:school_id>/', school.school_student_download_excel_form, name='school_student_download_excel_form'),
@@ -44,10 +46,12 @@ urlpatterns = [
     path('homeroom/upload_excel_form/<int:homeroom_id>/', homeroom.upload_excel_form, name='homeroom_upload_excel_form'),
     path('homeroom/neis_timetable/<int:homeroom_id>/', homeroom.neis_timetable, name='neis_timetable'),
     # 공지
-    path('homeroom/announcement/create/<int:homeroom_id>/', homeroom.announcement_create, name='announcement_create'),
-    path('homeroom/posting/detail/<int:posting_id>/', homeroom.announcement_detail, name='announcement_detail'),
-    path('homeroom/posting/modify/<int:posting_id>/', homeroom.announcement_modify, name='announcement_modify'),
-    path('homeroom/posting/delete/<int:posting_id>/', homeroom.announcement_delete, name='announcement_delete'),
+    path('announcement/create/<int:announce_box_id>/', announcement.create, name='announcement_create'),
+    path('announcement/detail/<int:posting_id>/', announcement.detail, name='announcement_detail'),
+    path('announcement/modify/<int:posting_id>/', announcement.modify, name='announcement_modify'),
+    # path('homeroom/posting/modify/<int:posting_id>/', homeroom.announcement_modify, name='announcement_modify'),
+    path('announcement/delete/<int:posting_id>/', announcement.delete, name='announcement_delete'),
+    # path('homeroom/posting/delete/<int:posting_id>/', homeroom.announcement_delete, name='announcement_delete'),
     path('homeroom/individual_excel_form/<int:announcement_id>/', homeroom.individual_download_excel_from, name='individual_excel_form'),
     path('homeroom/individual_announcement_create/<int:announcement_id>/', homeroom.individual_upload_excel_form,
          name='individual_upload_excel_form'),
@@ -57,10 +61,10 @@ urlpatterns = [
     path('classroom/create/<int:school_id>/', classroom.create, name='classroom_create'),
     path('classroom/main/<int:classroom_id>/', classroom.main, name='classroom_main'),
     # 과제
-    path('classroom/homework/create/<int:classroom_id>/', classroom.homework_create, name='homework_create'),
-    path('classroom/homework/detail/<int:posting_id>/', classroom.homework_detail, name='homework_detail'),
-    path('classroom/homework/modify/<int:posting_id>/', classroom.homework_modify, name='homework_modify'),
-    path('classroom/homework/delete/<int:posting_id>/', classroom.homework_delete, name='homework_delete'),
+    path('classroom/homework/create/<int:homework_box_id>/', homework.create, name='homework_create'),
+    path('detail/<int:posting_id>/', homework.detail, name='homework_detail'),
+    path('homework/modify/<int:posting_id>/', homework.modify, name='homework_modify'),
+    path('homework/delete/<int:posting_id>/', homework.delete, name='homework_delete'),
     path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
     path('classroom/homework/check/<int:classroom_id>/', classroom.homework_check_spreadsheet, name='homework_check_spreadsheet'),
     path('classroom/homework/copy/<int:homework_id>/', classroom.homework_copy, name='homework_copy'),

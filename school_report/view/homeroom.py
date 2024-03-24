@@ -13,21 +13,27 @@ def create(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
-        teacher = check.Check_teacher(request, school).in_school_and_none()
-        if teacher == None:
-            messages.error(request, '학교에 소속된 교사만 교실개설이 가능합니다.')
-            return check.Check_teacher(request, school).redirect_to_school()
+        check_teacher = check.Teacher(user=request.user, school=school, request=request)
+        profile = check_teacher.in_school()
+        if profile == None:
+            return check_teacher.redirect_to_school()
+        # teacher = check.Check_teacher(request, school).in_school_and_none()
+        # if teacher == None:
+        #     messages.error(request, '학교에 소속된 교사만 교실개설이 가능합니다.')
+        #     return check.Check_teacher(request, school).redirect_to_school()
         form = HomeroomForm(request.POST)  # 폼을 불러와 내용입력을 받는다.
         if form.is_valid():  # 문제가 없으면 다음으로 진행.
             homeroom = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
-            homeroom.master = teacher
+            homeroom.master_profile = profile
             homeroom.school = school
-            if homeroom.name:
+            if homeroom.name:  # 기존 이름이 있으면 이것이 우선.
                 pass
             else:
                 homeroom_name = str(request.POST.get('grade'))+'학년' + str(request.POST.get('cl_num')) +'반'
                 homeroom.name = homeroom_name
             homeroom.save()
+            homework_box, created = models.HomeworkBox.objects.get_or_create(homeroom=homeroom)
+            announce_box, created = models.AnnounceBox.objects.get_or_create(homeroom=homeroom)
             return redirect('school_report:homeroom_main', homeroom_id=homeroom.id)
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = HomeroomForm()
@@ -39,14 +45,14 @@ def main(request, homeroom_id):
     context ={'homeroom': homeroom}
 
     # 선생님, 혹은 학생객체 가져오기.
-    homeroom_student = check.Check_student(request, homeroom).in_homeroom_and_none()
-    context['homeroom_student'] = homeroom_student
-    context['homeroom_teacher'] = check.Check_teacher(request, homeroom).in_homeroom_and_none()  # 선생님객체.
+    context['student'] = check.Student(request=request, user=request.user, homeroom=homeroom).in_homeroom_and_none()
+    context['teacher'] = check.Teacher(request=request, user=request.user, school=homeroom.school).in_school_and_none()  # 선생님객체.
 
     classroom_list = homeroom.classroom_set.all()
     context['classroom_list'] = classroom_list
-    announcement_list = homeroom.announcement_set.all()
-    context['announcement_list'] = announcement_list
+
+    context['announcement_list'] = homeroom.announcebox.announcement_set.order_by('-create_date')
+    context['homework_list'] = homeroom.homeworkbox.homework_set.order_by('-create_date')
 
     return render(request, 'school_report/homeroom/main.html', context)
 
@@ -55,7 +61,7 @@ from . import check
 def assignment(request, homeroom_id):
     homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
     context = {'homeroom': homeroom}
-    if check.Check_teacher(request, homeroom.school).in_school_and_none():
+    if check.Teacher(request, homeroom.school).in_school_and_none():
         resistered = models.Student.objects.filter(homeroom=homeroom, obtained=True)
         context['resistered'] = resistered
         unresistered = models.Student.objects.filter(homeroom=homeroom, obtained=False)  # 등록 안한 사람만 반환.
@@ -103,7 +109,7 @@ def upload_excel_form(request, homeroom_id):
             work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
             # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
-        teacher = check.Check_teacher(request, homeroom).in_homeroom_and_none()
+        teacher = check.Teacher(request, homeroom).in_homeroom_and_none()
         if teacher != None:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 student_code = data[0]
@@ -149,28 +155,28 @@ def announcement_create(request, homeroom_id):
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/homeroom/announcement_create.html', context)
 
-def announcement_detail(request, posting_id):
-    context = {}
-    posting = get_object_or_404(models.Announcement, pk=posting_id)
-    context['posting'] = posting
-    homeroom = posting.homeroom
-    context['homeroom'] = homeroom
-
-    student = check.Check_student(request, homeroom).in_homeroom_and_none()
-    # 학생과 교사 가르기.
-    if student:
-        # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별공지 하나가 늘게끔.
-        individual_announcement, created = models.AnnoIndividual.objects.get_or_create(to_student=student, base_announcement=posting)
-        context['individual_announcement'] = individual_announcement
-        individual_announcement.read = True  # 열람 했다는 표기.
-        individual_announcement.check_date = datetime.datetime.now()
-        individual_announcement.save()
-    elif posting.author == request.user:
-        annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
-        context['annoIndividual_list'] = annoIndividual_list  # 이건 나중에 없애도 될듯.
-    else:
-        return check.Check_student(request, homeroom).redirect_to_homeroom()
-    return render(request, 'school_report/homeroom/announcement/detail.html', context)
+# def announcement_detail(request, posting_id):  # announce view 로 따로 뺌.
+#     context = {}
+#     posting = get_object_or_404(models.Announcement, pk=posting_id)
+#     context['posting'] = posting
+#     homeroom = posting.homeroom
+#     context['homeroom'] = homeroom
+#
+#     student = check.Student(request, homeroom).in_homeroom_and_none()
+#     # 학생과 교사 가르기.
+#     if student:
+#         # 새로운 학생이 훗날 추가되었다면 접속했을 때 개별공지 하나가 늘게끔.
+#         individual_announcement, created = models.AnnoIndividual.objects.get_or_create(to_student=student, base_announcement=posting)
+#         context['individual_announcement'] = individual_announcement
+#         individual_announcement.read = True  # 열람 했다는 표기.
+#         individual_announcement.check_date = datetime.datetime.now()
+#         individual_announcement.save()
+#     elif posting.author == request.user:
+#         annoIndividual_list = models.AnnoIndividual.objects.filter(base_announcement=posting)
+#         context['annoIndividual_list'] = annoIndividual_list  # 이건 나중에 없애도 될듯.
+#     else:
+#         return check.Student(request, homeroom).redirect_to_homeroom()
+#     return render(request, 'school_report/homeroom/announcement/detail.html', context)
 
 def announcement_modify(request, posting_id):
     '''create와 연결되게 조정하는 편이 좋겠다;;'''
@@ -203,15 +209,7 @@ def announcement_modify(request, posting_id):
     messages.error(request, '수정하면 기존 확인한 학생들의 체크는 "읽지않음"으로 갱신됩니다.')
     return render(request, 'school_report/homeroom/announcement_create.html', context)
 
-def announcement_delete(request, posting_id):
-    posting = get_object_or_404(models.Announcement, pk=posting_id)
-    if request.user != posting.author:
-        messages.error(request, '삭제권한이 없습니다. 꼼수쓰지 마라;')
-        return redirect('school_report:announcement_detail', posting_id=posting.id)
-    messages.success(request, '삭제 성공~!')
-    homeroom = posting.homeroom
-    posting.delete()
-    return redirect('school_report:homeroom_main', homeroom_id=homeroom.id)
+
 
 def individual_download_excel_from(request, announcement_id):
     wb = openpyxl.Workbook()

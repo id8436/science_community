@@ -232,7 +232,7 @@ def subject_register(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     context = {'board' : board}
     # 시험 주관기관에 해당하는 학생프로필이 있는지 찾기 위해.
-    target_student = check.Check_student(request, board.school).in_school_and_none()
+    target_student = check.Student(request, board.school).in_school_and_none()
 
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         form = ScoreForm(request.POST)

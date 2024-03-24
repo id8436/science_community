@@ -133,12 +133,12 @@ def board_detail(request, board_id):
     category = board.category
     # 교사게시판인 경우. 확인 후 리다이렉팅.
     if category.name.split('_')[0] == 'teacher':
-        teacher = check.Check_teacher(request, board.school).in_school_and_none()
+        teacher = check.Teacher(request=request, school=board.school, user=request.user).in_school_and_none()
         if teacher != None:
             pass
         else:
             messages.error(request, '교사만 접근 가능합니다.')
-            check.Check_teacher(request, board.school).redirect_to_school()
+            check.Teacher(school=board.school).redirect_to_school()
     context_posting = posting_list_hidden(request, board_id)  # 하위 포스팅 가져오기.
     # ----- list함수와 같은 부분 -----
     context_board = board_list_hidden(request, category)
@@ -247,7 +247,7 @@ def posting_detail_on_board(request, posting_id):
     category = posting.board.category
     # 교사게시판인 경우. 확인 후 리다이렉팅.
     if category.name.split('_')[0] == 'teacher':
-        teacher = check.Check_teacher(request, posting.board.school).in_school_and_none()
+        teacher = check.Teacher(request, posting.board.school).in_school_and_none()
         if teacher != None:
             pass
         else:

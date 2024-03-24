@@ -14,6 +14,8 @@ admin.site.register(Homework)
 admin.site.register(HomeworkQuestion)
 admin.site.register(HomeworkSubmit)
 admin.site.register(HomeworkAnswer)
+admin.site.register(HomeworkBox)
+admin.site.register(Profile)
 
 
 

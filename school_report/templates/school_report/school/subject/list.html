@@ -10,7 +10,7 @@
     {% for subject in subject_list %}
     <tr>
         <td><a href="{% url 'school_report:subject_main' subject.id %}">{{subject}} {%if subject.subject_identifier%}{{subject.subject_identifier}}{%endif%}</a></td>
-        <th>{{subject.master.name}}</th>
+        <th>{{subject.master_profile.name|slice:2}}*</th>
     </tr>
     {% endfor %}
     {% endif %}

@@ -1,7 +1,6 @@
 from django.http import HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from .forms import *
-from school_report import models
 from django.contrib import messages  # 메시지 모듈을 불러오고,
 
 
@@ -36,6 +35,130 @@ def compound_interest(request):
 
 from school_report.models import HomeworkSubmit
 def do_DB(request):
+    '''24.03.12 반영. homework box 만들기.(학교, 학급, 교실, 교과)'''
+    from school_report import models
+    # 각 객체별 homeworkbox 생성.
+    target_model = models.School.objects.all()
+    for i in target_model:
+        box, created = models.HomeworkBox.objects.get_or_create(school=i)
+    target_model = models.Homeroom.objects.all()
+    for i in target_model:
+        box, created = models.HomeworkBox.objects.get_or_create(homeroom=i)
+    target_model = models.Classroom.objects.all()
+    for i in target_model:
+        box, created = models.HomeworkBox.objects.get_or_create(classroom=i)
+        homework_list = i.homework_set.all()
+        for homework in homework_list:
+            homework.homework_box = box
+            homework.save()
+    target_model = models.Subject.objects.all()
+    for i in target_model:
+        box, created = models.HomeworkBox.objects.get_or_create(subject=i)
+        homework_list = i.homework_set.all()
+        for homework in homework_list:
+            homework.homework_box = box
+            homework.save()
+    # 각 객체별 announcebox 생성.
+    target_model = models.School.objects.all()
+    for i in target_model:
+        box, created = models.AnnounceBox.objects.get_or_create(school=i)
+    target_model = models.Homeroom.objects.all()
+    for i in target_model:
+        box, created = models.AnnounceBox.objects.get_or_create(homeroom=i)
+    target_model = models.Classroom.objects.all()
+    for i in target_model:
+        box, created = models.AnnounceBox.objects.get_or_create(classroom=i)
+    target_model = models.Subject.objects.all()
+    for i in target_model:
+        box, created = models.HomeworkBox.objects.get_or_create(subject=i)
+
+    # 교사, 학생 프로필 전환.
+    teacher = models.Teacher.objects.all()
+    for i in teacher:
+        profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained, created=i.created, activated=i.activated, school=i.school, position='teacher', name=i.name)
+    student = models.Student.objects.all()
+    for i in student:
+        try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
+            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained, created=i.activated, activated=i.activated, school=i.school, position='student', name=i.name, code=i.code)
+            for homeroom in i.homeroom.all():
+                profile.homeroom.add(homeroom)
+            profile.save()
+        except:
+            pass
+    # 기존 제출 교사, 학생 프로필 새 프로필로 전환.
+    target_model = models.HomeworkSubmit.objects.all()
+    for i in target_model:
+        old_user = i.to_user
+        base_homework = i.base_homework
+        if base_homework.subject_object:
+            school = base_homework.subject_object.school
+        elif base_homework.classroom:
+            classroom = base_homework.classroom
+            school = classroom.school
+        elif base_homework.homeroom:
+            school = base_homework.homeroom.school
+        elif base_homework.homework_box:
+            school = box.get_school_model()
+        i.to_profile = models.Profile.objects.filter(admin=old_user, school=school).first()
+        try:  # None인 경우는 에러처리되니 넘기자.
+            target_user = i.to_student.admin
+            i.target_profile = models.Profile.objects.filter(admin=target_user, school=school).first()
+        except:
+            pass
+        i.save()
+    # 과제 수정. author모델 새 프로필로 전환.
+    target_model = models.Homework.objects.all()
+    for i in target_model:
+        if i.subject_object:
+            school = i.subject_object.school
+        elif i.classroom:
+            classroom = i.classroom
+            school = classroom.school
+        elif base_homework.homeroom:
+            school = i.homeroom.school
+        elif base_homework.homework_box:
+            school = box.get_school_model()
+        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
+        i.save()
+    # 공지 저자를 전환.
+    target_model = models.Announcement.objects.all()
+    for i in target_model:
+        if i.classroom:
+            classroom = i.classroom
+            school = classroom.school
+        elif base_homework.homeroom:
+            school = i.homeroom.school
+        elif base_homework.homework_box:
+            school = box.get_school_model()
+        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
+        i.save()
+    # classroom. teacher에서 전환.
+    target_model = models.Classroom.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher ==None:  # 새로 만들어진 객체에선 교사모델 없음.
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    # homeroom.
+    target_model = models.Homeroom.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher ==None:
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    # subject.
+    target_model = models.Subject.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher ==None:
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
     '''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
     answers = models.HomeworkAnswer.objects.all()
     print(answers)
@@ -46,13 +169,3 @@ def do_DB(request):
         except:
             pass'''
     return render(request, 'utility/main.html', {})
-
-'''지난 것들
-    # 반영함. 별 문제 없으면 지우자. 과제에 학생 배치시키는 게 아니라, 유저모델 대응시키기.
-    # object = HomeworkSubmit.objects.all()
-    # for i in object:
-    #     user = i.to_student.admin
-    #     i.to_user = user
-    #     i.save()
-    
-'''

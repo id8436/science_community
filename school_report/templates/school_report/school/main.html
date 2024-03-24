@@ -5,7 +5,7 @@
 학교 메인
 {{ school }}
 <div>
-    기관 마스터 : {{school.master}}
+    기관 마스터 : {{school.master}}({% if teacher %}{{teacher}}{% else %}관리자 본인도 교사 등록이 필요합니다.{%endif%})
 
 </div>
 {% if user == school.master %}
@@ -16,6 +16,8 @@
 {% endif %}
 <div class="my-3 border-bottom pb-2"></div>
 
+
+
 {% if school.school_code %}
 <a href="{% url 'school_report:meal_info' school.id %}">급식정보 보러 가기</a><br>
 {% endif %}
@@ -23,11 +25,9 @@
 {% if teacher %}
 <h4 class="my-3 border-bottom pb-2">교직원 메뉴</h4>
     어서오세요, {{ teacher.name }} 선생님~!
-    (학급은 관리자가 교사 등록하면 자동으로 생성됩니다.)
     <br><a href="{% url 'boards:posting_list' school.teacher_board_id %}">교직원 게시판</a><br>
     <a href="{% url 'school_report:homeroom_create' school.id %}">학급 생성</a>
     <a href="{% url 'school_report:subject_create' school.id %}">과목 생성</a>
-
 
 
     <h4 class="my-3 border-bottom pb-2">교과 목록</h4>
@@ -38,19 +38,9 @@
     <h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
     {% include "school_report/classroom/list.html" %}
     <h4 class="my-3 border-bottom pb-2">하위시험 목록</h4>
-{% with exam_list as board_list %}
-    {% include "boards/score/board_list_body.html" %}
-{% endwith %}
 
-{% else%}
-    <div>
-        <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기</a>
-    </div>
-{% endif %}
-
-
+{% elif student %}
 <h6>학생메뉴</h6>
-{% if student %}
     어서오세요, {{ student.name }}님~!
 <h4 class="my-3 border-bottom pb-2">하위시험 목록</h4>
 <table class="table table-hover" id="exam_table">
@@ -74,11 +64,27 @@
 
 {% else %}
 <div>
-    <h1><a href="{% url 'school_report:student_code_input' school.id %}">학생 인증하기</a></h1>
+    <a href="{% url 'school_report:teacher_code_input' school.id %}">코드 입력하여 교사권한 얻기</a>
+</div>
+<div>
+    <h6><a href="{% url 'school_report:student_code_input' school.id %}">학생 인증하기</a></h6>
 </div>
 {% endif %}
 
+{% with school as object %}
+<!-- 일반과제 -->
+{% with '학교 과제' as kind %}
+    {% include "school_report/classroom/homework/homework_list.html" %}
+{% endwith %}
+<!-- 공지 리스트. -->
+    {% include "school_report/homeroom/announcement/announcement_list.html" %}
 
+{% endwith %}
+
+
+{% with exam_list as board_list %}
+    {% include "boards/score/board_list_body.html" %}
+{% endwith %}
 
 
 {% endblock content%}

@@ -18,7 +18,7 @@
       </td>
       {% for value in row.values %}
       <td><label for="{{pk}}">
-        {{ value|safe }}</label></td>
+        {{ value|linebreaksbr|safe }}</label></td>
       {% endfor %}
     </tr>
     {% endfor %}

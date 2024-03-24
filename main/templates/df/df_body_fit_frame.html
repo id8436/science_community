@@ -35,7 +35,7 @@ $(function(){
     {% for row in dataframe %}
     <tr>
       {% for value in row.values %}
-      <td>{{ value|safe }}</td>
+      <td>{{ value|linebreaksbr|safe }}</td>
       {% endfor %}
     </tr>
     {% endfor %}

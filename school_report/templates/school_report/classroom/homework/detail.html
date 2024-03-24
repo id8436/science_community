@@ -25,7 +25,7 @@
 <div class="position-relative">
 <div class="position-absolute top-0 start-50 translate-middle">
 </div>
-{% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+{% if request.user == posting.author_profile.admin %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
     {% if survey %}
         <div><a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문 문항 수정하기</a>
             {% if posting.is_special == 'peerReview' %}
@@ -88,7 +88,6 @@ $(document).ready(function(){
         <td class="table-danger" colspan="2">미열람</td>
         {% endif %}
         <td>
-
             {% if survey %}
             설문제출
             {% else %}
@@ -159,6 +158,9 @@ $(document).ready(function(){
     </tbody>
 </table>
 {% else %}
+
+
+<!-- 요 아래 부분은 과제제출 기능 초장기의 흔적인데... 뭐, 안쓰면 알아서 지우기.-->
 {% if individual_announcement %}
 <div>
     {{individual_announcement.to_student}}

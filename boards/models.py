@@ -26,7 +26,7 @@ class Board(models.Model):
         return str(self.board_name) + str(self.enter_year)
     class Meta:
         unique_together = (
-            ('board_name', 'enter_year')
+            ('board_name', 'enter_year', 'category')
             )
 
 class Board_name(models.Model):

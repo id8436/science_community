@@ -1,5 +1,8 @@
 from django.db import models
 from django.conf import settings
+from django.db.models import Q
+from django.shortcuts import render, get_object_or_404, redirect
+
 '''의견. 훗날 앱 자체를 재구성해보자.
 1. 학교, 교실, 교과교실, 교과 등 객체는 하나의 모델로 type 처리해서 활용할 수 있지 않을까? board 모델로 활용해도 괜찮을듯.
 2. 댓글모델 같은 건.. 여러 모델에서 끌어다 쓸 수 있으니, 댓글모델에서 상위모델로 지정하지 않고 독립적으로 두는 편이 좋겠다.(좋아요나 이런 것도...)
@@ -32,6 +35,7 @@ class Homeroom(models.Model):
     cl_num = models.IntegerField(null=True, blank=True)  # 반
     name = models.CharField(max_length=20, null=True, blank=True)  # 학년반 대신 학급명을 사용하는 경우.
     master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자.
+    master_profile = models.ForeignKey('Profile', on_delete=models.PROTECT, null=True, related_name='homeroom_master')  # 이거 완성되면 위는 지우기.
     code = models.TextField()  # 비밀코드
     def __str__(self):
         return self.name
@@ -42,8 +46,9 @@ class Homeroom(models.Model):
 class Subject(models.Model):
     '''학교 하위의, 클래스룸을 만들기 위한 교과.'''
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.
-    subject_name = models.CharField(max_length=10)  # 과목명
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
+    subject_name = models.CharField(max_length=20)  # 과목명
+    master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자. 아래로 옮겨진 것 같으면 지워버려~
+    master_profile = models.ForeignKey('Profile', on_delete=models.PROTECT, null=True, blank=True)  # 추후 정리 되면 blank 등 속성도 지우자.
     subject_identifier = models.CharField(max_length=10, null=True, blank=True)  # 학생들에게 보여지지 않는 구분자.(같은 과목으로 여러 학년 들어갈 때)
     def __str__(self):
         return self.subject_name
@@ -56,7 +61,8 @@ class Classroom(models.Model):
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)  # 연결할 모델.
     subject = models.CharField(max_length=10)  # 과목명  # 상위 과목의 과목명으로 연결될 거니까, 25년이 지나면 지워도 괜찮을듯. 그때 위의 null과 블랭크 조건 없애자.
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT)  # 메인관리자.
+    master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True)  # 메인관리자.
+    master_profile = models.ForeignKey('Profile', on_delete=models.PROTECT, null=True)  # 훗날 null을 없애는 날이 오길...!
     # 나중에 메인관리자나 관리집단도 유저모델에 직접 연결시키자.
     name = models.CharField(max_length=25, null=True, blank=True)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯? 역시, 25년이 지나면 지워도 괜찮을듯.
     def __str__(self):
@@ -86,8 +92,6 @@ class Teacher(models.Model):
         unique_together = (
             ('school', 'name')
         )
-
-
 class Student(models.Model):
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_user')
     # 어드민이지워질 때 학생계정이 지워지면 누군가 악용할 수 있다 싶어서... null로 둔다.
@@ -107,38 +111,93 @@ class Student(models.Model):
         )
         ordering = ['student_code']
 
-class Announcement(models.Model):
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.
-    classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Announce_author")
-    subject = models.CharField(max_length=100)  # 제목
-    content = models.TextField()  # 내용
-
-    create_date = models.DateTimeField(auto_now_add=True)
-    modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
+class Profile(models.Model):
+    # 교사, 학생 정보를 담는 프로필.
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='school_user')
+    # 어드민이지워질 때 학생계정이 지워지면 누군가 악용할 수 있다 싶어서... null로 둔다.
+    obtained = models.BooleanField(default=False)  # 등록 되었는지 여부.
+    created = models.DateTimeField(auto_now_add=True)
+    activated = models.DateTimeField(auto_now=True, null=True, blank=True)
+    confirm_code = models.TextField(null=True, blank=True)  # 인증용 코드.
+    # 정보
+    school = models.ForeignKey('School', on_delete=models.CASCADE)  # 어느 학교 소속 프로필인가.
+    position = models.CharField(max_length=10)  # teacher or student or parent
+    homeroom = models.ManyToManyField('Homeroom')
+    name = models.CharField(max_length=10)  # 실명을 기입하게 하자.
+    code = models.CharField(max_length=20, null=True, blank=True,)  # 학생 학번, 교사번호 등.
     def __str__(self):
-        return self.subject
-class AnnoIndividual(models.Model):
-    '''개별적으로 전달되는 공지. 과제랑 하나의 모델로 엮어도 크게 문제는 없지 않나? 과제에 announcement를 다는 방식으로.'''
-    base_announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE)
-    to_student = models.ForeignKey('Student', on_delete=models.CASCADE)  # 각 개별 학생에게 전달되게끔.
-    content = models.TextField(default=None, null=True, blank=True)  # 공지 내용.
-    read = models.BooleanField(default=False)  # 열람했는지 여부.
-    check = models.BooleanField(default=False)  # 확인 했는지 여부.
-    check_date = models.DateTimeField(null=True, blank=True)
-    def __str__(self):
-        return self.to_student.name
-
-# 아래는 천천히 구현해보자. 과제제출.
+        if self.code != None:
+            return str(self.code)+ self.name
+        else:
+            return self.name
+    class Meta:
+        unique_together = (
+            ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
+        )
+        ordering = ['code']
+class HomeworkBox(models.Model):
+    '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
+    school = models.OneToOneField('School', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    homeroom = models.OneToOneField('Homeroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    classroom = models.OneToOneField('Classroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    subject = models.OneToOneField('subject', on_delete=models.CASCADE, default=None, null=True, blank=True)  # 교과.
+    def type(self):
+        '''어느 객체에 속한 박스인지. 속성, id 반환.'''
+        if self.school:
+            return 'school', self.school.id
+        elif self.homeroom:
+            return 'homeroom', self.homeroom.id
+        elif self.subject:
+            return 'subject', self.subject.id
+        elif self.classroom:
+            return 'classroom', self.classroom.id  # 인수가 2개임에 유의.
+    def get_profiles(self):
+        '''각 객체 하위의 모든 프로필을 불러온다.'''
+        type, id = self.type()
+        if type == 'school':
+            profiles = self.school.profile_set.all()
+        elif type == 'homeroom':
+            profiles = self.homeroom.profile_set.all()
+        elif type == 'subject':
+            classrooms = self.subject.classroom_set.all()
+            homerooms = [classroom.homeroom for classroom in classrooms]
+            q_objects  = Q() # 비어있는 Q 객체로 시작. 쿼리오브젝트.
+            for homeroom in homerooms:
+                q_objects |= Q(homeroom=homeroom)
+            profiles = Profile.objects.filter(q_objects)
+        elif type == 'classroom':
+            homeroom = self.classroom.homeroom
+            profiles = homeroom.profile_set.all()
+        return profiles
+    def get_school_model(self):
+        type, id = self.type()
+        if type == 'school':
+            return self.school
+        elif type == 'homeroom':
+            return self.homeroom.school
+        elif type == 'subject':
+            return self.subject.school
+        elif type == 'classroom':
+            return self.classroom.school
+    def redirect_to_upper(self):
+        '''박스를 소유한 객체로 리다이렉트.'''
+        type, object_id = self.type()
+        if type == 'school':
+            return redirect('school_report:school_main', object_id)
+        elif type == 'homeroom':
+            return redirect('school_report:homeroom_main', object_id)
+        elif type == 'subject':
+            return redirect('school_report:subject_main', object_id)
+        elif type == 'classroom':
+            return redirect('school_report:classroom_main', object_id)
 class Homework(models.Model):
     # 아래의 school은 곧장 연결되는 것으로.. 없을 수도 있음.
     # school이나 홈룸은 있으면 다 넣게 하면 어떨까?
-    school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)
-    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.  # 학급이나 학교에서 다대다로 가져가는 게 편할듯.
-    subject_object = models.ForeignKey('subject', on_delete=models.CASCADE, null=True, blank=True)  # 교과... 생각해보면, 학교, 학급, 교실, 교과 다 한 모델로 처리 가능하지 않나..
-    classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
+    homework_box = models.ForeignKey('HomeworkBox', on_delete=models.CASCADE, null=True, blank=True)
     # 위 4개 중 하나의 모델로 연결되어 있음.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author")
+    author_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True)
     subject = models.CharField(max_length=100)  # 제목
     content = models.TextField()  # 내용
 
@@ -146,9 +205,19 @@ class Homework(models.Model):
     modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
     is_secret = models.BooleanField(default=False)  # 익명설문 여부.(교사에게도)
-    is_secret_student = models.BooleanField(default=False)  # 아직 구현은 안했지만, 학생 대상 익명설문 여부.
-    is_special = models.TextField(null=True, blank=True, default=None)  # 특수평가 종류 입력.
+    is_secret_student = models.BooleanField(default=False)  # 아래의 원본. 지우자.
+    is_secret_user = models.BooleanField(default=False)  # 아직 구현은 안했지만, 학생 대상 익명설문 여부. 설문 대상에게 익명으로 할 경우.
+    is_special = models.CharField(max_length=20, null=True, blank=True, default=None)  # 특수평가 종류 입력.
     is_end = models.BooleanField(default=False)  # pending과도 혼용. deadline으로 처리할 수도 있지만.. 특수한 경우를 위해. False를 진행중으로. api작업에서 작업중임을 표시하기 위해서도.
+    is_pending = models.BooleanField(default=False)  # 훗날 AI에 활용. is_end가 True로 바뀔 때 False값을 갖게 하자.
+
+    ### 버려질 대상.
+    school = models.ForeignKey('School', on_delete=models.CASCADE, null=True, blank=True)  # 학교단위 설문용.
+    subject_object = models.ForeignKey('subject', on_delete=models.CASCADE, null=True, blank=True)  # 교과 지정 설문용.
+    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True,
+                                 blank=True)  # 공지할 학급.  # 학급이나 학교에서 다대다로 가져가는 게 편할듯.
+    classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
+
     def __str__(self):
         return self.subject
     def copy_create(self, classroom_list=None, subject_list=None):
@@ -176,15 +245,19 @@ class Homework(models.Model):
 
         copied_instance.save()  # 변경사항은 마지막에 반영.
         return copied_instance
-
-
 class HomeworkSubmit(models.Model):
     '''간단 과제제출, 동료평가 설문나누기용.'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
     # to_user에서 학생이 아직 등록하지 않은 상태라면? 경고를 주기라도 해야 할듯.
     to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아?
-    to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용.
-    title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비)
+    to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True,
+                                    default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯.
+                                   )  # 프로필에 과제 부여. 프로필 완성되면 위 지우자.
+
+    to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. # 프로필 완성되면 지울 것.
+    target_profile = models.ForeignKey('Profile', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='target_homeworks')  # 동료평가용.
+
+    title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비) #[지워보자.]
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정. # ai세특에서 df 저장하는 용도.
     ## check, read 등이 아니라 하나의 status로 바꾸면 어때? 하나로 표현하게.
     check = models.BooleanField(default=False)  # 과제 했는지 여부.
@@ -194,7 +267,7 @@ class HomeworkSubmit(models.Model):
     #     return str(self.to_user)
     def copy_create(self, homework_ob):
         copied_instance = HomeworkSubmit.objects.create(base_homework=homework_ob,
-            to_user=self.to_user, to_student=self.to_student, title=self.title,
+            to_user=self.to_user, title=self.title,
             content=self.content)
         return copied_instance
 class HomeworkQuestion(models.Model):
@@ -228,7 +301,8 @@ from django.dispatch import receiver
 class HomeworkAnswer(models.Model):
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자.
     submit = models.ForeignKey('HomeworkSubmit', on_delete=models.CASCADE, blank=True, null=True)  # 동료평가에서 쓰일 평가대상 나누기용 제출.
-    to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. 위 submit은 지워버리는 게 간편할듯.
+    to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. 평가 대상자에 대한 정보를 빠르게 모으기 위해.
+    target_profile = models.ForeignKey('Profile', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. 정리되면 위 지우자.
     question = models.ForeignKey('HomeworkQuestion', on_delete=models.CASCADE)
     contents = models.TextField(default=None, blank=True, null=True)  # 응답, 선택값들 담기.
     file = models.FileField(upload_to=get_upload_to, default=None, blank=True, null=True)  # 각종 파일을 담기 위한 필드.
@@ -246,6 +320,89 @@ class HomeworkAnswer(models.Model):
         super(HomeworkAnswer, self).save(*args, **kwargs)
 @receiver(pre_delete, sender=HomeworkAnswer)
 def delete_homework_answer_file(sender, instance, **kwargs):
-    # 모델 인스턴스가 삭제되기 전에 파일을 삭제합니다.
+    # 모델 인스턴스(답변)가 삭제되기 전에 파일을 삭제합니다.
     if instance.file:
         instance.file.delete(save=False)
+
+class AnnounceBox(models.Model):
+    '''기본적으로 homeworkbox와 완전 동일.'''
+    '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
+    school = models.OneToOneField('School', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    homeroom = models.OneToOneField('Homeroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    classroom = models.OneToOneField('Classroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    subject = models.OneToOneField('subject', on_delete=models.CASCADE, default=None, null=True, blank=True)  # 교과.
+    def type(self):
+        '''어느 객체에 속한 박스인지. 속성, id 반환.'''
+        if self.school:
+            return 'school', self.school.id
+        elif self.homeroom:
+            return 'homeroom', self.homeroom.id
+        elif self.subject:
+            return 'subject', self.subject.id
+        elif self.classroom:
+            return 'classroom', self.classroom.id  # 인수가 2개임에 유의.
+    def get_profiles(self):
+        '''각 객체 하위의 모든 프로필을 불러온다.'''
+        type, id = self.type()
+        if type == 'school':
+            profiles = self.school.profile_set.all()
+        elif type == 'homeroom':
+            profiles = self.homeroom.profile_set.all()
+        elif type == 'subject':
+            classrooms = self.subject.classroom_set.all()
+            homerooms = [classroom.homeroom for classroom in classrooms]
+            q_objects  = Q() # 비어있는 Q 객체로 시작. 쿼리오브젝트.
+            for homeroom in homerooms:
+                q_objects |= Q(homeroom=homeroom)
+            profiles = Profile.objects.filter(q_objects)
+        elif type == 'classroom':
+            homeroom = self.classroom.homeroom
+            profiles = homeroom.profile_set.all()
+        return profiles
+    def get_school_model(self):
+        type, id = self.type()
+        if type == 'school':
+            return self.school
+        elif type == 'homeroom':
+            return self.homeroom.school
+        elif type == 'subject':
+            return self.subject.school
+        elif type == 'classroom':
+            return self.classroom.school
+    def redirect_to_upper(self):
+        '''박스를 소유한 객체로 리다이렉트.'''
+        type, object_id = self.type()
+        if type == 'school':
+            return redirect('school_report:school_main', object_id)
+        elif type == 'homeroom':
+            return redirect('school_report:homeroom_main', object_id)
+        elif type == 'subject':
+            return redirect('school_report:subject_main', object_id)
+        elif type == 'classroom':
+            return redirect('school_report:classroom_main', object_id)
+class Announcement(models.Model):
+    announce_box = models.ForeignKey('AnnounceBox', on_delete=models.CASCADE, null=True, blank=True)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Announce_author")
+    author_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True)
+    subject = models.CharField(max_length=100)  # 제목
+    content = models.TextField()  # 내용
+    create_date = models.DateTimeField(auto_now_add=True)
+    modify_date = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # 버려질 속성들.
+    homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 학급.
+    classroom = models.ForeignKey('Classroom', on_delete=models.CASCADE, null=True, blank=True)  # 공지할 교실.
+    def __str__(self):
+        return self.subject
+class AnnoIndividual(models.Model):
+    '''개별적으로 전달되는 공지. 과제랑 하나의 모델로 엮어도 크게 문제는 없지 않나? 과제에 announcement를 다는 방식으로.'''
+    base_announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE)
+    to_student = models.ForeignKey('Student', on_delete=models.CASCADE, null=True, blank=True)  # 각 개별 학생에게 전달되게끔.  # 프로필 완성되면 지우자.
+    to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True,
+                                   default=None  # 이건 모델 정리되면 지워도 될듯.
+                                   )  # 학교 프로필에 전달하게끔.
+    content = models.TextField(default=None, null=True, blank=True)  # 공지 내용.
+    read = models.BooleanField(default=False)  # 열람했는지 여부.
+    check = models.BooleanField(default=False)  # 확인 했는지 여부.
+    check_date = models.DateTimeField(null=True, blank=True)
+    def __str__(self):
+        return self.to_profile.name

@@ -27,7 +27,7 @@
 <div class="position-relative">
 <div class="position-absolute top-0 start-50 translate-middle">
 </div>
-{% if request.user == posting.author %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
+{% if request.user == posting.author_profile.admin %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
 <a href="{% url 'school_report:announcement_modify' posting.id%}" class="btn btn-primary">수정</a>
 <a href="#" data-uri="{% url 'school_report:announcement_delete' posting.id  %}" class="posting_delete btn btn-primary">삭제</a>
 </div>
