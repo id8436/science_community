@@ -34,7 +34,91 @@ def compound_interest(request):
 
 
 def do_DB(request):
-    '''24.03.12 반영. homework box 만들기.(학교, 학급, 교실, 교과)'''
+    # 과제 수정. author모델 새 프로필로 전환.
+    target_model = models.Homework.objects.all()
+    for i in target_model:
+        if i.author_profile:
+            continue  # 지정되어 있으면 굳이 찾지 말고.
+        if i.subject_object:
+            school = i.subject_object.school
+        elif i.classroom:
+            classroom = i.classroom
+            school = classroom.school
+        elif base_homework.homeroom:
+            school = i.homeroom.school
+        elif base_homework.homework_box:
+            school = box.get_school_model()
+        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
+        i.save()
+    # 공지 저자를 전환.
+    target_model = models.Announcement.objects.all()
+    for i in target_model:
+        if i.author_profile:
+            continue  # 지정되어 있으면 굳이 찾지 말고.
+        if i.classroom:
+            classroom = i.classroom
+            school = classroom.school
+        elif base_homework.homeroom:
+            school = i.homeroom.school
+        elif base_homework.homework_box:
+            school = box.get_school_model()
+        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
+        i.save()
+
+
+    return render(request, 'utility/main.html', {})
+
+def do_DB2(request):
+
+
+
+    return render(request, 'utility/main.html', {})
+
+
+def do_DB3(request):
+
+    # classroom. teacher에서 전환.
+    target_model = models.Classroom.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher == None:  # 새로 만들어진 객체에선 교사모델 없음.
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    # homeroom.
+    target_model = models.Homeroom.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher == None:
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    # subject.
+    target_model = models.Subject.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher == None:
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    return render(request, 'utility/main.html', {})
+
+# 끝난 것들.
+'''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
+answers = models.HomeworkAnswer.objects.all()
+print(answers)
+for answer in answers:
+    try:
+        print(answer.submit)
+        answer.to_student = answer.submit.to_student
+    except:
+        pass'''
+
+'''24.03.12 반영. homework box 만들기.(학교, 학급, 교실, 교과)'''
+'''
     # 각 객체별 homeworkbox 생성.
     target_model = models.School.objects.all()
     for i in target_model:
@@ -90,12 +174,6 @@ def do_DB(request):
             profile.save()
         except:
             pass
-
-
-    return render(request, 'utility/main.html', {})
-
-def do_DB2(request):
-
     # 기존 제출 교사, 학생 프로필 새 프로필로 전환.
     target_model = models.HomeworkSubmit.objects.all()
     for i in target_model:
@@ -121,74 +199,7 @@ def do_DB2(request):
             pass
         i.save()
 
-    return render(request, 'utility/main.html', {})
 
 
-def do_DB3(request):
-    # 과제 수정. author모델 새 프로필로 전환.
-    target_model = models.Homework.objects.all()
-    for i in target_model:
-        if i.subject_object:
-            school = i.subject_object.school
-        elif i.classroom:
-            classroom = i.classroom
-            school = classroom.school
-        elif base_homework.homeroom:
-            school = i.homeroom.school
-        elif base_homework.homework_box:
-            school = box.get_school_model()
-        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
-        i.save()
-    # 공지 저자를 전환.
-    target_model = models.Announcement.objects.all()
-    for i in target_model:
-        if i.author_profile:
-            continue  # 지정되어 있으면 굳이 찾지 말고.
-        if i.classroom:
-            classroom = i.classroom
-            school = classroom.school
-        elif base_homework.homeroom:
-            school = i.homeroom.school
-        elif base_homework.homework_box:
-            school = box.get_school_model()
-        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
-        i.save()
-    # classroom. teacher에서 전환.
-    target_model = models.Classroom.objects.all()
-    for i in target_model:
-        teacher = i.master
-        if teacher == None:  # 새로 만들어진 객체에선 교사모델 없음.
-            continue
-        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
-        i.master_profile = profile
-        i.save()
-    # homeroom.
-    target_model = models.Homeroom.objects.all()
-    for i in target_model:
-        teacher = i.master
-        if teacher == None:
-            continue
-        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
-        i.master_profile = profile
-        i.save()
-    # subject.
-    target_model = models.Subject.objects.all()
-    for i in target_model:
-        teacher = i.master
-        if teacher == None:
-            continue
-        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
-        i.master_profile = profile
-        i.save()
-    return render(request, 'utility/main.html', {})
 
-# 끝난 것들.
-'''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
-answers = models.HomeworkAnswer.objects.all()
-print(answers)
-for answer in answers:
-    try:
-        print(answer.submit)
-        answer.to_student = answer.submit.to_student
-    except:
-        pass'''
+'''
