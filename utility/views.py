@@ -142,6 +142,8 @@ def do_DB3(request):
     # 공지 저자를 전환.
     target_model = models.Announcement.objects.all()
     for i in target_model:
+        if i.author_profile:
+            continue  # 지정되어 있으면 굳이 찾지 말고.
         if i.classroom:
             classroom = i.classroom
             school = classroom.school
