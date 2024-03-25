@@ -11,7 +11,7 @@ urlpatterns = [
     path('', views.main, name='main'),
     path('do_DB/', views.do_DB, name='do_DB'),  # 변동사항이 생겨 데이터베이스에 반영이 필요할 때.
     path('do_DB2/', views.do_DB2, name='do_DB2'),  # 변동사항이 생겨 데이터베이스에 반영이 필요할 때.
-    path('do_DB3/', views.do_DB2, name='do_DB3'),  # 변동사항이 생겨 데이터베이스에 반영이 필요할 때.
+    path('do_DB3/', views.do_DB3, name='do_DB3'),  # 변동사항이 생겨 데이터베이스에 반영이 필요할 때.
 
     path('compound_interest/', views.compound_interest, name='compound_interest'),
 

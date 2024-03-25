@@ -39,7 +39,9 @@ def do_DB(request):
     for i in target_model:
         if i.author_profile:
             continue  # 지정되어 있으면 굳이 찾지 말고.
-        if i.subject_object:
+        if i.school:
+            school = i.school
+        elif i.subject_object:
             school = i.subject_object.school
         elif i.classroom:
             classroom = i.classroom
