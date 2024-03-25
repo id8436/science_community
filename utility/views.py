@@ -72,14 +72,24 @@ def do_DB(request):
     for i in target_model:
         box, created = models.HomeworkBox.objects.get_or_create(subject=i)
 
+
+
+    return render(request, 'utility/main.html', {})
+
+def do_DB2(request):
     # 교사, 학생 프로필 전환.
     teacher = models.Teacher.objects.all()
     for i in teacher:
-        profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained, created=i.created, activated=i.activated, school=i.school, position='teacher', name=i.name)
+        profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained, created=i.created,
+                                                                activated=i.activated, school=i.school,
+                                                                position='teacher', name=i.name)
     student = models.Student.objects.all()
     for i in student:
         try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
-            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained, created=i.activated, activated=i.activated, school=i.school, position='student', name=i.name, code=i.code)
+            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
+                                                                    created=i.activated, activated=i.activated,
+                                                                    school=i.school, position='student', name=i.name,
+                                                                    code=i.code)
             for homeroom in i.homeroom.all():
                 profile.homeroom.add(homeroom)
             profile.save()
@@ -97,7 +107,7 @@ def do_DB(request):
             school = classroom.school
         elif base_homework.homeroom:
             school = base_homework.homeroom.school
-        elif base_homework.homework_box: # base_homework.homework_box
+        elif base_homework.homework_box:  # base_homework.homework_box
             box = base_homework.homework_box
             school = box.get_school_model()
         else:
@@ -109,6 +119,11 @@ def do_DB(request):
         except:
             pass
         i.save()
+
+    return render(request, 'utility/main.html', {})
+
+
+def do_DB3(request):
     # 과제 수정. author모델 새 프로필로 전환.
     target_model = models.Homework.objects.all()
     for i in target_model:
@@ -139,7 +154,7 @@ def do_DB(request):
     target_model = models.Classroom.objects.all()
     for i in target_model:
         teacher = i.master
-        if teacher ==None:  # 새로 만들어진 객체에선 교사모델 없음.
+        if teacher == None:  # 새로 만들어진 객체에선 교사모델 없음.
             continue
         profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
         i.master_profile = profile
@@ -148,7 +163,7 @@ def do_DB(request):
     target_model = models.Homeroom.objects.all()
     for i in target_model:
         teacher = i.master
-        if teacher ==None:
+        if teacher == None:
             continue
         profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
         i.master_profile = profile
@@ -157,18 +172,20 @@ def do_DB(request):
     target_model = models.Subject.objects.all()
     for i in target_model:
         teacher = i.master
-        if teacher ==None:
+        if teacher == None:
             continue
         profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
         i.master_profile = profile
         i.save()
-    '''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
-    answers = models.HomeworkAnswer.objects.all()
-    print(answers)
-    for answer in answers:
-        try:
-            print(answer.submit)
-            answer.to_student = answer.submit.to_student
-        except:
-            pass'''
     return render(request, 'utility/main.html', {})
+
+# 끝난 것들.
+'''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
+answers = models.HomeworkAnswer.objects.all()
+print(answers)
+for answer in answers:
+    try:
+        print(answer.submit)
+        answer.to_student = answer.submit.to_student
+    except:
+        pass'''
