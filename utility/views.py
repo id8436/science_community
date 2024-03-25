@@ -2,6 +2,7 @@ from django.http import HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 from .forms import *
 from django.contrib import messages  # 메시지 모듈을 불러오고,
+from school_report import models
 
 
 def main(request):
@@ -32,11 +33,8 @@ def compound_interest(request):
     return render(request, 'utility/compound_interest.html', context)
 
 
-
-from school_report.models import HomeworkSubmit
 def do_DB(request):
     '''24.03.12 반영. homework box 만들기.(학교, 학급, 교실, 교과)'''
-    from school_report import models
     # 각 객체별 homeworkbox 생성.
     target_model = models.School.objects.all()
     for i in target_model:
