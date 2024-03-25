@@ -62,10 +62,14 @@ def do_DB(request):
         if i.classroom:
             classroom = i.classroom
             school = classroom.school
-        elif base_homework.homeroom:
+        elif i.homeroom:
             school = i.homeroom.school
-        elif base_homework.homework_box:
+        elif i.homework_box:
             school = box.get_school_model()
+        elif i.school:
+            school = i.school
+        else:
+            pass # 진짜 오래된 모델은 연결점이 없음.
         i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
         i.save()
 
