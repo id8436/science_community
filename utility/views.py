@@ -70,15 +70,11 @@ def do_DB(request):
     for i in target_model:
         box, created = models.HomeworkBox.objects.get_or_create(subject=i)
 
-
-
-    return render(request, 'utility/main.html', {})
-
-def do_DB2(request):
     # 교사, 학생 프로필 전환.
     teacher = models.Teacher.objects.all()
     for i in teacher:
-        profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained, created=i.created,
+        profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
+                                                                created=i.created,
                                                                 activated=i.activated, school=i.school,
                                                                 position='teacher', name=i.name)
     student = models.Student.objects.all()
@@ -86,13 +82,20 @@ def do_DB2(request):
         try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
             profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
                                                                     created=i.activated, activated=i.activated,
-                                                                    school=i.school, position='student', name=i.name,
+                                                                    school=i.school, position='student',
+                                                                    name=i.name,
                                                                     code=i.code)
             for homeroom in i.homeroom.all():
                 profile.homeroom.add(homeroom)
             profile.save()
         except:
             pass
+
+
+    return render(request, 'utility/main.html', {})
+
+def do_DB2(request):
+
     # 기존 제출 교사, 학생 프로필 새 프로필로 전환.
     target_model = models.HomeworkSubmit.objects.all()
     for i in target_model:
