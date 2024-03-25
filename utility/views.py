@@ -44,9 +44,9 @@ def do_DB(request):
         elif i.classroom:
             classroom = i.classroom
             school = classroom.school
-        elif base_homework.homeroom:
+        elif i.homeroom:
             school = i.homeroom.school
-        elif base_homework.homework_box:
+        elif i.homework_box:
             school = box.get_school_model()
         i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
         i.save()
