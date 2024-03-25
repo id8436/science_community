@@ -50,6 +50,8 @@ def do_DB(request):
             school = i.homeroom.school
         elif i.homework_box:
             school = box.get_school_model()
+        else:
+            continue  # 여기에서 에러 나는 건 진~짜 오래된 객체이기 때문에.
         i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
         i.save()
     # 공지 저자를 전환.
