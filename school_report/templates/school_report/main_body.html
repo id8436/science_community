@@ -1,44 +1,27 @@
-{% if teacher %}
-교사프로필
-<!-- 연결된 교사 객체를 가져온다. -->
-{% for teacher in user.teacher_user.all %}
-<div>
-    {{ teacher }}선생님(활성일자:{{teacher.activated}})<br>
-    <p>소속 : <a href="{% url 'school_report:school_main' teacher.school.id %}">{{ teacher.school }}</a>
-    {% if teacher.school.master == user %}(주 관리자){%endif%}</p>
+{% for profile in user.school_profile.all %}
 
-    {% if teacher.homeroom_set.all %}
-        담임학급(주관리자)
-    {% with teacher.homeroom_set.all as homeroom_list %}
+{{profile}}{% if profile.position == 'teacher'%} 선생님{%endif%}(활성일자:{{profile.activated}})
+<p>소속 : <a href="{% url 'school_report:school_main' profile.school.id %}">{{ profile.school }}</a></p>
+<p>소속 학급
+    {% with profile.homeroom_master.all as homeroom_list %}
         {% include "school_report/homeroom/list.html" %}
     {% endwith %}
-    {%endif%}
-
-    <br>하위 교과교실
-    {% with teacher.classroom_set.all as classroom_list %}
-        {% include "school_report/classroom/list.html" %}
+</p>
+{% if profile.position == 'teacher'%}
+<p>하위 교과
+    {% with profile.subject_set.all as subject_list %}
+        {% include "school_report/school/subject/list.html" %}
     {% endwith %}
-{%endfor%}
-</div>{%endif%}
+</p>
+{% else %}
+<p>소속 교과
+    {% with profile.subject_set.all as subject_list %}
+        {% include "school_report/school/subject/list.html" %}
+    {% endwith %}
+</p>
+{% endif %}
+{% endfor %}
 
-{% if user.student_user.all %}
-{% for student in user.student_user.all %}
-    {{ student }}학생(활성일자:{{student.activated}})<br>
-    <p>소속 : <a href="{% url 'school_report:school_main' student.school.id %}">{{ student.school }}</a></p>
-
-    {% if student.homeroom.all %}
-    <br>소속 학급
-    {% with student.homeroom.all as homeroom_list %}
-        {% include "school_report/homeroom/list.html" %}
-    {% endwith %}    {% endif %}
-
-    {% if student.homeroom.classroom_set.all %}
-    <br>소속 교과
-    {% with student.homeroom.classroom_set.all as classroom_list %}
-        {% include "school_report/classroom/list.html" %}
-    {% endwith %}    {% endif %}
-
-{%endfor%}{% endif %}
 
 
 학교 찾기

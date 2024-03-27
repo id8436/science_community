@@ -76,7 +76,7 @@ class Teacher(models.Model):
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='teacher_user')  # 교사계정 소유자.
     obtained = models.BooleanField(default=False)
     name = models.CharField(max_length=10)  # 실명을 기입하게 하자.
-    code = models.TextField(null=True, blank=True)  # 교사프로필을 습득할 수 있게 하는 코드. 습득 후 지우게끔 하자. 코드가 1이 되면 소유하고 있음.
+    code = models.TextField(null=True, blank=True)  # 교사프로필을 습득할 수 있게 하는 코드. 습득 후 지우게끔 하자.
     created = models.DateTimeField(auto_now_add=True)
     activated = models.DateTimeField(auto_now=True, null=True, blank=True)
     # 소유 객체들.
@@ -101,7 +101,7 @@ class Student(models.Model):
     student_code = models.CharField(max_length=20)  # 학생 인증코드.(학번 등)
     name = models.CharField(max_length=10)  # 학생 이름.
     obtained = models.BooleanField(default=False)
-    code = models.TextField(null=True, blank=True)
+    code = models.TextField(null=True, blank=True)  # 인증용.
     activated = models.DateTimeField(auto_now=True, null=True, blank=True)
     def __str__(self):
         return str(self.student_code)+ self.name
@@ -114,7 +114,7 @@ class Student(models.Model):
 class Profile(models.Model):
     # 교사, 학생 정보를 담는 프로필.
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-                              related_name='school_user')
+                              related_name='school_profile')
     # 어드민이지워질 때 학생계정이 지워지면 누군가 악용할 수 있다 싶어서... null로 둔다.
     obtained = models.BooleanField(default=False)  # 등록 되었는지 여부.
     created = models.DateTimeField(auto_now_add=True)
@@ -135,7 +135,7 @@ class Profile(models.Model):
         unique_together = (
             ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
         )
-        ordering = ['code']
+        ordering = ['-activated', 'code']
 class HomeworkBox(models.Model):
     '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
     school = models.OneToOneField('School', on_delete=models.CASCADE, default=None, null=True, blank=True)

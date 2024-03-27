@@ -61,22 +61,19 @@ urlpatterns = [
     path('classroom/create/<int:school_id>/', classroom.create, name='classroom_create'),
     path('classroom/main/<int:classroom_id>/', classroom.main, name='classroom_main'),
     # 과제
-    path('classroom/homework/create/<int:homework_box_id>/', homework.create, name='homework_create'),
+    path('homework/create/<int:homework_box_id>/', homework.create, name='homework_create'),
     path('detail/<int:posting_id>/', homework.detail, name='homework_detail'),
     path('homework/modify/<int:posting_id>/', homework.modify, name='homework_modify'),
     path('homework/delete/<int:posting_id>/', homework.delete, name='homework_delete'),
     path('classroom/homework/resubmit/<int:submit_id>/', classroom.homework_resubmit, name='homework_resubmit'),
     path('classroom/homework/check/<int:classroom_id>/', classroom.homework_check_spreadsheet, name='homework_check_spreadsheet'),
-    path('classroom/homework/copy/<int:homework_id>/', classroom.homework_copy, name='homework_copy'),
+    path('homework/copy/<int:homework_id>/', homework.copy, name='homework_copy'),
     path('classroom/homework/end_cancel/<int:homework_id>/', classroom.homework_end_cancel, name='homework_end_cancel'),
     path('classroom/homework/homework_end/<int:homework_id>/', classroom.homework_end, name='homework_end'),
-
-
-
     # 설문 관련.
-    path('classroom/homework/survey_create/<int:posting_id>/', classroom.homework_survey_create, name='homework_survey_create'),
-    path('classroom/homework/survey_submit/<int:submit_id>/', classroom.homework_survey_submit, name='homework_survey_submit'),
-    path('classroom/homework/survey_statistics/<int:submit_id>/', classroom.homework_survey_statistics, name='homework_survey_statistics'),
+    path('homework/survey_create/<int:posting_id>/', homework.survey_create, name='homework_survey_create'),
+    path('homework/survey_submit/<int:submit_id>/', homework.survey_submit, name='homework_survey_submit'),
+    path('homework/survey_statistics/<int:submit_id>/', homework.survey_statistics, name='homework_survey_statistics'),
     path('classroom/homework/survey_statistics_spreadsheet/<int:posting_id>/', classroom.homework_survey_statistics_spreadsheet,
          name='homework_survey_statistics_spreadsheet'),
     path('classroom/homework/spreadsheet_to_excel_download/<int:posting_id>/', classroom.spreadsheet_to_excel_download,

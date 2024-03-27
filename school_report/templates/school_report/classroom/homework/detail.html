@@ -78,7 +78,7 @@ $(document).ready(function(){
     {% if submit_list %}
     {% for annoIndividual in submit_list %}
     <tr>
-        <td>{{annoIndividual.who}}</td>
+        <td>{{annoIndividual.to_profile}}</td>
         {% if annoIndividual.check %}
         <td>제출</td>
         <td>{{annoIndividual.submit_date|date:'m.d H:i'}}</td>
@@ -129,7 +129,7 @@ $(document).ready(function(){
     {% if private_submits %}
     {% for private_submit in private_submits%}
     <tr>
-        <td>{{private_submit.who}}</td>
+        <td>{{private_submit.to_profile}}</td>
         {% if private_submit.check %}
         <td>제출</td>
         <td>{{private_submit.submit_date|date:'m.d H:i'}}</td>

@@ -34,44 +34,7 @@ def compound_interest(request):
 
 
 def do_DB(request):
-    # 과제 수정. author모델 새 프로필로 전환.
-    target_model = models.Homework.objects.all()
-    for i in target_model:
-        if i.author_profile:
-            continue  # 지정되어 있으면 굳이 찾지 말고.
-        if i.school:
-            school = i.school
-        elif i.subject_object:
-            school = i.subject_object.school
-        elif i.classroom:
-            classroom = i.classroom
-            school = classroom.school
-        elif i.homeroom:
-            school = i.homeroom.school
-        elif i.homework_box:
-            school = box.get_school_model()
-        else:
-            continue  # 여기에서 에러 나는 건 진~짜 오래된 객체이기 때문에.
-        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
-        i.save()
-    # 공지 저자를 전환.
-    target_model = models.Announcement.objects.all()
-    for i in target_model:
-        if i.author_profile:
-            continue  # 지정되어 있으면 굳이 찾지 말고.
-        if i.classroom:
-            classroom = i.classroom
-            school = classroom.school
-        elif i.homeroom:
-            school = i.homeroom.school
-        elif i.homework_box:
-            school = box.get_school_model()
-        elif i.school:
-            school = i.school
-        else:
-            pass # 진짜 오래된 모델은 연결점이 없음.
-        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
-        i.save()
+
 
 
     return render(request, 'utility/main.html', {})
@@ -85,33 +48,7 @@ def do_DB2(request):
 
 def do_DB3(request):
 
-    # classroom. teacher에서 전환.
-    target_model = models.Classroom.objects.all()
-    for i in target_model:
-        teacher = i.master
-        if teacher == None:  # 새로 만들어진 객체에선 교사모델 없음.
-            continue
-        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
-        i.master_profile = profile
-        i.save()
-    # homeroom.
-    target_model = models.Homeroom.objects.all()
-    for i in target_model:
-        teacher = i.master
-        if teacher == None:
-            continue
-        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
-        i.master_profile = profile
-        i.save()
-    # subject.
-    target_model = models.Subject.objects.all()
-    for i in target_model:
-        teacher = i.master
-        if teacher == None:
-            continue
-        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
-        i.master_profile = profile
-        i.save()
+
     return render(request, 'utility/main.html', {})
 
 # 끝난 것들.
@@ -206,8 +143,71 @@ for answer in answers:
         except:
             pass
         i.save()
-
-
+# 과제 수정. author모델 새 프로필로 전환.
+    target_model = models.Homework.objects.all()
+    for i in target_model:
+        if i.author_profile:
+            continue  # 지정되어 있으면 굳이 찾지 말고.
+        if i.school:
+            school = i.school
+        elif i.subject_object:
+            school = i.subject_object.school
+        elif i.classroom:
+            classroom = i.classroom
+            school = classroom.school
+        elif i.homeroom:
+            school = i.homeroom.school
+        elif i.homework_box:
+            school = box.get_school_model()
+        else:
+            continue  # 여기에서 에러 나는 건 진~짜 오래된 객체이기 때문에.
+        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
+        i.save()
+    # 공지 저자를 전환.
+    target_model = models.Announcement.objects.all()
+    for i in target_model:
+        if i.author_profile:
+            continue  # 지정되어 있으면 굳이 찾지 말고.
+        if i.classroom:
+            classroom = i.classroom
+            school = classroom.school
+        elif i.homeroom:
+            school = i.homeroom.school
+        elif i.homework_box:
+            school = box.get_school_model()
+        elif i.school:
+            school = i.school
+        else:
+            pass # 진짜 오래된 모델은 연결점이 없음.
+        i.author_profile = models.Profile.objects.filter(admin=i.author, school=school).first()
+        i.save()
+    # classroom. teacher에서 전환.
+    target_model = models.Classroom.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher == None:  # 새로 만들어진 객체에선 교사모델 없음.
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    # homeroom.
+    target_model = models.Homeroom.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher == None:
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
+    # subject.
+    target_model = models.Subject.objects.all()
+    for i in target_model:
+        teacher = i.master
+        if teacher == None:
+            continue
+        profile = models.Profile.objects.filter(admin=teacher.admin, school=teacher.school).first()
+        i.master_profile = profile
+        i.save()
 
 
 '''

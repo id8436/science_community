@@ -134,7 +134,280 @@ def delete(request, posting_id):
     messages.success(request, '삭제 성공~!')
     homework_box = homework.homework_box
     return homework_box.redirect_to_upper()  # box를 소유한 상위객체로 리다이렉트.
-def distribution(homework, user):  # [profile로 바꾸자.]
+def survey_create(request, posting_id):
+    '''설문의 수정도 이곳에서 처리.'''
+    homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
+    context = {'posting': homework}
+
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        if homework.author_profile.admin == request.user:  # 과제의 주인인 경우에만 가능.
+            previous_question = list(homework.homeworkquestion_set.all())  # 기존에 등록되어 있던 질문들. list로 불러야 현재 상황 반영.
+            question_type = request.POST.getlist('question_type')
+            is_essential = request.POST.getlist('is_essential')
+            is_special = request.POST.getlist('is_special')
+            question_title = request.POST.getlist('question_title')
+            question_id = request.POST.getlist('question_id')
+            for i in range(len(question_type)):  # 질문 갯수만큼 순회.
+                j = i+1
+                try:  # 만들어진 것 같다면 불러와본다.
+                    question = models.HomeworkQuestion.objects.get(pk=question_id[i])
+                    if question.homework != homework:  # 기존 질문이 상위과제와 일치하지 않는다면 부정접근.
+                        messages.error(request,'부정접근')
+                        return redirect('school_report:homework_detail', posting_id=homework.id)
+                    if question in previous_question:  # 기존 질문에 있던 거라면
+                        previous_question.remove(question)  # 리스트에서 제거.
+                    question.question_title = question_title[i]
+                except:  # 없다면 새로 만들기.
+                    question = models.HomeworkQuestion.objects.create(homework=homework, question_title=question_title[i])
+                # 일단 생성 후 단순 정보 담기.
+                question.question_type = question_type[i]
+                question.ordering = j  # 순서정렬용 인덱스를 설정한다.
+                # 데이터형 변경 후 넣기.
+                if is_essential[i] == 'True':
+                    is_essential[i] = True
+                else:
+                    is_essential[i] = False
+                question.is_essential = is_essential[i]
+                if is_special[i] == 'True':
+                    is_special[i] = True
+                else:
+                    is_special[i] = False
+                question.is_special = is_special[i]
+
+                # 기능 저장.
+                if request.POST.getlist('option'+str(j)):  # 문항 하위의 옵션 여부.
+                    question.options = json.dumps(request.POST.getlist('option'+str(j)))  # 옵션 저장.
+                if request.POST.get('upper_lim'+str(j)):  # 문항 하위의 옵션 여부.
+                    question.upper_lim = float(request.POST.get('upper_lim'+str(j)))  # 옵션 저장.
+                if request.POST.get('lower_lim' + str(j)):  # 문항 하위의 옵션 여부.
+                    question.lower_lim = float(request.POST.get('lower_lim' + str(j)))  # 옵션 저장.
+                question.save()
+        for remain in previous_question:  # 남겨진 녀석들은 지운다.
+            remain.delete()
+        return redirect('school_report:homework_detail', posting_id=homework.id)
+    question_list = homework.homeworkquestion_set.all()
+    question_list = question_list.order_by('ordering')  # 주어진 순서대로 정렬.
+    context['question_list'] = question_list
+    for question in question_list:  # option값을 탬플릿에 전달하기 위함.
+        if question.options:
+            question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
+    return render(request, 'school_report/classroom/homework/survey/create.html', context)
+@login_required()
+def survey_submit(request, submit_id):
+    '''submit_id는 개별 아이디니... 설문 자체에 접근하게끔 하는 방략을 생각해야 할듯. 설문 ID를 주고..?
+    설문 자체에 대한 링크는 주지 않는 게 좋을듯.'''
+    '''사용자의 설문 제출.'''
+    submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
+    homework = submit.base_homework
+    # 제출기한이 지났다면 제출되지 않도록.
+    if homework.deadline:
+        import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
+        deadline = homework.deadline.astimezone(pytz.UTC)
+        if deadline < datetime.now(pytz.UTC) or homework.is_end:  # 데드라인이 지났다면... 안되지.
+            messages.error(request, "이미 제출기한이 지난 과제입니다.")
+            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+
+    context = {'posting': homework, 'submit':submit}
+    # 설문 정보 불러오기.
+    question_list = homework.homeworkquestion_set.all().order_by('ordering')
+    for question in question_list:  # option값을 탬플릿에 전달하기 위함.
+        if question.options:
+            question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
+
+    # 본인의 설문인지 검사.
+    if submit.to_profile.admin == request.user:
+        pass
+    else:
+        messages.error(request, '다른 사람의 응답을 할 수는 없어요~')
+        return redirect('school_report:homework_detail', posting_id=homework.id)
+
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        for question_id in request.POST.getlist('question'):
+            question = models.HomeworkQuestion.objects.get(pk=question_id)
+            if question.homework != homework:  # 부정접근 방지.
+                return redirect('school_report:homework_detail', posting_id=homework.id)
+            answer,_ = models.HomeworkAnswer.objects.get_or_create(respondent=request.user, question=question, to_profile=submit.to_profile)
+            # response 태그가 있는 경우.
+            response = request.POST.get('response'+question_id)
+            if response:
+                answer.contents = response
+                question.respond = response  # 표시를 위해 담기.
+            # option이 있는 경우. json으로 담는다.(객관식 선택의 경우임.)
+            option = request.POST.getlist('option_for'+question_id)
+            if option:
+                answer.contents = json.dumps(option, ensure_ascii=False)
+            # file이 있는 경우.
+            file = request.FILES.get('response' + question_id)
+            if file:
+                answer.file.delete()  # 기존 파일 삭제.
+                # 여기서 파일에 대한 검사를 수행합니다.
+                # 예를 들어, 파일 크기가 10MB를 초과하는지 검사할 수 있습니다.
+                if file.size > 10 * 1024 * 1024:
+                    return HttpResponseBadRequest("10MB를 초과합니다.")
+                # 파일을 모델에 저장합니다.
+                answer.file = file  # 업로드.
+            answer.save()
+
+        submit.check = True
+        submit.submit_date =datetime.now()
+        submit.save()
+        return redirect('school_report:homework_detail', posting_id=homework.id)
+
+    for question in question_list:
+        try:  # 연동된 제출의 응답 가져오기.
+            answer = models.HomeworkAnswer.objects.get(respondent=request.user,
+                                                       question=question, to_profile=submit.to_profile)
+            question.response = answer.contents  # 기존 답변을 추가하기 위한 과정.
+            # 파일이 있다면 반영.
+            if answer.file:
+                question.response = answer.file
+            if question.options:  # 객관식, 드롭다운의 경우 선택지를 담기 위함.
+                question.answer_list = json.loads(answer.contents)  # 선택지와 비교하기 위해.
+        except Exception as e:
+            # 에러가 났다는 건 json을 만들 수 없는 단일데이터라는 것.
+            print(e)
+    context['question_list'] = question_list
+
+    return render(request, 'school_report/classroom/homework/survey/submit.html', context)
+def survey_statistics(request, submit_id):
+    '''과제 통계 제시.'''
+    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    homework = submit.base_homework
+    question_list = homework.homeworkquestion_set.order_by('ordering')
+    context = {}
+    school = homework.homework_box.get_school_model()
+    teacher = check.Teacher(user=request.user, school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
+
+    if submit.to_profile.admin == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+        if not teacher and homework.is_secret_student:
+            messages.error(request, '학생들에겐 비공개 되어 있습니다.')
+            return redirect(request.META.get('HTTP_REFERER', None))
+        question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
+        context['question_list'] = question_list
+        context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.
+        return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
+    else:
+        messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
+        return redirect(request.META.get('HTTP_REFERER', None))
+def question_list_statistics(question_list, submit):
+    '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
+    for question in question_list:
+        answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=submit.to_profile)
+        question.answer_count = answers.count()  # 갯수 따로 저장.
+        origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
+        match question.question_type:  # 중복되는 작동을 짧게 줄이기 위해.
+            case 'long':
+                question.question_type = 'short'
+            case 'dropdown':
+                question.question_type = 'multiple-choice'
+        match question.question_type:
+            case 'short':
+                df = pd.DataFrame.from_records(answers.values('contents'))  # 콘텐츠행만.
+                # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
+                contents_count = df['contents'].value_counts()
+                contents_percentage = df['contents'].value_counts(normalize=True) * 100
+                df['count'] = df['contents'].map(contents_count)
+                df['percentage'] = df['contents'].map(contents_percentage)
+                df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
+                # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
+                # df.set_index('contents', inplace=True)  # 인덱스 설정 하면 값이 안나와.
+                #df = df.sort_values('count', ascending=False).reset_index(drop=False)  # 정렬은 필요 없지;
+                df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
+                question.answers = df_dict
+            case 'numeric':
+                ## 숫자는 내 성적사이트 참고해서 다시;
+                if question.answer_count < 1:
+                    continue  # 등록된 정보가 없으면 에러가 나니, 패스.
+                df = pd.DataFrame.from_records(answers.values('contents'))
+                df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
+                df = df.astype({'score':float})
+                # 통계데이터와 인터벌 지정하기.
+                max = df['score'].max()
+                min = df['score'].min()
+                question.info = {}  # 사전에 담아두면 편하겠지.
+                interval_size = 10
+                n = (max - min) / interval_size
+                data_dict = {}
+                for i in range(interval_size):
+                    if i == 0:  # 최하점을 담기 위해. else 아래 것이 본체.
+                        ceriterion_min = round(min + n * i, 2)
+                        ceriterion_max = round(min + n * (i + 1), 2)
+                        interval_count = \
+                        df.loc[(df['score'] >= ceriterion_min) & (df['score'] <= ceriterion_max)].shape[
+                            0]  # 해당구간 데이터 세기.
+                        key_text = '{}이상, {}이하'.format(ceriterion_min, ceriterion_max)
+                        data_dict[key_text] = interval_count
+                    else:
+                        ceriterion_min = round(min + n * i, 2)
+                        ceriterion_max = round(min + n * (i + 1), 2)
+                        interval_count = df.loc[(df['score'] > ceriterion_min) & (df['score'] <= ceriterion_max)].shape[
+                            0]  # 해당구간 데이터 세기.
+                        key_text = '{}초과, {}이하'.format(ceriterion_min, ceriterion_max)
+                        data_dict[key_text] = interval_count
+                question.data_dict = data_dict  # context에 직접 담으면 다른 것들이랑 겹치니까.
+                # 통계데이터 계산
+                question.info['mean'] = df.mean(axis=0)[0]
+                question.info['var']= df.var(axis=0)[0]
+                question.info['std'] = df.std(axis=0)[0]
+                question.info['mode'] = df.mode(axis=0).iloc[0][0]  # 최빈값.
+                question.info['median'] = df.median(axis=0)[0]
+                question.info['skew'] = df.skew(axis=0)[0]  # 왜도.
+                question.info['kurtosis'] = df.kurtosis(axis=0)[0]  # 첨도.
+                question.info['max'] = max
+                question.info['min'] = min
+            case 'multiple-choice':  # 2개 이상 동시 선택을 위해 json으로 저장한다.
+                df = pd.DataFrame({})  # 빈 df 제작.
+                for answer in answers:
+                    selects = json.loads(answer.contents)  # 리스트로 받는다. json.loads를 안해도 된다고...??
+                    if not isinstance(selects, list):  # 숫자형이거나, 다른 데이터 1개인 경우.
+                        df = df.append({'contents': selects}, ignore_index=True)  # 대답을 담는다.
+                    else:
+                        for select in selects:
+                            df = df.append({'contents':select}, ignore_index=True)  # 대답을 담는다.
+                # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
+                contents_count = df['contents'].value_counts()
+                contents_percentage = df['contents'].value_counts(normalize=True) * 100
+                df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
+                # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
+                df.set_index('contents', inplace=True)
+                df['count'] = contents_count
+                df['percentage'] = contents_percentage
+                df = df.sort_values('count', ascending=False).reset_index(drop=False)
+                df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
+                question.data_dict = df_dict
+        question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
+    return question_list
+#########################여기서부턴 미구현 과제들.
+def copy(request, homework_id):
+    homework = models.Homework.objects.get(id=homework_id)
+    context = {}
+    admin = homework.author
+    if request.method == 'POST':
+        print('포스트 들어옴.')
+        classroom_list = request.POST.getlist('classroom_list')
+        subject_list = request.POST.getlist('subject_list')
+        print(classroom_list)
+        print(subject_list)
+        # 여기부터 복사과정
+        copied = homework.copy_create(classroom_list=classroom_list, subject_list=subject_list)
+        return redirect('school_report:homework_detail', copied.id)
+    # 사용자가 관리하는 객체를 보이기 위한 사전작업.
+    if homework.school:
+        school = homework.school
+    elif homework.subject_object:
+        school = homework.subject_object.school
+    elif homework.classroom:
+        school = homework.classroom.school
+    # 사용자가 관리하는 객체들을 보여준다.
+    admin_teacher = models.Teacher.objects.get(admin=admin, school=school)
+    classroom_list = models.Classroom.objects.filter(master=admin_teacher, school=school)
+    subject_list = models.Subject.objects.filter(master=admin_teacher, school=school)
+    context['classroom_list'] = classroom_list
+    context['subject_list'] = subject_list
+
+    return render(request, 'school_report/classroom/homework/copy.html', context)
+#    return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
+def distribution(request, homework, user):  # [profile로 바꾸자.]
     # 개별 확인을 위한 개별과제 생성.
     # 개별 부여할 사람을 탬플릿에서 받는 것도 괜찮을듯...? 흠... []
     userlist = request.POST.getlist('user')
