@@ -2,24 +2,32 @@
 
 {{profile}}{% if profile.position == 'teacher'%} 선생님{%endif%}(활성일자:{{profile.activated}})
 <p>소속 : <a href="{% url 'school_report:school_main' profile.school.id %}">{{ profile.school }}</a></p>
-<p>소속 학급
+
+{% if profile.position == 'teacher'%}선생님이당 히힛
+<p>담임 학급
     {% with profile.homeroom_master.all as homeroom_list %}
         {% include "school_report/homeroom/list.html" %}
     {% endwith %}
 </p>
-{% if profile.position == 'teacher'%}
-<p>하위 교과
+<p>담당 교과
     {% with profile.subject_set.all as subject_list %}
         {% include "school_report/school/subject/list.html" %}
     {% endwith %}
 </p>
 {% else %}
+
+<p>소속 학급<br>
+    {% with profile.homeroom.all as homeroom_list %}
+        {% include "school_report/homeroom/list.html" %}
+    {% endwith %}
+</p>
 <p>소속 교과
-    {% with profile.subject_set.all as subject_list %}
-        {% include "school_report/school/subject/list.html" %}
+    {% with profile.classroom_set.all as classroom_list %}
+        {% include "school_report/classroom/list.html" %}
     {% endwith %}
 </p>
 {% endif %}
+
 {% endfor %}
 
 

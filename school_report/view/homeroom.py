@@ -61,7 +61,7 @@ from . import check
 def assignment(request, homeroom_id):
     homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
     context = {'homeroom': homeroom}
-    if check.Teacher(request, homeroom.school).in_school_and_none():
+    if check.Teacher(user=request.user, school=homeroom.school).in_school_and_none():
         resistered = models.Student.objects.filter(homeroom=homeroom, obtained=True)
         context['resistered'] = resistered
         unresistered = models.Student.objects.filter(homeroom=homeroom, obtained=False)  # 등록 안한 사람만 반환.

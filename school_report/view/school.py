@@ -63,6 +63,7 @@ def school_create(request):
             board_name = str(school.name) + " 교직원 게시판"
             board_name, _ = Board_name.objects.get_or_create(name=board_name)  # 이름객체를 생성한다.(이거 은근 불편하네;; 역대 게시판을 모을 수 있다는 점에선 좋지만... 검색해도 될듯?)
             category = Board_category.objects.get(pk=7)  # 교직원게시판의 카테고리.
+            school.save()  # 객체 생성을 해야 게시판을 만들 수 있다.
             board, _ = Board.objects.get_or_create(board_name=board_name, category=category, enter_year=school.year, author=request.user, school=school)
             school.teacher_board_id = board.id  # 게시판 지정.
             school.save()
@@ -111,9 +112,9 @@ def download_excel_form(request, school_id):
     wb = openpyxl.Workbook()
     ws = wb.create_sheet('명단 form', 0)
     ws['A1'] = '이름'
-    ws['B1'] = '(선택사항)담임학급명(학년, 반보다 우선)'
-    ws['C1'] = '학년(선택사항)'
-    ws['D1'] = '반(선택사항)'
+    ws['B1'] = '학년(선택사항)'
+    ws['C1'] = '반(선택사항)'
+    ws['D1'] = '(선택사항)담임학급명(학년, 반보다 우선)'
     students = school.teacher_set.all()
     a = 'A'  # 이름 담을 라인.
     for i, teacher in enumerate(students):
@@ -149,8 +150,8 @@ def upload_excel_form(request, school_id):
         if request.user == school.master:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 name = data[0]
-                if data[1]:
-                    homeroom_name = data[1]
+                if data[3]:
+                    homeroom_name = data[3]
                 else:
                     homeroom_name = f'{data[1]}학년 {data[2]}반'
                 teacher, created = models.Profile.objects.get_or_create(name=name, school=school)
@@ -161,9 +162,10 @@ def upload_excel_form(request, school_id):
                 # 학급정보가 있다면 그냥 만들어버리기.
                 if homeroom_name != None:  # 학급, 학년정보가 있다면.
                     # 가능하면 교사 1인이 홈룸 1개 갖게끔...
-                    homeroom, created = models.Homeroom.objects.get_or_create(school=school, name=homeroom_name)
+                    homeroom, created = models.Homeroom.objects.get_or_create(school=school, name=homeroom_name, grade=data[1], cl_num=data[2])
                     homeroom.master_profile = teacher
                     homeroom.save()
+                    homework_box, created = models.HomeworkBox.objects.get_or_create(homeroom=homeroom)
 
     return redirect('school_report:teacher_assignment', school_id=school_id)  # 필요에 따라 렌더링.
 
@@ -280,7 +282,7 @@ def school_student_upload_excel_form(request, school_id):
             pass
         else:
             messages.error(request, '이 기능은 관리자만이 가능합니다.')
-            return check.Teacher(request, school).redirect_to_school()
+            return check.Teacher(school=school).redirect_to_school()
         uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
         wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
         work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.

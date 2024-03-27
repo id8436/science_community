@@ -34,8 +34,8 @@ class Homeroom(models.Model):
     grade = models.IntegerField(null=True, blank=True)   # 학년
     cl_num = models.IntegerField(null=True, blank=True)  # 반
     name = models.CharField(max_length=20, null=True, blank=True)  # 학년반 대신 학급명을 사용하는 경우.
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자.
-    master_profile = models.ForeignKey('Profile', on_delete=models.PROTECT, null=True, related_name='homeroom_master')  # 이거 완성되면 위는 지우기.
+    master = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True)  # 메인관리자.
+    master_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True, related_name='homeroom_master')  # 이거 완성되면 위는 지우기.
     code = models.TextField()  # 비밀코드
     def __str__(self):
         return self.name
@@ -47,8 +47,8 @@ class Subject(models.Model):
     '''학교 하위의, 클래스룸을 만들기 위한 교과.'''
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.
     subject_name = models.CharField(max_length=20)  # 과목명
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True, blank=True)  # 메인관리자. 아래로 옮겨진 것 같으면 지워버려~
-    master_profile = models.ForeignKey('Profile', on_delete=models.PROTECT, null=True, blank=True)  # 추후 정리 되면 blank 등 속성도 지우자.
+    master = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True)  # 메인관리자. 아래로 옮겨진 것 같으면 지워버려~
+    master_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True, blank=True)  # 추후 정리 되면 blank 등 속성도 지우자.
     subject_identifier = models.CharField(max_length=10, null=True, blank=True)  # 학생들에게 보여지지 않는 구분자.(같은 과목으로 여러 학년 들어갈 때)
     def __str__(self):
         return self.subject_name
@@ -61,8 +61,8 @@ class Classroom(models.Model):
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)  # 연결할 모델.
     subject = models.CharField(max_length=10)  # 과목명  # 상위 과목의 과목명으로 연결될 거니까, 25년이 지나면 지워도 괜찮을듯. 그때 위의 null과 블랭크 조건 없애자.
-    master = models.ForeignKey('Teacher', on_delete=models.PROTECT, null=True)  # 메인관리자.
-    master_profile = models.ForeignKey('Profile', on_delete=models.PROTECT, null=True)  # 훗날 null을 없애는 날이 오길...!
+    master = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True)  # 메인관리자.
+    master_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True)  # 훗날 null을 없애는 날이 오길...!
     # 나중에 메인관리자나 관리집단도 유저모델에 직접 연결시키자.
     name = models.CharField(max_length=25, null=True, blank=True)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯? 역시, 25년이 지나면 지워도 괜찮을듯.
     def __str__(self):

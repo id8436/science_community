@@ -1,7 +1,7 @@
 {% extends "school_report/section.html" %}
 {% block content %}
 교과 페이지 메인.
-{{classroom}}
+{{subject}}, 담당 : {{subject.master_profile}} 선생님.
 <br>소속학교 : <a href="{% url 'school_report:school_main' subject.school.id %}">{{subject.school}}</a><br>
 <a href="{% url 'school_report:classroom_create' subject.id %}">과목 배정(교과교실 생성)</a>
 
