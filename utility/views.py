@@ -34,18 +34,6 @@ def compound_interest(request):
 
 
 def do_DB(request):
-    student = models.Profile.objects.all()
-    for profile in student:
-        if profile.position == "student":
-            if profile.homeroom.exists():
-                pass
-            else:
-                profile.delete()
-        else:  # 교사라면..
-            if profile.homeroom_master.exists():
-                pass
-            else:
-                profile.delete()
 
 
     return render(request, 'utility/main.html', {})
@@ -63,18 +51,25 @@ def do_DB3(request):
     return render(request, 'utility/main.html', {})
 
 # 끝난 것들.
-'''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
-answers = models.HomeworkAnswer.objects.all()
-print(answers)
-for answer in answers:
-    try:
-        print(answer.submit)
-        answer.to_student = answer.submit.to_student
-    except:
-        pass'''
 
-'''24.03.12 반영. homework box 만들기.(학교, 학급, 교실, 교과)'''
 '''
+24.3.28 반영.
+    student = models.Profile.objects.all()
+    for profile in student:
+        if profile.position == "student":
+            if profile.homeroom.exists():
+                pass
+            else:
+                profile.delete()
+        else:  # 교사라면..
+            if profile.homeroom_master.exists():
+                pass
+            else:
+                profile.delete()
+
+
+
+24.03.12 반영. homework box 만들기.(학교, 학급, 교실, 교과)
     # 각 객체별 homeworkbox 생성.
     target_model = models.School.objects.all()
     for i in target_model:
@@ -222,3 +217,13 @@ for answer in answers:
 
 
 '''
+'''23.10.12기준 반영. 동료평가 응답에서 submit이 아니라 학생계정 연동시키는 것.
+answers = models.HomeworkAnswer.objects.all()
+print(answers)
+for answer in answers:
+    try:
+        print(answer.submit)
+        answer.to_student = answer.submit.to_student
+    except:
+        pass'''
+
