@@ -226,7 +226,7 @@ def survey_submit(request, submit_id):
             question = models.HomeworkQuestion.objects.get(pk=question_id)
             if question.homework != homework:  # 부정접근 방지.
                 return redirect('school_report:homework_detail', posting_id=homework.id)
-            answer,_ = models.HomeworkAnswer.objects.get_or_create(respondent=request.user, question=question, to_profile=submit.to_profile)
+            answer,_ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=submit.to_profile)
             # response 태그가 있는 경우.
             response = request.POST.get('response'+question_id)
             if response:
@@ -255,8 +255,7 @@ def survey_submit(request, submit_id):
 
     for question in question_list:
         try:  # 연동된 제출의 응답 가져오기.
-            answer = models.HomeworkAnswer.objects.get(respondent=request.user,
-                                                       question=question, to_profile=submit.to_profile)
+            answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile)
             question.response = answer.contents  # 기존 답변을 추가하기 위한 과정.
             # 파일이 있다면 반영.
             if answer.file:
