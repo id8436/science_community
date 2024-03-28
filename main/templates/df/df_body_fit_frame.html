@@ -8,8 +8,8 @@
 $(function(){
     $("#download").click(function(){
         $("#myTable").tableExport({
-            formats: ["xlsx"],    // 사용할 수 있는 형식들 (예: "xlsx","txt", "csv", "xls")
-            bootstrap: false,
+            type: "xlsx",    // 사용할 수 있는 형식들 (예: "xlsx","txt", "csv", "xls")
+            bootstrap: true,
             fileName: "table",    // 파일 이름
             position: "bottom",   // 버튼 위치 (top, bottom)
             ignoreRows: null,     // 무시할 행의 인덱스 (0 이상)

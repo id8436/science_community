@@ -2,8 +2,9 @@
 
 {{profile}}{% if profile.position == 'teacher'%} 선생님{%endif%}(활성일자:{{profile.activated}})
 <p>소속 : <a href="{% url 'school_report:school_main' profile.school.id %}">{{ profile.school }}</a></p>
+<p>임시 버튼 : <a href="{% url 'school_report:school_profile_delete' profile.id %}">신중하게 누르세요, 프로필 삭제!</a></p>
 
-{% if profile.position == 'teacher'%}선생님이당 히힛
+{% if profile.position == 'teacher'%}
 <p>담임 학급
     {% with profile.homeroom_master.all as homeroom_list %}
         {% include "school_report/homeroom/list.html" %}

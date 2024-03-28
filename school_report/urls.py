@@ -37,7 +37,8 @@ urlpatterns = [
     path('school/student_code_input/<int:school_id>/', school.student_code_input, name='student_code_input'),
     path('school/student_code_confirm/<int:student_id>/', school.student_code_confirm, name='student_code_confirm'),
     path('school/student_reset/<int:student_id>/', school.student_reset, name='student_reset'),
-
+    # 프로필 관련.
+    path('school/profile_delete/<int:profile_id>/', school.school_profile_delete, name='school_profile_delete'),
     # 학급 관련.
     path('homeroom/create/<int:school_id>/', homeroom.create, name='homeroom_create'),
     path('homeroom/main/<int:homeroom_id>/', homeroom.main, name='homeroom_main'),

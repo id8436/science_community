@@ -229,6 +229,10 @@ def teacher_assignment(request, school_id):
         context['teacher_list_unresistered'] = teacher_list_unresistered
         return render(request, 'school_report/school/assignment.html', context)
 
+def school_profile_delete(request, profile_id):
+    profile = get_object_or_404(models.Profile, pk=profile_id)
+    profile.delete()
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
 ############################## 학생 관련.
 def student_assignment(request, school_id):

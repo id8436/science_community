@@ -34,7 +34,18 @@ def compound_interest(request):
 
 
 def do_DB(request):
-
+    student = models.Student.objects.all()
+    for i in student:
+        try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
+            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
+                                                                    created=i.activated, activated=i.activated,
+                                                                    school=i.school, position='student',
+                                                                    name=i.name,
+                                                                    code=i.code)
+            profile.code = i.student_code
+            profile.save()
+        except:
+            pass
 
 
     return render(request, 'utility/main.html', {})
@@ -98,7 +109,7 @@ for answer in answers:
     target_model = models.Subject.objects.all()
     for i in target_model:
         box, created = models.HomeworkBox.objects.get_or_create(subject=i)
-
+    ############################## code가 아니라 student code로 했어야 했는데;;;
     # 교사, 학생 프로필 전환.
     teacher = models.Teacher.objects.all()
     for i in teacher:
