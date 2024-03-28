@@ -300,7 +300,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 class HomeworkAnswer(models.Model):
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자.
-    to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True,
+    to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True, related_name='homework_answer_user',
                                    default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯.
                                    )  # 프로필에 과제 부여. 프로필 완성되면 위 지우자.
     submit = models.ForeignKey('HomeworkSubmit', on_delete=models.CASCADE, blank=True, null=True)  # 동료평가에서 쓰일 평가대상 나누기용 제출.
