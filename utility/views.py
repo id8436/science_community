@@ -34,18 +34,18 @@ def compound_interest(request):
 
 
 def do_DB(request):
-    student = models.Student.objects.all()
-    for i in student:
-        try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
-            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
-                                                                    created=i.activated, activated=i.activated,
-                                                                    school=i.school, position='student',
-                                                                    name=i.name,
-                                                                    code=i.code)
-            profile.code = i.student_code
-            profile.save()
-        except:
-            pass
+    student = models.Profile.objects.all()
+    for profile in student:
+        if profile.position == "student":
+            if profile.homeroom.exists():
+                pass
+            else:
+                profile.delete()
+        else:  # 교사라면..
+            if profile.homeroom_master.exists():
+                pass
+            else:
+                profile.delete()
 
 
     return render(request, 'utility/main.html', {})
