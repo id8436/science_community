@@ -34,7 +34,52 @@ def compound_interest(request):
 
 
 def do_DB(request):
+    ## 과제 제출 내역이 없는 프로필들은 다 지워버려.
+    profiles = models.Profile.objects.all()
+    for profile in profiles:
+        submits = models.HomeworkSubmit.objects.filter(to_profile=profile, check=True).exist()
+        if submits:
+            pass
+        else:
+            profiles.delete()
 
+    # 다시 학생을 프로필로 옮겨.
+    student = models.Student.objects.all()
+    for i in student:
+        try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
+            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
+                                                                    created=i.activated, activated=i.activated,
+                                                                    school=i.school, position='student',
+                                                                    name=i.name,
+                                                                    code=i.student_code)
+            for homeroom in i.homeroom.all():
+                profile.homeroom.add(homeroom)
+            profile.save()
+        except:
+            pass
+    target_model = models.HomeworkSubmit.objects.all()
+    for i in target_model:
+        old_user = i.to_user
+        base_homework = i.base_homework
+        if base_homework.subject_object:
+            school = base_homework.subject_object.school
+        elif base_homework.classroom:
+            classroom = base_homework.classroom
+            school = classroom.school
+        elif base_homework.homeroom:
+            school = base_homework.homeroom.school
+        elif base_homework.homework_box:  # base_homework.homework_box
+            box = base_homework.homework_box
+            school = box.get_school_model()
+        else:
+            pass
+        i.to_profile = models.Profile.objects.filter(admin=old_user, school=school).first()
+        try:  # None인 경우는 에러처리되니 넘기자.
+            target_user = i.to_student.admin
+            i.target_profile = models.Profile.objects.filter(admin=target_user, school=school).first()
+        except:
+            pass
+        i.save()
 
     return render(request, 'utility/main.html', {})
 

@@ -9,7 +9,7 @@ from django.http import HttpResponse
 import random
 from boards.models import Board, Board_category, Board_name
 from .for_api import SchoolMealsApi
-
+from django.utils.encoding import escape_uri_path
 def main(request, school_id):
     context = {}
     school = get_object_or_404(models.School, pk=school_id)
@@ -239,10 +239,10 @@ def student_assignment(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
     if school.master == request.user:
-        student_list_resistered = models.Student.objects.filter(school=school, obtained=True)  # 학교 내에 등록된 프로필만 가져온다.
+        student_list_resistered = models.Profile.objects.filter(school=school, obtained=True, position='student')  # 학교 내에 등록된 프로필만 가져온다.
         context['student_list_resistered'] = student_list_resistered
 
-        student_list_unresistered = models.Student.objects.filter(school=school, obtained=False)  # 등록 안한 사람만 반환.
+        student_list_unresistered = models.Profile.objects.filter(school=school, obtained=False, position='student')  # 등록 안한 사람만 반환.
         context['student_list_unresistered'] = student_list_unresistered
         return render(request, 'school_report/school/student_assignment.html', context)
 
@@ -253,23 +253,29 @@ def school_student_download_excel_form(request, school_id):
     ws = wb.create_sheet('명단 form', 0)
     ws['A1'] = '학번'
     ws['B1'] = '이름'
-    ws['C1'] = '넣을 학급(띄어쓰기 없음)'
-    ws['D1'] = '가입인증코드(없으면 랜덤 6개)'
-    students = school.student_set.all()  # 학교에 속한 학생.
+    ws['C1'] = '가입인증코드(없으면 랜덤 6개)'
+    ws['D1'] = '학년(선택사항)'
+    ws['E1'] = '반(선택사항)'
+    students = models.Profile.objects.filter(school=school, position='student')  # 학교에 속한 학생.
     a = 'A'  # 학번쓰는 라인.
     b = 'B'  # 이름쓰는 라인.
-    c = 'C'  # 학번쓰는 라인.(안씀)
-    d = 'D'  # 코드 쓰는 라인.
+    c = 'C'  # 코드 쓰는 라인.
+    d = 'D'  # 학년
+    e = 'E'  # 반
     for i, student in enumerate(students):
         num = str(i + 2)
-        ws[a + num] = student.student_code
+        ws[a + num] = student.code
         ws[b + num] = student.name
         if student.obtained:
-            ws[d + num] = '등록함'
+            ws[c + num] = '등록함'
         else:
-            ws[d + num] = student.code  # 가입인증코드.
-    response = HttpResponse(content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
+            ws[c + num] = student.code  # 가입인증코드.
+        if student.homeroom:
+            homeroom = student.homeroom.all().first()  # 여러 학급에 등록되어 있을 수 있으니.
+            ws[d + num] = homeroom.grade
+            ws[e + num] = homeroom.cl_num
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="{escape_uri_path("학생명단.xlsx")}"'
     wb.save(response)
 
     return response
