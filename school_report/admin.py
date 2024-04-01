@@ -16,6 +16,8 @@ admin.site.register(HomeworkSubmit)
 admin.site.register(HomeworkAnswer)
 admin.site.register(HomeworkBox)
 admin.site.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'admin')
 
 
 
