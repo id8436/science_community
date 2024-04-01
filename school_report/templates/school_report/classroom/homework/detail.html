@@ -28,22 +28,26 @@
 {% if request.user == posting.author_profile.admin %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
     {% if survey %}
         <div><a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문 문항 수정하기</a>
+            <a href="{% url 'school_report:homework_distribution' posting.id%}" class="btn btn-info">과제 재분배</a>
             {% if posting.is_special == 'peerReview' %}
                 {% if posting.is_end %}
-                <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
-                <a href="{% url 'school_report:peerreview_who_is_special' posting.id %}">댓글 선발 통계</a>
+                    <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
+                    <a href="{% url 'school_report:peerreview_who_is_special' posting.id %}">댓글 선발 통계</a>
                 {%else%}
-                <a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
-                <a href="{% url 'school_report:peerreview_end' posting.id %}">동료평가 설문 마감하기</a>
+                    <a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
+                    <a href="{% url 'school_report:peerreview_end' posting.id %}">동료평가 설문 마감하기</a>
                 {% endif %}
+            {% elif postion.is_special %}
+                특수설문.
+            {% else %}
+                <a href="{% url 'school_report:homework_survey_list' posting.id%}" class="btn btn-info">특수설문 제작하기</a>
             {% endif %}
         <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
         </div>
 
     {% else %}
         <div>
-            <a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">과제제출 설문으로 대체하기</a>
-            <a href="{% url 'school_report:homework_survey_list' posting.id%}" class="btn btn-info">특수설문 제작하기</a>
+            <a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문문항 제작하기</a>
         </div>
         <div></div>
     {% endif %}
@@ -80,7 +84,7 @@ $(document).ready(function(){
     <tr>
         <td>{{annoIndividual.to_profile}}</td>
         {% if annoIndividual.check %}
-        <td>제출</td>
+        <td>제출{% if annoIndividual.state%}<h6 style="color: red;">({{annoIndividual.state}}){%endif%}</h6></td>
         <td>{{annoIndividual.submit_date|date:'m.d H:i'}}</td>
         {% elif annoIndividual.read %}
         <td class="table-secondary" colspan="2">읽음</td>
@@ -89,7 +93,8 @@ $(document).ready(function(){
         {% endif %}
         <td>
             {% if survey %}
-            설문제출
+            설문제출 <a href="{% url 'school_report:homework_below_standard_set' annoIndividual.id%}" class="btn btn-danger">수준미달 지정</a>
+            <a href="{% url 'school_report:homework_below_standard_unset' annoIndividual.id%}" class="btn btn-info">수준미달 해제</a>
             {% else %}
             {{annoIndividual.content}}
             {% endif %}
@@ -101,7 +106,7 @@ $(document).ready(function(){
     {% endif %}
     </tbody>
 </table>
-    아래는 학생들이 보는 화면.<br>
+
 {%endif%}
 
 
@@ -131,7 +136,7 @@ $(document).ready(function(){
     <tr>
         <td>{{private_submit.to_profile}}</td>
         {% if private_submit.check %}
-        <td>제출</td>
+        <td>제출{% if private_submit.state%}<h6 style="color: red;">({{private_submit.state}})</h6>{%endif%}</td>
         <td>{{private_submit.submit_date|date:'m.d H:i'}}</td>
         {% elif private_submit.read %}
         <td class="table-secondary" colspan="2">읽음</td>

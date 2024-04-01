@@ -136,12 +136,16 @@ class Profile(models.Model):
             ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
         )
         ordering = ['-activated', 'code']
-class HomeworkBox(models.Model):
+class BaseBox(models.Model):
+    '''각종 Box의 원본이 되는 클래스. 나머지 박스에선 상속받아 쓴다.'''
     '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
     school = models.OneToOneField('School', on_delete=models.CASCADE, default=None, null=True, blank=True)
     homeroom = models.OneToOneField('Homeroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
     classroom = models.OneToOneField('Classroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
     subject = models.OneToOneField('subject', on_delete=models.CASCADE, default=None, null=True, blank=True)  # 교과.
+    def __str__(self):
+        type, object = self.get_upper_model()
+        return str(object) + 'box'
     def type(self):
         '''어느 객체에 속한 박스인지. 속성, id 반환.'''
         if self.school:
@@ -170,6 +174,23 @@ class HomeworkBox(models.Model):
             homeroom = self.classroom.homeroom
             profiles = homeroom.profile_set.all()
         return profiles
+    def get_profiles_id(self):
+        type, id = self.type()
+        if type == 'school':
+            profile_ids = self.school.profile_set.values_list('id', flat=True)
+        elif type == 'homeroom':
+            profile_ids = self.homeroom.profile_set.values_list('id', flat=True)
+        elif type == 'subject':
+            classrooms = self.subject.classroom_set.all()
+            homerooms = [classroom.homeroom for classroom in classrooms]
+            q_objects = Q()  # 비어있는 Q 객체로 시작. 쿼리오브젝트.
+            for homeroom in homerooms:
+                q_objects |= Q(homeroom=homeroom)
+            profile_ids = Profile.objects.filter(q_objects).values_list('id', flat=True)
+        elif type == 'classroom':
+            homeroom = self.classroom.homeroom
+            profile_ids = homeroom.profile_set.values_list('id', flat=True)
+        return profile_ids
     def get_school_model(self):
         type, id = self.type()
         if type == 'school':
@@ -180,6 +201,16 @@ class HomeworkBox(models.Model):
             return self.subject.school
         elif type == 'classroom':
             return self.classroom.school
+    def get_upper_model(self):
+        '''박스가 속한 객체 얻기. 무엇인지와 모델'''
+        if self.school:
+            return 'school', self.school
+        elif self.homeroom:
+            return 'homeroom', self.homeroom
+        elif self.subject:
+            return 'subject', self.subject
+        elif self.classroom:
+            return 'classroom', self.classroom  # 인수가 2개임에 유의.
     def redirect_to_upper(self):
         '''박스를 소유한 객체로 리다이렉트.'''
         type, object_id = self.type()
@@ -191,6 +222,10 @@ class HomeworkBox(models.Model):
             return redirect('school_report:subject_main', object_id)
         elif type == 'classroom':
             return redirect('school_report:classroom_main', object_id)
+    class Meta:
+        abstract = True  # 이 클래스가 추상 기반 클래스임을 Django에 알립니다.
+class HomeworkBox(BaseBox):
+    pass
 class Homework(models.Model):
     # 아래의 school은 곧장 연결되는 것으로.. 없을 수도 있음.
     # school이나 홈룸은 있으면 다 넣게 하면 어떨까?
@@ -222,9 +257,8 @@ class Homework(models.Model):
         return self.subject
     def copy_create(self, classroom_list=None, subject_list=None):
         '''특정 모델에서 진행되는 카피. 객체의 ID 목록을 받아와 실행한다.'''
-        copied_instance = Homework.objects.create(
-            # school=self.school, homeroom=self.homeroom, subject_object=self.subject_object, classroom=self.classroom,
-            author=self.author, subject=self.subject, content=self.content, deadline=self.deadline, is_secret=self.is_secret, is_special=self.is_special)
+        copied_instance = Homework.objects.create(homework_box=self.homework_box,
+            author_profile=self.author_profile, subject=self.subject, content=self.content, deadline=self.deadline, is_special=self.is_special)
         # 학교냐, 교과냐, 교실이냐. 어디에 복사할 것인가.
         for classroom in classroom_list:
             classroom_ob = Classroom.objects.get(id=classroom)  # 교실객체 찾기.
@@ -245,6 +279,9 @@ class Homework(models.Model):
 
         copied_instance.save()  # 변경사항은 마지막에 반영.
         return copied_instance
+    def to_homework(self):
+        '''자기 자신의 페이지 보여주기.'''
+        return redirect('school_report:homework_detail', posting_id=self.id)
 class HomeworkSubmit(models.Model):
     '''간단 과제제출, 동료평가 설문나누기용.'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
@@ -260,9 +297,11 @@ class HomeworkSubmit(models.Model):
     title = models.TextField(default=None, null=True, blank=True)  # 학생들에게 전달될 과제명.(혹시나 나중에 기능확장에 대비) #[지워보자.]
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정. # ai세특에서 df 저장하는 용도.
     ## check, read 등이 아니라 하나의 status로 바꾸면 어때? 하나로 표현하게.
-    check = models.BooleanField(default=False)  # 과제 했는지 여부.
+    state = models.CharField(max_length=20, default=None, null=True, blank=True)  # 다양한 상태를 표현하기 위해.
+    check = models.BooleanField(default=False)  # 과제 했는지 여부. 지정하는 것과 별개.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
     submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.
+    ## 지워질 대상.
     # def __str__(self):
     #     return str(self.to_user)
     def copy_create(self, homework_ob):
@@ -327,62 +366,8 @@ def delete_homework_answer_file(sender, instance, **kwargs):
     if instance.file:
         instance.file.delete(save=False)
 
-class AnnounceBox(models.Model):
-    '''기본적으로 homeworkbox와 완전 동일.'''
-    '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
-    school = models.OneToOneField('School', on_delete=models.CASCADE, default=None, null=True, blank=True)
-    homeroom = models.OneToOneField('Homeroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
-    classroom = models.OneToOneField('Classroom', on_delete=models.CASCADE, default=None, null=True, blank=True)
-    subject = models.OneToOneField('subject', on_delete=models.CASCADE, default=None, null=True, blank=True)  # 교과.
-    def type(self):
-        '''어느 객체에 속한 박스인지. 속성, id 반환.'''
-        if self.school:
-            return 'school', self.school.id
-        elif self.homeroom:
-            return 'homeroom', self.homeroom.id
-        elif self.subject:
-            return 'subject', self.subject.id
-        elif self.classroom:
-            return 'classroom', self.classroom.id  # 인수가 2개임에 유의.
-    def get_profiles(self):
-        '''각 객체 하위의 모든 프로필을 불러온다.'''
-        type, id = self.type()
-        if type == 'school':
-            profiles = self.school.profile_set.all()
-        elif type == 'homeroom':
-            profiles = self.homeroom.profile_set.all()
-        elif type == 'subject':
-            classrooms = self.subject.classroom_set.all()
-            homerooms = [classroom.homeroom for classroom in classrooms]
-            q_objects  = Q() # 비어있는 Q 객체로 시작. 쿼리오브젝트.
-            for homeroom in homerooms:
-                q_objects |= Q(homeroom=homeroom)
-            profiles = Profile.objects.filter(q_objects)
-        elif type == 'classroom':
-            homeroom = self.classroom.homeroom
-            profiles = homeroom.profile_set.all()
-        return profiles
-    def get_school_model(self):
-        type, id = self.type()
-        if type == 'school':
-            return self.school
-        elif type == 'homeroom':
-            return self.homeroom.school
-        elif type == 'subject':
-            return self.subject.school
-        elif type == 'classroom':
-            return self.classroom.school
-    def redirect_to_upper(self):
-        '''박스를 소유한 객체로 리다이렉트.'''
-        type, object_id = self.type()
-        if type == 'school':
-            return redirect('school_report:school_main', object_id)
-        elif type == 'homeroom':
-            return redirect('school_report:homeroom_main', object_id)
-        elif type == 'subject':
-            return redirect('school_report:subject_main', object_id)
-        elif type == 'classroom':
-            return redirect('school_report:classroom_main', object_id)
+class AnnounceBox(BaseBox):
+    pass
 class Announcement(models.Model):
     announce_box = models.ForeignKey('AnnounceBox', on_delete=models.CASCADE, null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Announce_author")

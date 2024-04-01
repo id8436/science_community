@@ -71,6 +71,9 @@ urlpatterns = [
     path('homework/copy/<int:homework_id>/', homework.copy, name='homework_copy'),
     path('classroom/homework/end_cancel/<int:homework_id>/', classroom.homework_end_cancel, name='homework_end_cancel'),
     path('classroom/homework/homework_end/<int:homework_id>/', classroom.homework_end, name='homework_end'),
+    path('homework/distribution/<int:homework_id>/', homework.distribution, name='homework_distribution'),
+    path('homework/below_standard_set/<int:submit_id>/', homework.below_standard_set, name='homework_below_standard_set'),  # 수준미달 지정
+    path('homework/below_standard_unset/<int:submit_id>/', homework.below_standard_unset, name='homework_below_standard_unset'),  # 수준미달 해제
     # 설문 관련.
     path('homework/survey_create/<int:posting_id>/', homework.survey_create, name='homework_survey_create'),
     path('homework/survey_submit/<int:submit_id>/', homework.survey_submit, name='homework_survey_submit'),
@@ -84,11 +87,9 @@ urlpatterns = [
     # 특수설문.
     path('classroom/homework/survey_list/<int:posting_id>/', classroom.homework_survey_list,
          name='homework_survey_list'),  # 특수설문 리스트.
-    path('classroom/homework/peerreview_create/<int:posting_id>/', classroom.peerreview_create,
     # 동료평가
-         name='peerreview_create'),  # 동료평가할 때 동료평가 대상 지정.
-    path('classroom/homework/peerreview_end/<int:posting_id>/', classroom.peerreview_end,
-             name='peerreview_end'),  # 동료평가 마감.
+    path('classroom/homework/peerreview_create/<int:posting_id>/', classroom.peerreview_create, name='peerreview_create'),  # 동료평가할 때 동료평가 대상 지정.
+    path('classroom/homework/peerreview_end/<int:posting_id>/', classroom.peerreview_end, name='peerreview_end'),  # 동료평가 마감.
     path('classroom/homework/peerreview_statistics/<int:posting_id>/', classroom.peerreview_statistics,
              name='peerreview_statistics'),  # 동료평가 통계 확인.
     path('classroom/homework/peerreview_select_comment/<int:submit_id>/', classroom.peerreview_select_comment,

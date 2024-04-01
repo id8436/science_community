@@ -13,6 +13,15 @@ import math
 from datetime import datetime
 import openpyxl
 
+## 편의, 공통 기능들.
+# def get_assigned_profile(homework_id):
+#     '''해당 과제가 이미 배정된 프로파일 얻기.'''
+#     homework = get_object_or_404(models.Homework, pk=homework_id)
+#     profile_ids = models.HomeworkSubmit.objects.filter(base_homework=homework).values_list('target_profile', flat=True).distinct()
+#     profiles = models.Profile.objects.filter(id__in=profile_ids)
+#     return profiles
+
+
 @login_required()
 def create(request, homework_box_id):
     '''room 모델 하위에 과제 배치.'''
@@ -90,7 +99,7 @@ def detail(request, posting_id):
     #student = check.Check_student(request, school).in_school_and_none()
     #teacher = check.Check_teacher(request, school).in_school_and_none()
     # 교사라면 모든 설문관련 정보를 볼 수 있다.
-    if profile.position == 'teacher':
+    if homework.author_profile.admin == request.user:
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=homework)
         context['submit_list'] = submit_list
 
@@ -98,6 +107,9 @@ def detail(request, posting_id):
 
     # 개인 과제에 대해
     private_submits = models.HomeworkSubmit.objects.filter(base_homework=homework, to_profile=profile)
+    for private_submit in private_submits:  # 동료평가 등 여러 과제일 수 있음.
+        private_submit.read = True
+        private_submit.save()
     context['private_submits'] = private_submits  # 열람자의 정보 담기.
 
     # 동료평가에서의 기능.
@@ -376,53 +388,72 @@ def question_list_statistics(question_list, submit):
                 question.data_dict = df_dict
         question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
     return question_list
+def below_standard_set(request, submit_id):
+    '''수준미달 과제 지정.'''
+    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    submit.state = '수준미달'
+    submit.save()
+    messages.success(request, '지정하였습니다.')
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+def below_standard_unset(request, submit_id):
+    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    submit.state = None
+    submit.save()
+    messages.success(request, '해제하였습니다.')
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+
+## 동료평가.
+
+
 #########################여기서부턴 미구현 과제들.
 def copy(request, homework_id):
     homework = models.Homework.objects.get(id=homework_id)
     context = {}
-    admin = homework.author
+    admin = homework.author_profile.admin
     if request.method == 'POST':
-        print('포스트 들어옴.')
         classroom_list = request.POST.getlist('classroom_list')
         subject_list = request.POST.getlist('subject_list')
-        print(classroom_list)
-        print(subject_list)
         # 여기부터 복사과정
         copied = homework.copy_create(classroom_list=classroom_list, subject_list=subject_list)
         return redirect('school_report:homework_detail', copied.id)
     # 사용자가 관리하는 객체를 보이기 위한 사전작업.
-    if homework.school:
-        school = homework.school
-    elif homework.subject_object:
-        school = homework.subject_object.school
-    elif homework.classroom:
-        school = homework.classroom.school
+    homework_box = homework.homework_box
+    school = homework_box.get_school_model()
+    # if homework.school:
+    #     school = homework.school
+    # elif homework.subject_object:
+    #     school = homework.subject_object.school
+    # elif homework.classroom:
+    #     school = homework.classroom.school
     # 사용자가 관리하는 객체들을 보여준다.
-    admin_teacher = models.Teacher.objects.get(admin=admin, school=school)
-    classroom_list = models.Classroom.objects.filter(master=admin_teacher, school=school)
-    subject_list = models.Subject.objects.filter(master=admin_teacher, school=school)
+    admin_profile = models.Profile.objects.get(admin=admin, school=school)
+    classroom_list = models.Classroom.objects.filter(master_profile=admin_profile, school=school)
+    subject_list = models.Subject.objects.filter(master_profile=admin_profile, school=school)
     context['classroom_list'] = classroom_list
     context['subject_list'] = subject_list
 
     return render(request, 'school_report/classroom/homework/copy.html', context)
 #    return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
-def distribution(request, homework, user):  # [profile로 바꾸자.]
+def distribution(request, homework_id):  # [profile로 바꾸자.]
     # 개별 확인을 위한 개별과제 생성.
     # 개별 부여할 사람을 탬플릿에서 받는 것도 괜찮을듯...? 흠... []
-    userlist = request.POST.getlist('user')
-    if userlist:  # 특정 방법으로 유저리스트가 전달된 경우.
-        pass  # 나중에 짜자. 들어오는 방법에 대한 논의가 필요하겠네.
-    else:  # 유저리스트가 없으면 class에서 작성한 것으로 판단하고,
-        student_list = models.Student.objects.filter(homeroom=classroom.homeroom)  # 정상 작동하면 추후 지우자.
-        for student in student_list:
-            homework_distribution(homework, student.admin)  # 유저모델을 대응시킨다.
-            try:
-                Notification.objects.create(to_user=student.admin, official=True, classification=12, type=2,
-                                            from_user=request.user, message=classroom,
-                                            url=resolve_url("school_report:homework_detail", homework.id))
-            except Exception as e:
-                print(e)  # 학생 중 등록이 안한 학생은 to_user에서 에러가 난다.
-        homework_distribution(homework, request.user)  # 작성자도 대응시킨다.
-    '''과제 분배.'''  # 과제 지정하기..
-    individual, created = models.HomeworkSubmit.objects.get_or_create(to_user=user,
-                                                                      base_homework=homework)
+    homework = get_object_or_404(models.Homework, pk=homework_id)
+    homework_box = homework.homework_box
+    context = {}
+    # post로 들어오면 배정.
+    if request.method == 'POST':
+        profile_ids = request.POST.getlist('profile_ids')
+        for profile_id in profile_ids:
+            to_profile = models.Profile.objects.get(id=profile_id)
+            individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile, base_homework=homework)
+        return redirect('school_report:homework_detail', posting_id=homework.id)
+
+    # 추가 부여 가능 대상자 찾기.
+    submit_profile_ids = models.HomeworkSubmit.objects.filter(base_homework=homework).values_list('target_profile', flat=True).distinct()
+    available_profile_ids = homework_box.get_profiles_id()
+    filtered_available_profile_ids = [profile_id for profile_id in available_profile_ids if profile_id not in submit_profile_ids]
+    filtered_available_profile_ids.append(homework.author_profile.id)  # 교사 프로필의 id도 추가.
+    filtered_profiles = models.Profile.objects.filter(id__in=filtered_available_profile_ids)
+    context['filtered_profiles'] = filtered_profiles
+
+    return render(request, 'school_report/classroom/homework/homework_distribution.html', context)

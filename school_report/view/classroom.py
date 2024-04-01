@@ -125,6 +125,9 @@ def homework_survey_list(request, posting_id):
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         surveyType = request.POST.get('surveyType')
         posting.is_special = surveyType
+        if surveyType == "None":  # 일반설문은 None.
+            posting.is_special = None
+            return posting.to_homework()
         posting.save()  # 특수설문 타입 저장.
         context['surveyType'] = surveyType  # 폼의 hidden에 담기 위해 전달.
         address = 'school_report/classroom/homework/survey/special/' + str(surveyType) + '.html'
@@ -324,6 +327,7 @@ def summit_file_download(request, pk):
 def peerreview_create(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
     context = {'posting': homework}  # 어떤 과제의 하위로 만들지 전달하기 위해.
+
     # 과제에 속한 학생 목록 얻기.(동료평가 지정 대상자를 설정함, POST에서 단체에 해당하는 학생에게 과제를 부여하기 위해.)
     box = homework.homework_box
     type, id = box.type()
@@ -334,7 +338,8 @@ def peerreview_create(request, posting_id):
         student_list = models.Profile.objects.filter(homeroom=box.homeroom)
     elif type == 'school':
         student_list = models.Profile.objects.filter(school=box.school)
-    print(student_list)
+
+
     # 제출한다면.
     if request.method == 'POST':
         user_list = request.POST.getlist('user_list')
@@ -354,6 +359,8 @@ def peerreview_create(request, posting_id):
             submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
             target_profile=target_profile, to_profile=to_profile, title=target_profile)
         return redirect('school_report:homework_detail', posting_id=homework.id)
+
+
     for to_student in student_list:  # 동료평가를 만들 수 있는 학생 목록.
         submit = models.HomeworkSubmit.objects.filter(base_homework=homework ,target_profile=to_student).exists()  # 있나 여부만 파악.
         to_student.submit = submit  # 있으면 True
