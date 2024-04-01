@@ -127,10 +127,7 @@ class Profile(models.Model):
     name = models.CharField(max_length=10)  # 실명을 기입하게 하자.
     code = models.CharField(max_length=20, null=True, blank=True,)  # 학생 학번, 교사번호 등.
     def __str__(self):
-        if self.code != None:
-            return str(self.code)+ self.name
-        else:
-            return self.name
+        return str(self.code)+ self.name
     class Meta:
         unique_together = (
             ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
