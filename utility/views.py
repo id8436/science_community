@@ -35,7 +35,7 @@ def compound_interest(request):
 
 def do_DB(request):
     school = models.School.objects.filter(name='강원과학고등학교', year='2024')
-    profile = models.Profile.objects.get(school=school, admin=request.user)
+    profile = models.Profile.objects.get(admin=request.user)
     homeworks = models.Homework.objects.filter(author_profile=None)
     for homework in homeworks:
         homework.author_profile = profile
