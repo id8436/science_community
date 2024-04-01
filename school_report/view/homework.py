@@ -405,7 +405,6 @@ def below_standard_unset(request, submit_id):
 ## 동료평가.
 
 
-#########################여기서부턴 미구현 과제들.
 def copy(request, homework_id):
     homework = models.Homework.objects.get(id=homework_id)
     context = {}
@@ -414,17 +413,18 @@ def copy(request, homework_id):
         classroom_list = request.POST.getlist('classroom_list')
         subject_list = request.POST.getlist('subject_list')
         # 여기부터 복사과정
-        copied = homework.copy_create(classroom_list=classroom_list, subject_list=subject_list)
+        copied = homework.question_copy_create(classroom_list=classroom_list, subject_list=subject_list)
+        ### 자동 과제 분배.
+        type, id = copied.type()
+        if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
+            profiles = copied.homework_box.get_profiles()
+            for to_profile in profiles:
+                individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
+                                                                              base_homework=homework)
         return redirect('school_report:homework_detail', copied.id)
     # 사용자가 관리하는 객체를 보이기 위한 사전작업.
     homework_box = homework.homework_box
     school = homework_box.get_school_model()
-    # if homework.school:
-    #     school = homework.school
-    # elif homework.subject_object:
-    #     school = homework.subject_object.school
-    # elif homework.classroom:
-    #     school = homework.classroom.school
     # 사용자가 관리하는 객체들을 보여준다.
     admin_profile = models.Profile.objects.get(admin=admin, school=school)
     classroom_list = models.Classroom.objects.filter(master_profile=admin_profile, school=school)
@@ -434,6 +434,7 @@ def copy(request, homework_id):
 
     return render(request, 'school_report/classroom/homework/copy.html', context)
 #    return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
+
 def distribution(request, homework_id):  # [profile로 바꾸자.]
     # 개별 확인을 위한 개별과제 생성.
     # 개별 부여할 사람을 탬플릿에서 받는 것도 괜찮을듯...? 흠... []
