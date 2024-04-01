@@ -37,7 +37,7 @@ def do_DB(request):
     ## 과제 제출 내역이 없는 프로필들은 다 지워버려.
     profiles = models.Profile.objects.all()
     for profile in profiles:
-        submits = models.HomeworkSubmit.objects.filter(to_profile=profile, check=True).exist()
+        submits = models.HomeworkSubmit.objects.filter(to_profile=profile, check=True).exists()
         if submits:
             pass
         else:
