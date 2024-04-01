@@ -271,12 +271,6 @@ class Homework(models.Model):
         homework_questions = self.homeworkquestion_set.all()  # all()을 붙여야 하나?
         for homework_question in homework_questions:
             homework_question.question_copy_create(copied_instance)
-        ## 제출자는 굳이 복사할 때 연결하지 않아도...
-        # # 과제 하위의 제출객체 복사 및 homework와 연결.
-        # homwork_submits = self.homeworksubmit_set.all()
-        # for homwork_submit in homwork_submits:
-        #     homwork_submit.copy_create(copied_instance)
-        # # 그리고 과제를 배부해야지.
 
         copied_instance.save()  # 변경사항은 마지막에 반영.
         return copied_instance
