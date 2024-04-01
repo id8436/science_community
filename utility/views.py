@@ -47,11 +47,11 @@ def do_DB(request):
     student = models.Student.objects.all()
     for i in student:
         try:  # 유니크 에러가 나기도 함. 이땐 그냥 패스하자.
-            profile, created = models.Profile.objects.get_or_create(admin=i.admin, obtained=i.obtained,
-                                                                    created=i.activated, activated=i.activated,
-                                                                    school=i.school, position='student',
-                                                                    name=i.name,
-                                                                    code=i.student_code)
+            profile, created = models.Profile.objects.get_or_create(school=i.school, obtained = i.obtained,
+                                                                    name=i.name)
+            profile.code = i.student_code
+            profile.admin=i.admin
+            profile.position='student'
             for homeroom in i.homeroom.all():
                 profile.homeroom.add(homeroom)
             profile.save()
