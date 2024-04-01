@@ -413,7 +413,7 @@ def copy(request, homework_id):
         classroom_list = request.POST.getlist('classroom_list')
         subject_list = request.POST.getlist('subject_list')
         # 여기부터 복사과정
-        copied = homework.question_copy_create(classroom_list=classroom_list, subject_list=subject_list)
+        copied = homework.copy_create(classroom_list=classroom_list, subject_list=subject_list)
         ### 자동 과제 분배.
         type, id = copied.type()
         if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
