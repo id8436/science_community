@@ -165,11 +165,11 @@ class BaseBox(models.Model):
             profiles = self.homeroom.profile_set.all()
         elif type == 'subject':
             classrooms = self.subject.classroom_set.all()
-            homerooms = [classroom.homeroom for classroom in classrooms]
+            homerooms = list(set([classroom.homeroom for classroom in classrooms]))
             q_objects  = Q() # 비어있는 Q 객체로 시작. 쿼리오브젝트.
             for homeroom in homerooms:
                 q_objects |= Q(homeroom=homeroom)
-            profiles = Profile.objects.filter(q_objects)
+            profiles = Profile.objects.filter(q_objects).distinct()
         elif type == 'classroom':
             homeroom = self.classroom.homeroom
             profiles = homeroom.profile_set.all()
