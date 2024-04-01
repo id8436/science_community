@@ -415,7 +415,7 @@ def copy(request, homework_id):
         # 여기부터 복사과정
         copied = homework.copy_create(classroom_list=classroom_list, subject_list=subject_list)
         ### 자동 과제 분배.
-        type, id = copied.type()
+        type, id = copied.homework_box.type()
         if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
             profiles = copied.homework_box.get_profiles()
             for to_profile in profiles:
