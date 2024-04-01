@@ -420,7 +420,7 @@ def copy(request, homework_id):
             profiles = copied.homework_box.get_profiles()
             for to_profile in profiles:
                 individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
-                                                                              base_homework=homework)
+                                                                              base_homework=copied)
         return redirect('school_report:homework_detail', copied.id)
     # 사용자가 관리하는 객체를 보이기 위한 사전작업.
     homework_box = homework.homework_box
