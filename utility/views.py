@@ -34,22 +34,7 @@ def compound_interest(request):
 
 
 def do_DB(request):
-    submits = models.HomeworkSubmit.objects.all()
-    for submit in submits:
-        user = submit.to_user
-        base_homework = submit.base_homework
 
-        profile = models.Profile.objects.filter(admin=user).first()
-        # try:  # 프로필이 없기도..
-        #     box = base_homework.homework_box
-        #     school = box.get_school_model()
-        #     profile = models.Profile.objects.filter(admin=user, school=school)
-        #     submit.to_profile = profile
-        #     submit.save()
-        # except:
-        #     pass
-        submit.to_profile = profile
-        submit.save()
     return render(request, 'utility/main.html', {})
 
 def do_DB2(request):
@@ -74,7 +59,22 @@ def do_DB3(request):
     for homework in homeworks:
         homework.author_profile = profile
         homework.save()
-        
+        submits = models.HomeworkSubmit.objects.all()
+    for submit in submits:
+        user = submit.to_user
+        base_homework = submit.base_homework
+
+        profile = models.Profile.objects.filter(admin=user).first()
+        # try:  # 프로필이 없기도..
+        #     box = base_homework.homework_box
+        #     school = box.get_school_model()
+        #     profile = models.Profile.objects.filter(admin=user, school=school)
+        #     submit.to_profile = profile
+        #     submit.save()
+        # except:
+        #     pass
+        submit.to_profile = profile
+        submit.save()
 24.4.1 프로필이 너무 많이 생성되어 반영함.
 ## 과제 제출 내역이 없는 프로필들은 다 지워버려.
     profiles = models.Profile.objects.all()

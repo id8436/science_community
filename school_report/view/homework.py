@@ -452,7 +452,10 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
 
     # 추가 부여 가능 대상자 찾기.
     submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
-    submit_profile_ids = [submit.to_profile.id for submit in submits]
+    try:  # submits가 없는 경우.
+        submit_profile_ids = [submit.to_profile.id for submit in submits]
+    except:
+        submit_profile_ids = []
     available_profile_ids = homework_box.get_profiles_id()
     teacher_id = homework.author_profile.values_list('id', flat=True)
     available_profile_ids.union(teacher_id)  # 교사 프로필의 id도 추가.
