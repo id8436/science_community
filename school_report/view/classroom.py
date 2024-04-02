@@ -39,7 +39,7 @@ def create(request, school_id):
         homeroom_list = request.POST.getlist('homeroom_list')
         for homeroom_id in homeroom_list:  # 받은 데이터에 해당하는 걸 넣는다.
             homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
-            classroom, _ = models.Classroom.objects.get_or_create(base_subject=subject, master_profile=profile, school=school, homeroom=homeroom)
+            classroom, _ = models.Classroom.objects.get_or_create(base_subject=subject, school=school, homeroom=homeroom)
             homework_box, created = models.HomeworkBox.objects.get_or_create(classroom=classroom)
             announce_box, created = models.AnnounceBox.objects.get_or_create(classroom=classroom)
         return redirect('school_report:subject_main', subject_id=subject.id)  # 작성이 끝나면 작성한 글로 보낸다.

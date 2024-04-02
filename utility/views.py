@@ -34,12 +34,7 @@ def compound_interest(request):
 
 
 def do_DB(request):
-    school = models.School.objects.get(name='강원과학고등학교', year='2024')
-    profile = models.Profile.objects.get(school=school, admin=request.user)
-    homeworks = models.Homework.objects.filter(author_profile=None)
-    for homework in homeworks:
-        homework.author_profile = profile
-        homework.save()
+
     return render(request, 'utility/main.html', {})
 
 def do_DB2(request):
@@ -57,6 +52,14 @@ def do_DB3(request):
 # 끝난 것들.
 
 '''
+24.4.2 과제 제출 내역 없는 거 다 지웠다가 교사프로필도 지워짐;
+    school = models.School.objects.get(name='강원과학고등학교', year='2024')
+    profile = models.Profile.objects.get(school=school, admin=request.user)
+    homeworks = models.Homework.objects.filter(author_profile=None)
+    for homework in homeworks:
+        homework.author_profile = profile
+        homework.save()
+        
 24.4.1 프로필이 너무 많이 생성되어 반영함.
 ## 과제 제출 내역이 없는 프로필들은 다 지워버려.
     profiles = models.Profile.objects.all()

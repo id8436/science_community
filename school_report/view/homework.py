@@ -427,8 +427,9 @@ def copy(request, homework_id):
     school = homework_box.get_school_model()
     # 사용자가 관리하는 객체들을 보여준다.
     admin_profile = models.Profile.objects.get(admin=admin, school=school)
-    classroom_list = models.Classroom.objects.filter(master_profile=admin_profile, school=school)
     subject_list = models.Subject.objects.filter(master_profile=admin_profile, school=school)
+    subject_ids = [subject.id for subject in subject_list]
+    classroom_list = models.Classroom.objects.filter(base_subject__id__in=subject_ids)
     context['classroom_list'] = classroom_list
     context['subject_list'] = subject_list
 
