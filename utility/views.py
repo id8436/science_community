@@ -34,7 +34,15 @@ def compound_interest(request):
 
 
 def do_DB(request):
-
+    submits = models.HomeworkSubmit.objects.all()
+    for submit in submits:
+        user = submit.to_user
+        base_homework = submit.base_homework
+        box = base_homework.box
+        school = box.get_school_model()
+        profile = models.Profile.objects.filter(admin=user, school=school)
+        submit.to_profile = profile
+        submit.save()
     return render(request, 'utility/main.html', {})
 
 def do_DB2(request):

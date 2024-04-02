@@ -82,7 +82,7 @@ $(document).ready(function(){
     {% if submit_list %}
     {% for annoIndividual in submit_list %}
     <tr>
-        <td>{{annoIndividual.to_profile}}{{annoIndividual.to_profile.id}}</td>
+        <td>{{annoIndividual.to_profile}}</td>
         {% if annoIndividual.check %}
         <td>제출{% if annoIndividual.state%}<h6 style="color: red;">({{annoIndividual.state}}){%endif%}</h6></td>
         <td>{{annoIndividual.submit_date|date:'m.d H:i'}}</td>
