@@ -37,18 +37,10 @@ def do_DB(request):
     submits = models.HomeworkSubmit.objects.all()
     for submit in submits:
         user = submit.to_user
-        base_homework = submit.base_homework
-        box = base_homework.homework_box
         profile = models.Profile.objects.filter(admin=user).first()
-        # try:  # 프로필이 없기도..
-        #     school = box.get_school_model()
-        #     profile = models.Profile.objects.filter(admin=user, school=school)
-        #     submit.to_profile = profile
-        #     submit.save()
-        # except:
-        #     pass
-        submit.to_profile = profile
-        submit.save()
+        # 필터를 사용하여 특정 조건에 맞는 레코드만 업데이트
+        models.HomeworkSubmit.objects.filter(id=submit.id).update(to_profile=profile)
+
     return render(request, 'utility/main.html', {})
 
 def do_DB2(request):
