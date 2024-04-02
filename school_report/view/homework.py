@@ -458,7 +458,8 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
         submit_profile_ids = []
     available_profile_ids = homework_box.get_profiles_id()
     teachers_queryset = models.Profile.objects.filter(id=homework.author_profile.id)
-    available_profile_ids.union(teachers_queryset)  # 교사 프로필의 id도 추가.
+    teacher_ids = list(teachers_queryset.values_list('id', flat=True))
+    available_profile_ids += teacher_ids  # 교사 프로필의 id도 추가.
     filtered_available_profile_ids = [profile_id for profile_id in available_profile_ids if profile_id not in submit_profile_ids]
     filtered_profiles = models.Profile.objects.filter(id__in=filtered_available_profile_ids)
     context['filtered_profiles'] = filtered_profiles
