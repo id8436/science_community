@@ -38,7 +38,7 @@ def do_DB(request):
     for submit in submits:
         user = submit.to_user
         base_homework = submit.base_homework
-        box = base_homework.box
+        box = base_homework.homework_box
         school = box.get_school_model()
         profile = models.Profile.objects.filter(admin=user, school=school)
         submit.to_profile = profile
