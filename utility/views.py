@@ -39,9 +39,9 @@ def do_DB(request):
         user = submit.to_user
         base_homework = submit.base_homework
         box = base_homework.homework_box
-        school = box.get_school_model()
-        profile = models.Profile.objects.filter(admin=user, school=school)
         try:  # 프로필이 없기도..
+            school = box.get_school_model()
+            profile = models.Profile.objects.filter(admin=user, school=school)
             submit.to_profile = profile
             submit.save()
         except:
