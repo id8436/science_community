@@ -41,8 +41,11 @@ def do_DB(request):
         box = base_homework.homework_box
         school = box.get_school_model()
         profile = models.Profile.objects.filter(admin=user, school=school)
-        submit.to_profile = profile
-        submit.save()
+        try:  # 프로필이 없기도..
+            submit.to_profile = profile
+            submit.save()
+        except:
+            pass
     return render(request, 'utility/main.html', {})
 
 def do_DB2(request):
