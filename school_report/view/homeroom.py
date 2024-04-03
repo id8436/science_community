@@ -26,11 +26,12 @@ def create(request, school_id):
             homeroom = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
             homeroom.master_profile = profile
             homeroom.school = school
-            if homeroom.name:  # 기존 이름이 있으면 이것이 우선.
-                pass
-            else:
-                homeroom_name = str(request.POST.get('grade'))+'학년' + str(request.POST.get('cl_num')) +'반'
-                homeroom.name = homeroom_name
+            # # homeroom 이름 지정하는건데, 없어도 될듯.
+            # if homeroom.name:  # 기존 이름이 있으면 이것이 우선.
+            #     pass
+            # else:
+            #     homeroom_name = str(request.POST.get('grade'))+'학년' + str(request.POST.get('cl_num')) +'반'
+            #     homeroom.name = homeroom_name
             homeroom.save()
             homework_box, created = models.HomeworkBox.objects.get_or_create(homeroom=homeroom)
             announce_box, created = models.AnnounceBox.objects.get_or_create(homeroom=homeroom)
@@ -62,9 +63,9 @@ def assignment(request, homeroom_id):
     homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
     context = {'homeroom': homeroom}
     if check.Teacher(user=request.user, school=homeroom.school).in_school_and_none():
-        resistered = models.Student.objects.filter(homeroom=homeroom, obtained=True)
+        resistered = models.Profile.objects.filter(homeroom=homeroom, obtained=True)
         context['resistered'] = resistered
-        unresistered = models.Student.objects.filter(homeroom=homeroom, obtained=False)  # 등록 안한 사람만 반환.
+        unresistered = models.Profile.objects.filter(homeroom=homeroom, obtained=False)  # 등록 안한 사람만 반환.
         context['unresistered'] = unresistered
         return render(request, 'school_report/homeroom/assignment.html', context)
     else:

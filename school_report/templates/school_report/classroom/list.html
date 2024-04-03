@@ -10,7 +10,7 @@
     {% for classroom in classroom_list %}
     <tr>
         <td><a href="{% url 'school_report:classroom_main' classroom.id %}">{{classroom}}</a></td>
-        <th>{{classroom.subject.master_profile.name|slice:2}}*</th>
+        <th>{{classroom.base_subject.master_profile.name|slice:2}}*</th>
     </tr>
     {% endfor %}
     {% endif %}

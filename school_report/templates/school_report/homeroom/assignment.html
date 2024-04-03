@@ -28,7 +28,7 @@
     {% if resistered %}
     {% for student in resistered %}
     <tr>
-        <td>{{student.student_code}}</td>
+        <td>{{student.code}}</td>
         <td>{{student.name}}</td>
     </tr>
     {% endfor %}
@@ -49,9 +49,9 @@
     {% if unresistered %}
     {% for student in unresistered %}
     <tr>
-        <td>{{student.student_code}}</td>
+        <td>{{student.code}}</td>
         <td>{{student.name}}</td>
-        <td>{{ student.code }}</td>
+        <td>{{ student.confirm_code }}</td>
     </tr>
     {% endfor %}
     {% endif %}

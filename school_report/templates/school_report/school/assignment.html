@@ -47,7 +47,7 @@ onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 �
     {% for teacher in teacher_list_unresistered %}
     <tr>
         <td>{{teacher.name}}</td>
-        <td>{{ teacher.code }}</td>
+        <td>{{ teacher.confirm_code }}</td>
     </tr>
     {% endfor %}
     {% endif %}

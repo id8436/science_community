@@ -2,7 +2,7 @@
 {% block content %}
 클래스룸 메인
 {{classroom}}
-<h6>관리자 : {{classroom.master_profile}}</h6>
+<h6>관리자 : {{classroom.base_subject.master_profile}}</h6>
 <br>기초 학급 : <a href="{% url 'school_report:homeroom_main' classroom.homeroom.id %}">{{classroom.homeroom}}</a><br>
 기초 과목 : <a href="{% url 'school_report:subject_main' classroom.base_subject.id %}">{{classroom.base_subject}}</a><br>
 

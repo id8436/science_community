@@ -142,42 +142,49 @@ def make_spreadsheet_df(request, posting_id):
     '''응답에 대한 df를 제작.'''
     homework = get_object_or_404(models.Homework, id=posting_id)
     question_list = homework.homeworkquestion_set.order_by('ordering')
-    if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-        school = homework.classroom.school
-    elif homework.subject_object:
-        school = homework.subject_object.school
+    box = homework.homework_box
+    school = box.get_school_model()
+    # 1if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
+    #     school = homework.classroom.school
+    # elif homework.subject_object:
+    #     school = homework.subject_object.school
+
     # 제출자 명단.
     submit_list = homework.homeworksubmit_set.all()
-    submit_user_list = []
+    submit_profile_list = []
     user_name_list = []
-    student_code_list = []
+    code_list = []
     user_pk_list = []  # ai에 보낼 학생을 선택하기 위해.
     for submit in submit_list:
-        try:  # 교사계정도 제출자에 포함하기 위해.
-            res_user = models.Student.objects.get(admin=submit.to_user, school=school)
-            student_code = res_user.student_code
-            user_pk = res_user.admin.id
-        except:
-            try:
-                res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
-                student_code = None
-                user_pk = res_user.admin.id
-            except:
-                student_code = None  # res_user 없을 때에도 담게끔.
+        # try:  # 교사계정도 제출자에 포함하기 위해.
+        profile = submit.to_profile
+        # res_user = models.Profile.objects.get(admin=submit.to_user, school=school)
+        student_code = profile.code
+        # user_pk = res_user.admin.id
+        # except:
+        #     try:
+        #         res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
+        #         student_code = None
+        #         user_pk = res_user.admin.id
+        #     except:
+        #         student_code = None  # res_user 없을 때에도 담게끔.
         # 각 열 제작.
-        try:  # 등록을 안한 학생계정 등이 있을 때 res_user가 None이다.
-            if res_user.name and user_pk and submit.to_user:
-                user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
-                user_pk_list.append(user_pk)  # ai 세특 저장용.
-                submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
-        except:
-            user_name_list.append(None)
-            user_pk_list.append(None)
-            submit_user_list.append(None)
-        student_code_list.append(student_code)
+        # try:  # 등록을 안한 학생계정 등이 있을 때 res_user가 None이다.
+        #     if res_user.name and user_pk and submit.to_user:
+        #         user_name_list.append(res_user.name)  # 학생계정 및 선생계정 이름.
+        #         user_pk_list.append(user_pk)  # ai 세특 저장용.
+        #         submit_profile_list.append(submit.to_user)  # 인덱스가 될 유저.
+        # except:
+        #     user_name_list.append(None)
+        #     user_pk_list.append(None)
+        #     submit_profile_list.append(None)
+        # student_code_list.append(student_code)
+        submit_profile_list.append(profile)
+        user_name_list.append(profile.name)
+        code_list.append(profile.code)
     # 초기 df 만들기.
-    df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '학번': student_code_list})
-    df = df.set_index('계정')  # 인덱스로 만든다.
+    df = pd.DataFrame({'프로필': submit_profile_list, '제출자': user_name_list, '학번': code_list})
+    df = df.set_index('프로필')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
 
     # 질문에 대한 응답 담기.
@@ -185,10 +192,10 @@ def make_spreadsheet_df(request, posting_id):
         answer_list = []
         user_list = []
         answers = models.HomeworkAnswer.objects.filter(question=question,
-                                                       to_student=submit.to_student)  # 해당 질문에 대한 답변들 모음.
+                                                       target_profile=submit.target_profile)  # 해당 질문에 대한 답변들 모음.
         for answer in answers:
             answer_list.append(answer.contents)
-            user_list.append(answer.respondent)
+            user_list.append(answer.to_profile)
         df_answers = pd.DataFrame({'계정': user_list, question.question_title: answer_list})
         df_answers = df_answers.set_index('계정')  # 합칠 기준이 될 인덱스 지정.
         df_answers = df_answers[~df_answers.index.duplicated(keep='first')]  # 중복을 제거해보는데.. 이거 언젠가 문제가 될지도;;
@@ -331,31 +338,25 @@ def peerreview_create(request, posting_id):
     # 과제에 속한 학생 목록 얻기.(동료평가 지정 대상자를 설정함, POST에서 단체에 해당하는 학생에게 과제를 부여하기 위해.)
     box = homework.homework_box
     type, id = box.type()
-    if type == 'classroom':
-        homeroom = box.classroom.homeroom
-        student_list = models.Profile.objects.filter(homeroom=homeroom)
-    elif type == 'homeroom':
-        student_list = models.Profile.objects.filter(homeroom=box.homeroom)
-    elif type == 'school':
-        student_list = models.Profile.objects.filter(school=box.school)
-
+    student_list = box.get_profiles()
 
     # 제출한다면.
     if request.method == 'POST':
-        user_list = request.POST.getlist('user_list')
+        target_list = request.POST.getlist('user_list')
+        ## 이 설문을 포함해서 계산이 되기도 하니까, 연습은 그때그때 지우는 게 좋다.
         try:  # 기존의 설문은 제거한다.
-            origin = models.HomeworkSubmit.objects.get(base_homework=homework,
-                        to_student=None)
-            origin.delete()
+            origins = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=None)
+            for origin in origins:
+                origin.delete()
         except:  # 없으면 패스.
             pass
-        for user in user_list:
-            target_profile = models.Profile.objects.get(pk=user)
+        for target in target_list:
+            target_profile = models.Profile.objects.get(pk=target)
             # 학급의 학생들에게 배정.
             for to_profile in student_list:
                 submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
                 target_profile=target_profile, to_profile=to_profile, title=target_profile)
-            # 작성자도 대응시킨다.(확인용)
+            # 작성자도 대응시킨다.(확인용, 교사 채점용.)
             submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
             target_profile=target_profile, to_profile=to_profile, title=target_profile)
         return redirect('school_report:homework_detail', posting_id=homework.id)
@@ -447,25 +448,27 @@ def peerreview_statistics(request, posting_id):
     teacher = check.Teacher(request, school).in_school_and_none()
     # 제출자 명단.
     submit_list = homework.homeworksubmit_set.all()
-    submit_user_list = []  # 설문 참여자.
+    submit_profile_list = []  # 설문 참여자.
     user_name_list = []  # 계정이 아니라 학생명, 교사명을 담을 리스트.
     to_list = []  # 동료평가 대상자.
 
     if teacher:
         for submit in submit_list:
-            try:
-                res_user = models.Student.objects.get(admin=submit.to_user, school=school)
-            except:
-                try:
-                    res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
-                except:
-                    res_user = None
-            submit_user_list.append(submit.to_user)  # 인덱스가 될 유저.
-            user_name_list.append(res_user)  # 학생계정 및 선생계정 이름. 평가자 목록.
-            to_list.append(submit.to_student)  # 동료평가 대상자에 추가.
+            profile = submit.to_profile
+            ## 고치다 말았음. 참고...
+            # try:
+            #     res_user = models.Profile.objects.get(admin=submit.to_user, school=school)
+            # except:
+            #     try:
+            #         res_user = models.Teacher.objects.get(admin=submit.to_user, school=school)
+            #     except:
+            #         res_user = None
+            submit_profile_list.append(profile)  # 인덱스가 될 유저.
+            user_name_list.append(profile.name)  # 학생계정 및 선생계정 이름. 평가자 목록.
+            to_list.append(submit.to_target)  # 동료평가 대상자에 추가.
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
         res_user = models.Student.objects.get(admin=request.user, school=school)
-        submit_user_list.append(request.user)
+        submit_profile_list.append(request.user)
         user_name_list.append(res_user)
         for submit in submit_list:
             to_list.append(submit.to_student)  # 평가대상리스트 만들기.
@@ -478,7 +481,7 @@ def peerreview_statistics(request, posting_id):
     to_list = set(to_list)  # 중복값 제거.
     len_to_list = len(to_list)  # 미응답자 계산을 위함.
     special_comment_list = []  # 특별 설문으로 몇 번이나 선정되었는지.
-    for respondent in submit_user_list:  # 유저리스트 돌면서 순회.
+    for respondent in submit_profile_list:  # 유저리스트 돌면서 순회.
         if respondent == None:
             continue
         # 본인이 답한 것에 대한 통계.
@@ -530,7 +533,7 @@ def peerreview_statistics(request, posting_id):
             pass
         given_var_list.append(given_var)
     # 초기 df 만들기.
-    df = pd.DataFrame({'계정': submit_user_list, '제출자': user_name_list, '받은 평균':given_mean_list,
+    df = pd.DataFrame({'계정': submit_profile_list, '제출자': user_name_list, '받은 평균':given_mean_list,
                        '부여점수 평균':mean_list, '부여분산(무지성 방지)':given_var_list, '평가점수 분산(벗어남정도)':var_list,'미응답 수':not_res_list,
                        '특수댓글 수':special_comment_list})
     df = df.set_index('계정')  # 인덱스로 만든다.

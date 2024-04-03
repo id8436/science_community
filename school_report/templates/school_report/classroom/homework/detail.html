@@ -28,34 +28,40 @@
 {% if request.user == posting.author_profile.admin %} <!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
     {% if survey %}
         <div><a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문 문항 수정하기</a>
-            <a href="{% url 'school_report:homework_distribution' posting.id%}" class="btn btn-info">과제 재분배</a>
             {% if posting.is_special == 'peerReview' %}
                 {% if posting.is_end %}
-                    <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
                     <a href="{% url 'school_report:peerreview_who_is_special' posting.id %}">댓글 선발 통계</a>
                 {%else%}
                     <a href="{% url 'school_report:peerreview_create' posting.id %}">동료평가 설문 지정하기</a>
                     <a href="{% url 'school_report:peerreview_end' posting.id %}">동료평가 설문 마감하기</a>
                 {% endif %}
             {% elif postion.is_special %}
-                특수설문.
-            {% else %}
-                <a href="{% url 'school_report:homework_survey_list' posting.id%}" class="btn btn-info">특수설문 제작하기</a>
             {% endif %}
         <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
         </div>
-
     {% else %}
         <div>
             <a href="{% url 'school_report:homework_survey_create' posting.id%}" class="btn btn-primary">설문문항 제작하기</a>
         </div>
-        <div></div>
     {% endif %}
+    <div>
+        <a href="{% url 'school_report:homework_distribution' posting.id%}" class="btn btn-info">과제 재분배</a>
+        {% if posting.is_special %}
+            특수설문입니다.
+        {% else %}
+            <a href="{% url 'school_report:homework_survey_list' posting.id%}" class="btn btn-info">특수설문 제작하기</a>
+        {% endif %}
+    </div>
+
+
 <a href="{% url 'school_report:homework_modify' posting.id%}" class="btn btn-primary">과제 수정</a>
 <a href="{% url 'school_report:homework_copy' posting.id%}" class="btn btn-info">과제 복사</a>
 <a href="#" data-uri="{% url 'school_report:homework_delete' posting.id  %}" class="posting_delete btn btn-danger">과제 삭제</a>
+{% if posting.is_end %}
+    <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
+{%else%}
     <a href="{% url 'school_report:homework_end' posting.id%}" class="btn btn-primary">과제 마감</a>
-
+{% endif %}
 </div>
 <!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
 <script type='text/javascript'>
@@ -98,8 +104,9 @@ $(document).ready(function(){
             {% else %}
             {{annoIndividual.content}}
             {% endif %}
-            {% if posting.is_special == 'peerReview'%}
-            {{ annoIndividual.to_student }}{% endif %}
+                {% if posting.is_special == 'peerReview'%}
+                    {{ annoIndividual.to_student }}
+                {% endif %}
         </td>
     </tr>
     {% endfor %}

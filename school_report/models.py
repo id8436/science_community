@@ -43,6 +43,23 @@ class Homeroom(models.Model):
         unique_together = (
             ('school', 'name')
         )
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            # 새로운 객체 생성 시 실행할 로직
+            is_new = True
+            if not self.name and self.grade and self.cl_num:
+                self.name =  f'{self.grade}학년 {self.cl_num}반'
+        else:
+            # 객체 업데이트 시 실행할 로직
+            is_new = False
+            pass
+        super().save(*args, **kwargs)  # 원래의 save 메서드 호출
+        if is_new:
+            homework_box, created = HomeworkBox.objects.get_or_create(homeroom=self)
+            Announce_box, created = AnnounceBox.objects.get_or_create(homeroom=self)
+
+
+
 class Subject(models.Model):
     '''학교 하위의, 클래스룸을 만들기 위한 교과.'''
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.

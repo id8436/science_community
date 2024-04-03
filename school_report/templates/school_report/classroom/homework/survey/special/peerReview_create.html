@@ -13,10 +13,10 @@
         </tr>
       </thead>
       <tbody>
-      {% for profile in profile_list %}
+      {% for profile in student_list %}
         <tr>
           <td>
-            {{student}}
+            {{profile.code}} {{profile.name}}
           </td>
           <td><input type="checkbox"
                      {%if profile.submit %}checked disabled
