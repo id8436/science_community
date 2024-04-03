@@ -17,6 +17,8 @@ def main(request, school_id):
     context['homeroom_list'] = school.homeroom_set.all().order_by('name')
     context['subject_list'] = school.subject_set.all().order_by('subject_name')
     context['classroom_list'] = school.classroom_set.all().order_by('homeroom__name', 'name')
+    context['announcement_list'] = school.announcebox.announcement_set.order_by('-create_date')
+    context['homework_list'] = school.homeworkbox.homework_set.order_by('-create_date')
     # 교사여부.
     context['teacher'] = check.Teacher(user=request.user, school=school, request=request).in_school_and_none()
     # 학생여부.
