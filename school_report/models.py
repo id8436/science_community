@@ -172,11 +172,14 @@ class BaseBox(models.Model):
             return 'subject', self.subject.id
         elif self.classroom:
             return 'classroom', self.classroom.id  # 인수가 2개임에 유의.
-    def get_profiles(self):
+    def get_profiles(self, teacher=None):
         '''각 객체 하위의 모든 프로필을 불러온다.'''
         type, id = self.type()
         if type == 'school':
-            profiles = self.school.profile_set.all()
+            if teacher=="teacher":
+                profiles = Profile.objects.filter(school=self.school, position='teacher')
+            else:
+                profiles = Profile.objects.filter(school=self.school, position='student')
         elif type == 'homeroom':
             profiles = self.homeroom.profile_set.all()
         elif type == 'subject':
@@ -190,10 +193,13 @@ class BaseBox(models.Model):
             homeroom = self.classroom.homeroom
             profiles = homeroom.profile_set.all()
         return profiles
-    def get_profiles_id(self):
+    def get_profiles_id(self, teacher=None):
         type, id = self.type()
         if type == 'school':
-            profile_ids = self.school.profile_set.values_list('id', flat=True)
+            if teacher=="teacher":
+                profile_ids = Profile.objects.filter(school=self.school, position='teacher').values_list('id', flat=True)
+            else:
+                profile_ids = Profile.objects.filter(school=self.school, position='student').values_list('id', flat=True)
         elif type == 'homeroom':
             profile_ids = self.homeroom.profile_set.values_list('id', flat=True)
         elif type == 'subject':

@@ -2,6 +2,41 @@
 
 {% block content %}
 
+{% if school %}
+<h3>분배 가능 학년.</h3>
+<form action="#" method="POST" id="myForm">
+    {% csrf_token %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>학년</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+              <label for="전체교사">모든 교사에 배정</label> <input id="전체교사" name="profile_ids" type="checkbox" value="teacher">
+          </td>
+        </tr>
+        <tr>
+          <td>
+              <label for="전체학생">모든 학생에 배정</label> <input id="전체학생" name="profile_ids" type="checkbox" value="all_student">
+          </td>
+        </tr>
+      {% for grade in grade_set %}
+        <tr>
+          <td>
+              <label for="{{grade}}학년">{{grade}}학년</label> <input id="{{grade}}학년" name="profile_ids" type="checkbox" value="{{grade}}">
+          </td>
+        </tr>
+      {% endfor %}
+<!-- 추가적인 설문 종류와 설명을 필요에 따라 행을 추가할 수 있습니다 -->
+      </tbody>
+    </table>
+    <input type="submit" class="btn btn-primary" value="과제 배정"></input>
+  </form>
+
+{%else%}
 <h3>분배 가능 대상자.</h3>
 <form action="#" method="POST" id="myForm">
     {% csrf_token %}
@@ -24,7 +59,7 @@
     </table>
     <input type="submit" class="btn btn-primary" value="과제 배정"></input>
   </form>
-
+{% endif %}
 
 
 <script>

@@ -12,6 +12,7 @@ import pandas as pd  # 통계용
 import math
 from datetime import datetime
 import openpyxl
+from itertools import chain
 
 ## 편의, 공통 기능들.
 # def get_assigned_profile(homework_id):
@@ -446,13 +447,53 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
     homework = get_object_or_404(models.Homework, pk=homework_id)
     homework_box = homework.homework_box
     context = {}
+    type, id = homework_box.type()
     # post로 들어오면 배정.
     if request.method == 'POST':
         profile_ids = request.POST.getlist('profile_ids')
+
+        if type == 'school':  # 학교의 경우, 다른 방식으로 진행한다.
+            school = models.School.objects.get(id=id)
+            for profile_id in profile_ids:
+                if profile_id == "all_student" or "teacher":
+                    profiles = school.homeworkbox.get_profiles(teacher=profile_id)  # 학생 계정만 받아옴.
+                    for profile in profiles:
+                        individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=profile, base_homework=homework)
+                else:  # 학년이 지정된 경우.
+                    grade_set = set(profile_ids)
+                    homeroom_list = []
+                    for grade in grade_set:
+                        homerooms = models.Homeroom.objects.filter(school=school, grade=grade)
+                        homeroom_list.append(homerooms)
+                    combined_homerooms = list(chain(*homeroom_list))  # 여러 쿼리셋을 하나의 리스트로 합치기
+
+                    profiles_id = []
+                    for homeroom in combined_homerooms:
+                        propro = list(homeroom.homeworkbox.get_profiles_id())
+                        profiles_id.extend(propro)
+                    profiles = models.Profile.objects.filter(id__in=profiles_id)
+                    for profile in profiles:
+                        individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=profile, base_homework=homework)
+                return redirect('school_report:homework_detail', posting_id=homework.id)
+
+        # 일반 배정.
         for profile_id in profile_ids:
             to_profile = models.Profile.objects.get(id=profile_id)
             individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile, base_homework=homework)
         return redirect('school_report:homework_detail', posting_id=homework.id)
+
+    if type=='school':  # 학교의 경우, 다른 방식으로 진행한다.
+        # 몇 개의 학년이 있는지.
+        school = models.School.objects.get(id=id)
+        homerooms = models.Homeroom.objects.filter(school=school)
+        grade_list = []  # 학년을 담을거야.
+        for homeroom in homerooms:
+            if homeroom.grade:
+                grade_list.append(homeroom.grade)
+        grade_set = set(grade_list)
+        context['school'] = school
+        context['grade_set'] = grade_set
+        return render(request, 'school_report/classroom/homework/homework_distribution.html', context)
 
     # 추가 부여 가능 대상자 찾기.
     submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
