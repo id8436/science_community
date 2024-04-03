@@ -46,10 +46,14 @@ def create_base(request, homework_box):
         homework.homework_box = homework_box  # 게시판 지정.
         homework.save()
         ### 자동 과제 분배.
-        profiles = homework_box.get_profiles()
-        for to_profile in profiles:
-            individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
-                                                                          base_homework=homework)
+        type, id = homework_box.type()
+        if type == 'school':  # 학교타입이면 분배 정지.
+            pass
+        else:
+            profiles = homework_box.get_profiles()
+            for to_profile in profiles:
+                individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
+                                                                              base_homework=homework)
 @login_required()
 def modify(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)
