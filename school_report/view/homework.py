@@ -298,14 +298,14 @@ def survey_statistics(request, submit_id):
         if not teacher and homework.is_secret_student:
             messages.error(request, '학생들에겐 비공개 되어 있습니다.')
             return redirect(request.META.get('HTTP_REFERER', None))
-        question_list = question_list_statistics(question_list, submit, request)  # question_list 의 info에 정보를 담아 반환한다.
+        question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.
         return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
     else:
         messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
         return redirect(request.META.get('HTTP_REFERER', None))
-def question_list_statistics(question_list, submit, request):
+def question_list_statistics(question_list, submit):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
         answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=submit.to_profile)
@@ -375,27 +375,25 @@ def question_list_statistics(question_list, submit, request):
             case 'multiple-choice':  # 2개 이상 동시 선택을 위해 json으로 저장한다.
                 df = pd.DataFrame({})  # 빈 df 제작.
                 for answer in answers:
-                    selects = json.loads(answer.contents)  # 리스트로 받는다. json.loads를 안해도 된다고...??
+                    selects = json.loads(answer.contents)  # 리스트로 받는다.
                     if not isinstance(selects, list):  # 숫자형이거나, 다른 데이터 1개인 경우.
                         df = df.append({'contents': selects}, ignore_index=True)  # 대답을 담는다.
                     else:
                         for select in selects:
                             df = df.append({'contents':select}, ignore_index=True)  # 대답을 담는다.
                 # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
-                try:
-                    contents_count = df['contents'].value_counts()
-                    contents_percentage = df['contents'].value_counts(normalize=True) * 100
-                    df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
-                    # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
-                    df.set_index('contents', inplace=True)
-                    df['count'] = contents_count
-                    df['percentage'] = contents_percentage
-                    df = df.sort_values('count', ascending=False).reset_index(drop=False)
-                    df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
-                    question.data_dict = df_dict
-                except:
-                    messages.error(request, df)
-                    return question_list
+                contents_count = df['contents'].value_counts()
+                contents_percentage = df['contents'].value_counts(normalize=True) * 100
+                df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
+                # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
+                df.set_index('contents', inplace=True)
+                df['count'] = contents_count
+                df['percentage'] = contents_percentage
+                df = df.sort_values('count', ascending=False).reset_index(drop=False)
+                df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
+                question.data_dict = df_dict
+                    # messages.error(request, df)
+                    # return question_list
         question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
     return question_list
 def below_standard_set(request, submit_id):
