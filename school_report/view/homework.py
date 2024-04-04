@@ -298,14 +298,14 @@ def survey_statistics(request, submit_id):
         if not teacher and homework.is_secret_student:
             messages.error(request, '학생들에겐 비공개 되어 있습니다.')
             return redirect(request.META.get('HTTP_REFERER', None))
-        question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
+        question_list = question_list_statistics(question_list, submit, request)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.
         return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
     else:
         messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
         return redirect(request.META.get('HTTP_REFERER', None))
-def question_list_statistics(question_list, submit):
+def question_list_statistics(question_list, submit, request):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
         answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=submit.to_profile)
@@ -386,6 +386,7 @@ def question_list_statistics(question_list, submit):
                     contents_count = df['contents'].value_counts()
                 except:
                     messages.error(request, df)
+                    return None
                 contents_percentage = df['contents'].value_counts(normalize=True) * 100
                 df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
                 # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
