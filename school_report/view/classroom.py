@@ -357,8 +357,9 @@ def peerreview_create(request, posting_id):
                 submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
                 target_profile=target_profile, to_profile=to_profile, title=target_profile)
             # 작성자도 대응시킨다.(확인용, 교사 채점용.)
+            teacher_profile = models.Profile.objects.get(school=box.get_school_model(), admin=request.user)
             submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
-            target_profile=target_profile, to_profile=to_profile, title=target_profile)
+            target_profile=target_profile, to_profile=teacher_profile, title=target_profile)
         return redirect('school_report:homework_detail', posting_id=homework.id)
 
 
@@ -441,10 +442,8 @@ def peerreview_statistics(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
     context = {}
     question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가용.
-    if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-        school = homework.classroom.school
-    elif homework.subject_object:
-        school = homework.subject_object.school
+    box = homework.homework_box
+    school = box.get_school_model()
     teacher = check.Teacher(request, school).in_school_and_none()
     # 제출자 명단.
     submit_list = homework.homeworksubmit_set.all()
@@ -455,6 +454,7 @@ def peerreview_statistics(request, posting_id):
     if teacher:
         for submit in submit_list:
             profile = submit.to_profile
+
             ## 고치다 말았음. 참고...
             # try:
             #     res_user = models.Profile.objects.get(admin=submit.to_user, school=school)

@@ -243,7 +243,7 @@ def survey_submit(request, submit_id):
             question = models.HomeworkQuestion.objects.get(pk=question_id)
             if question.homework != homework:  # 부정접근 방지.
                 return redirect('school_report:homework_detail', posting_id=homework.id)
-            answer,_ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=submit.to_profile)
+            answer,_ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
             # response 태그가 있는 경우.
             response = request.POST.get('response'+question_id)
             if response:
@@ -309,6 +309,8 @@ def question_list_statistics(question_list, submit):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
         answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
+        print(question)
+        print(answers)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
 
