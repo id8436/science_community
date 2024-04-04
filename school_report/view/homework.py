@@ -384,18 +384,18 @@ def question_list_statistics(question_list, submit, request):
                 # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
                 try:
                     contents_count = df['contents'].value_counts()
+                    contents_percentage = df['contents'].value_counts(normalize=True) * 100
+                    df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
+                    # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
+                    df.set_index('contents', inplace=True)
+                    df['count'] = contents_count
+                    df['percentage'] = contents_percentage
+                    df = df.sort_values('count', ascending=False).reset_index(drop=False)
+                    df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
+                    question.data_dict = df_dict
                 except:
                     messages.error(request, df)
                     return question_list
-                contents_percentage = df['contents'].value_counts(normalize=True) * 100
-                df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
-                # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
-                df.set_index('contents', inplace=True)
-                df['count'] = contents_count
-                df['percentage'] = contents_percentage
-                df = df.sort_values('count', ascending=False).reset_index(drop=False)
-                df_dict = df.to_dict('records')  # 편하게 쓰기 위해 사전의 리스트로 반환!
-                question.data_dict = df_dict
         question.question_type = origin_type  # 원래 타입으로 되돌리기.(탬플릿 불러오기에 문제)
     return question_list
 def below_standard_set(request, submit_id):
