@@ -386,7 +386,7 @@ def question_list_statistics(question_list, submit, request):
                     contents_count = df['contents'].value_counts()
                 except:
                     messages.error(request, df)
-                    return None
+                    return question_list
                 contents_percentage = df['contents'].value_counts(normalize=True) * 100
                 df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
                 # contents를 인덱스로 사용하여 새로운 값을 할당합니다.
