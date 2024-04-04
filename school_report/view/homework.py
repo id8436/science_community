@@ -308,7 +308,7 @@ def survey_statistics(request, submit_id):
 def question_list_statistics(question_list, submit):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
-        answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=submit.to_profile)
+        answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
 
