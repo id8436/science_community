@@ -311,7 +311,6 @@ def question_list_statistics(question_list, submit):
         answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=submit.to_profile)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
-        print(answers)
 
         match question.question_type:  # 중복되는 작동을 짧게 줄이기 위해.
             case 'long':
@@ -383,6 +382,7 @@ def question_list_statistics(question_list, submit):
                         for select in selects:
                             df = df.append({'contents':select}, ignore_index=True)  # 대답을 담는다.
                 # value_counts를 쓰면 인덱스가 꼬이기 때문에 중간과정을 거친다.
+                messages.error(request, df)
                 contents_count = df['contents'].value_counts()
                 contents_percentage = df['contents'].value_counts(normalize=True) * 100
                 df = df.drop_duplicates(subset='contents')  # 답변이 중복된 행 삭제.
