@@ -451,9 +451,9 @@ def meal_info(request, school_id):
             pass
     return render(request, 'school_report/school/meal_info.html', context)
 
-def student_reset(request, student_id):
-    student = models.Student.objects.get(pk=student_id)
-    student.obtained = False
-    student.code = random.randint(100000, 999999)
-    student.save()
-    return redirect('school_report:student_assignment', school_id=student.school.id)
+def profile_reset(request, profile_id):
+    profile = models.Profile.objects.get(pk=profile_id)
+    profile.obtained = False
+    profile.confirm_code = random.randint(100000, 999999)
+    profile.save()
+    return redirect('school_report:student_assignment', school_id=profile.school.id)
