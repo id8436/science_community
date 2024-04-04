@@ -311,6 +311,8 @@ def question_list_statistics(question_list, submit):
         answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=submit.to_profile)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
+        print(answers)
+
         match question.question_type:  # 중복되는 작동을 짧게 줄이기 위해.
             case 'long':
                 question.question_type = 'short'
