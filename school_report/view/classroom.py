@@ -407,14 +407,14 @@ def peerreview_end(request, posting_id):
                 continue  # df가 비었다면 패스.
             df = df.rename(columns={'contents': 'score'})  # 행이름 바꿔주기.(아래에서 그대로 써먹기 위해)
             df = df.astype({'score': float})
-            mean = df.mean(axis=0)[0]  # 평균 구하기.
+            mean = df.mean(axis=0)[0]  # 타겟의 평균 구하기.
             for respondent in user_list:  # 평가자 돌며 평균에서 차 담기.
                 try:  # 응답 안한 사람이 있으면 answer객체가 없기도 하다.
-                    answer = models.HomeworkAnswer.objects.get(respondent=respondent, target_profile=target_profile, question=question)
+                    answer = models.HomeworkAnswer.objects.get(to_profile=respondent, target_profile=target_profile, question=question)
                     answer.memo = (float(answer.contents) - mean)**2  # 평균에서의 차, 제곱 담기.
                     answer.save()
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
         messages.success(request, "계산 완료.")
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
         # to_student에 따라 평균 구하고... 사전으로 정리??
@@ -444,7 +444,7 @@ def peerreview_statistics(request, posting_id):
     question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가용.
     box = homework.homework_box
     school = box.get_school_model()
-    teacher = check.Teacher(request, school).in_school_and_none()
+    teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
     # 제출자 명단.
     submit_list = homework.homeworksubmit_set.all()
     submit_profile_list = []  # 설문 참여자.
@@ -465,11 +465,11 @@ def peerreview_statistics(request, posting_id):
             #         res_user = None
             submit_profile_list.append(profile)  # 인덱스가 될 유저.
             user_name_list.append(profile.name)  # 학생계정 및 선생계정 이름. 평가자 목록.
-            to_list.append(submit.to_target)  # 동료평가 대상자에 추가.
+            to_list.append(submit.target_profile)  # 동료평가 대상자에 추가.
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
-        res_user = models.Student.objects.get(admin=request.user, school=school)
-        submit_profile_list.append(request.user)
-        user_name_list.append(res_user)
+        profile = models.Profile.objects.get(admin=request.user, school=school)
+        submit_profile_list.append(profile)
+        user_name_list.append(profile.name)
         for submit in submit_list:
             to_list.append(submit.to_student)  # 평가대상리스트 만들기.
 
@@ -486,12 +486,13 @@ def peerreview_statistics(request, posting_id):
             continue
         # 본인이 답한 것에 대한 통계.
         answers = models.HomeworkAnswer.objects.filter(question=question,
-                                                       respondent=respondent)
+                                                       to_profile=respondent)
         mean = 0
         count = 0
         var = 0
         for answer in answers:
             count += 1
+            print(answer.contents)
             mean += float(answer.contents)
             var += float(answer.memo)
         try:  # count=0 이면 나누기 에러.
@@ -505,26 +506,23 @@ def peerreview_statistics(request, posting_id):
         # 받은 평균 담기. +특별설문 선정 횟수 계산.
         given_mean = 0
         count = 0
-        try:  # 선생님은 학생객체가 없어 애러 뜸.
-            to_student = models.Student.objects.get(admin=respondent, school=school)
-            answers = models.HomeworkAnswer.objects.filter(question=question, to_student=to_student)
-            for answer in answers:
-                count += 1
-                given_mean += float(answer.contents)
-            try:
-                given_mean = given_mean / count
-            except:
-                pass
-            special_content = str(to_student.student_code) + to_student.name
-            special_count = models.HomeworkSubmit.objects.filter(base_homework=homework, content=special_content).count
+        #to_student = models.Student.objects.get(admin=respondent, school=school)
+        answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=respondent)
+        for answer in answers:
+            count += 1
+            given_mean += float(answer.contents)
+        try:  # count =0 인 경우가 있음.
+            given_mean = given_mean / count
         except:
             given_mean = None
-            special_count = None
+        special_content = str(respondent.code) + respondent.name
+        special_count = models.HomeworkSubmit.objects.filter(base_homework=homework, content=special_content).count
+        #special_count = None
         special_comment_list.append(special_count)
         given_mean_list.append(given_mean)
         # given_var 구하기.
         given_var = 0
-        answers = models.HomeworkAnswer.objects.filter(question=question, respondent=respondent)
+        answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=respondent)
         for answer in answers:
             given_var += (mean - float(answer.contents)) **2  # 분산.
         try:

@@ -105,7 +105,7 @@ $(document).ready(function(){
             {{annoIndividual.content}}
             {% endif %}
                 {% if posting.is_special == 'peerReview'%}
-                    {{ annoIndividual.to_student }}
+                    {{ annoIndividual.target_profile }}
                 {% endif %}
         </td>
     </tr>

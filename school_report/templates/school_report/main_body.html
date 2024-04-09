@@ -22,7 +22,7 @@
     {% endwith %}
 </p>
 <p>소속 교과
-    {% with profile.classroom_set.all as classroom_list %}
+    {% with profile.homeroom.classroom_set.all as classroom_list %}
         {% include "school_report/classroom/list.html" %}
     {% endwith %}
 </p>

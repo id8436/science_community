@@ -122,24 +122,13 @@ def detail(request, posting_id):
         # 평가 관련 데이터.
         try:  # 평가한 게 없으면 df가 None이 됨.
             question = models.HomeworkQuestion.objects.get(homework=homework, ordering=1)  # 동료평가의 첫번째 질문.
-            answers = models.HomeworkAnswer.objects.filter(respondent=request.user, question=question)  # 내가 부여한 것.
+            answers = models.HomeworkAnswer.objects.filter(to_profile=profile, question=question)  # 내가 부여한 것.
             df = pd.DataFrame.from_records(answers.values('contents'))
             df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
-            score_mean = df['contents'].mean()
-            variance = df['contents'].organization()
-            context['score_mean'] = score_mean
-            context['variance'] = variance
-        except:
-            pass
-        # score_sum = 0
-        # for answer in answers:
-        #     score_sum += float(answer.contents)
-        #     count += 1
-        # try:  # 아무 평가도 안한 상태에선 count0이라 에러 발생.
-        #     score_mean = score_sum/count
-        #     context['score_mean'] = score_mean
-        # except:
-        #     pass
+            context['score_mean'] = df['contents'].mean()
+            context['variance'] = df['contents'].var()
+        except Exception as e:
+            print(e)
     return render(request, 'school_report/classroom/homework/detail.html', context)
 @login_required()
 def delete(request, posting_id):

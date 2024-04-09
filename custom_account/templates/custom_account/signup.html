@@ -59,11 +59,27 @@
             <input type="email" class="form-control" name="email" id="email"
                    value="{{ form.email.value|default_if_none:'' }}" placeholder="회원정보 변경 등에 사용되니 정확히!!">
         </div>
+        <div class="form-group">
+            <label for="email_confirm">이메일 확인.</label> 이메일은 계정 보안의 핵심입니다.
+            <input type="email" class="form-control" name="email_confirm" id="email_confirm"
+                   value="{{ form.email.value|default_if_none:'' }}" placeholder="위와 동일하게 입력하세요.">
+        </div>
 
-        <button type="submit" class="btn btn-primary">가입하기</button>
+        <button type="submit" class="btn btn-primary" onclick="validate()">가입하기</button>
     </form>
 </div>
 
+function validate() {
+    // 두 이메일이 일치하는지 확인.
+    var email = document.getElementById('email').value;
+    var confirmEmail = document.getElementById('email_confirm').value;
 
+    if(email != confirmEmail) {
+        alert("이메일 주소가 일치하지 않습니다. 다시 확인해 주세요.");
+    } else {
+        // 이메일이 일치하면 양식 제출
+        document.querySelector('.post-form').submit();
+    }
+}
 
 </body>
