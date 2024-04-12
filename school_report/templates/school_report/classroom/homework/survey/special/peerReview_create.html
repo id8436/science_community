@@ -3,7 +3,7 @@
 {% block content %}
 
 학생에 대한 설문을 만들 수는 있지만, 기존 설문을 없앨 수 있어, 삭제기능은 만들지 않았습니다.
-  <form action="#" method="POST" id="myForm">
+  <form action="#" method="POST" id="myForm" class="myForm">
     {% csrf_token %}
     <table class="table">
       <thead>
@@ -29,7 +29,8 @@
     <input type="submit" class="btn btn-primary" value="설문 제작"></input>
   </form>
 
-<form action="#" method="POST" id="for_all">
+<form action="#" method="POST" id="allForm" class="myForm">
+      {% csrf_token %}
   <input type="hidden" name="all_random" value="true"></input>
   <input type="submit" class="btn btn-primary" value="전체 무작위 순서로 제작"></input>
 </form>
@@ -37,7 +38,8 @@
 
 
 <script>
-document.getElementById('myForm').addEventListener('submit', function (event) {
+document.querySelectorAll('.myForm').forEach(function(form) {
+    form.addEventListener('submit', function(event) {
     var confirmation = confirm("제출하시겠습니까? 삭제는 불가합니다."); // 확인 메시지를 표시합니다.
     if (!confirmation) {
         event.preventDefault(); // 제출을 취소합니다.
