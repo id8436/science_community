@@ -13,6 +13,7 @@ import math
 from datetime import datetime
 import openpyxl
 from school_report.view import homework
+import random
 @login_required()
 def create(request, school_id):
     '''교과와 학급이 만들어진 상태에서 교과를 학급에 배정.'''
@@ -343,6 +344,7 @@ def peerreview_create(request, posting_id):
     # 제출한다면.
     if request.method == 'POST':
         target_list = request.POST.getlist('user_list')
+        all_random = request.POST.getlist('all_random')
         ## 이 설문을 포함해서 계산이 되기도 하니까, 연습은 그때그때 지우는 게 좋다.
         try:  # 기존의 설문은 제거한다.
             origins = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=None)
@@ -350,6 +352,13 @@ def peerreview_create(request, posting_id):
                 origin.delete()
         except:  # 없으면 패스.
             pass
+        if all_random:  # 랜덤으로 들어온 경우.
+            target_list = []  # 모두에 대해서 랜덤이라면 리스트를 고친다.
+            submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
+            for submit in submits:
+                target_list.append(submit.target_profile.id)  # 리스트 재구성.
+            random.shuffle(target_list)  # 리스트 자체, 내부에서 섞음.
+        # 위에서부터 리스트를 받아 생성 및 배정.
         for target in target_list:
             target_profile = models.Profile.objects.get(pk=target)
             # 학급의 학생들에게 배정.
