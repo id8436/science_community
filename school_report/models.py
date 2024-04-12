@@ -325,6 +325,7 @@ class HomeworkSubmit(models.Model):
         unique_together = (
             ('base_homework', 'to_profile', 'target_profile')
         )
+        ordering = ['id']
     def copy_create(self, homework_ob):
         copied_instance = HomeworkSubmit.objects.create(base_homework=homework_ob,
             to_user=self.to_user, title=self.title,

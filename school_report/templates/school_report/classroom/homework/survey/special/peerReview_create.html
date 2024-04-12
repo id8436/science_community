@@ -43,7 +43,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.myForm').forEach(function(form) {
         form.addEventListener('submit', function(event) {
-            var confirmation = confirm("제출하시겠습니까? 삭제는 불가합니다."); // 확인 메시지를 표시합니다.
+            var confirmation = confirm("제출하시겠습니까? 삭제는 불가합니다. \n 너무 많이 선택하면 서버에러가 납니다."); // 확인 메시지를 표시합니다.
             if (!confirmation) {
                 event.preventDefault(); // 제출을 취소합니다.
             }
