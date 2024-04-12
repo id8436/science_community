@@ -236,7 +236,6 @@ def homework_check_spreadsheet(request, classroom_id):
         print(info_dic)
         df = pd.DataFrame(info_dic)
         df_dict = df.to_dict(orient='records')
-        #print(df)
     elif student:  # 학생인 경우.
         homework_list = models.Homework.objects.filter(classroom=classroom)
         info_dic = {'student': student}
@@ -353,12 +352,10 @@ def peerreview_create(request, posting_id):
         except:  # 없으면 패스.
             pass
         if all_random:  # 랜덤으로 들어온 경우.
-            target_list = []  # 모두에 대해서 랜덤이라면 리스트를 고친다.
-            submits = models.HomeworkSubmit.objects.filter(base_homework=homework)
-            for submit in submits:
-                target_list.append(submit.target_profile.id)  # 리스트 재구성.
-            random.shuffle(target_list)  # 리스트 자체, 내부에서 섞음.
+            target_list = list(box.get_profiles_id())
         # 위에서부터 리스트를 받아 생성 및 배정.
+        random.shuffle(target_list)  # 리스트 자체, 내부에서 섞음.
+        teacher_profile = models.Profile.objects.get(school=box.get_school_model(), admin=request.user)  # 교사 대응용.
         for target in target_list:
             target_profile = models.Profile.objects.get(pk=target)
             # 학급의 학생들에게 배정.
@@ -366,7 +363,6 @@ def peerreview_create(request, posting_id):
                 submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
                 target_profile=target_profile, to_profile=to_profile, title=target_profile)
             # 작성자도 대응시킨다.(확인용, 교사 채점용.)
-            teacher_profile = models.Profile.objects.get(school=box.get_school_model(), admin=request.user)
             submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
             target_profile=target_profile, to_profile=teacher_profile, title=target_profile)
         return redirect('school_report:homework_detail', posting_id=homework.id)

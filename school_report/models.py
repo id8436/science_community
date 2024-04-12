@@ -151,7 +151,7 @@ class Profile(models.Model):
         unique_together = (
             ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
         )
-        ordering = ['-activated', 'code']
+        ordering = ['code']
 class BaseBox(models.Model):
     '''각종 Box의 원본이 되는 클래스. 나머지 박스에선 상속받아 쓴다.'''
     '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
