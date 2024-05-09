@@ -459,12 +459,12 @@ def peerreview_statistics(request, posting_id):
     if teacher:
         for submit in submit_list:
             profile = submit.to_profile
-            submit_profile_list.append(profile)  # 인덱스가 될 유저.
-            user_name_list.append(profile.name)  # 학생계정 및 선생계정 이름. 평가자 목록.
+            submit_profile_list.append(profile.code)  # 인덱스가 될 유저.
+            user_name_list.append(str(profile.code)+profile.name)  # 학생계정 및 선생계정 이름. 평가자 목록.
             to_list.append(submit.target_profile)  # 동료평가 대상자에 추가.
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
         profile = models.Profile.objects.get(admin=request.user, school=school)
-        submit_profile_list.append(profile)
+        submit_profile_list.append(profile.code)  # 프로파일로 하려고 했는데, 코드로.
         user_name_list.append(str(profile.code)+profile.name)
         for submit in submit_list:
             to_list.append(submit.target_profile)  # 평가대상리스트 만들기.
