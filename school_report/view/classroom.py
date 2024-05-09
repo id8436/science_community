@@ -547,7 +547,7 @@ def peerreview_statistics(request, posting_id):
 def peerreview_select_comment(request, submit_id):
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 제출 찾아오기.
     posting = submit.base_homework
-    box = posting.box
+    box = posting.homework_box
     school = box.get_school_model()
     to_student = check.Student(user=request.user, school=school).in_school_and_none()  # 학생계정 배정.
 
