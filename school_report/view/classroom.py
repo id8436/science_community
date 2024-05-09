@@ -500,8 +500,9 @@ def peerreview_statistics(request, posting_id):
                 verification_var = squere_sum/count  # 친구에게 부여한 점수가 얼마나 잘못되었는지에 대한 지표.
             except:
                 pass
-        except:
+        except:  # 응답이 없는 경우.
             give_mean, give_var, verification_var = None, None, None
+            count = 0
         give_mean_list.append(give_mean)
         give_var_list.append(give_var)
         not_res_list.append(len_to_list - count)
