@@ -459,12 +459,12 @@ def peerreview_statistics(request, posting_id):
     if teacher:
         for submit in submit_list:
             profile = submit.to_profile
-            submit_profile_list.append(profile.code)  # 인덱스가 될 유저.
+            submit_profile_list.append(profile)  # 인덱스가 될 유저.
             user_name_list.append(str(profile.code)+profile.name)  # 학생계정 및 선생계정 이름. 평가자 목록.
             to_list.append(submit.target_profile)  # 동료평가 대상자에 추가.
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
         profile = models.Profile.objects.get(admin=request.user, school=school)
-        submit_profile_list.append(profile.code)  # 프로파일로 하려고 했는데, 코드로.
+        submit_profile_list.append(profile)  # 인덱스가 될 유저.
         user_name_list.append(str(profile.code)+profile.name)
         for submit in submit_list:
             to_list.append(submit.target_profile)  # 평가대상리스트 만들기.
@@ -549,7 +549,7 @@ def peerreview_statistics(request, posting_id):
     df = pd.DataFrame({'프로필': submit_profile_list, '제출자': user_name_list, '받은 평균':given_mean_list,
                        '부여점수 평균':give_mean_list, '부여한 점수의 분산(무지성 방지)':give_var_list, '평가한 점수가 받은 분산(평가의 벗어남정도)':verification_var_list,'미응답 수':not_res_list,
                        '특수댓글 수':special_comment_list})
-    df = df.sort_values(by='프로필', ascending=True)
+    df = df.sort_values(by='제출자', ascending=True)
     df = df.set_index('프로필')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_list'] = df.to_dict(orient='records')
