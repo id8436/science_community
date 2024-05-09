@@ -562,7 +562,7 @@ def peerreview_select_comment(request, submit_id):
     answer = models.HomeworkAnswer.objects.get(target_profile=student, contents=answer_key)  # 고른 선택지 객체 가져오기.
     respondent_student = answer.to_profile
     #respondent_student = models.Student.objects.get(admin=answer.to_profile, school=school)
-    submit.content = str(respondent_student.student_code) + respondent_student.name  # 선택된 학생계정을 담는다.
+    submit.content = str(respondent_student.code) + respondent_student.name  # 선택된 학생계정을 담는다.
     submit.save()
     messages.success(request, '반영하였습니다.')
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
