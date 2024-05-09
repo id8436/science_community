@@ -481,24 +481,27 @@ def peerreview_statistics(request, posting_id):
         if respondent == None:
             continue
         # 본인이 답한 것에 대한 통계.
-        answers = models.HomeworkAnswer.objects.filter(to_profile=respondent, question=question)  # 내가 부여한 것.
-        df = pd.DataFrame.from_records(answers.values('contents'))
-        df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
-        give_mean = df['contents'].mean()
-        give_var = df['contents'].var()
-        # 위 코드로 대체함.
-        # answers = models.HomeworkAnswer.objects.filter(question=question,
-        #                                                to_profile=respondent)
-        # 점수를 얼마나 잘 부여했는가에 대한 지표 구하기.
-        squere_sum = 0
-        count = 0
-        for answer in answers:
-            count += 1
-            squere_sum += float(answer.memo)
-        try:  # count=0 이면 나누기 에러.
-            verification_var = squere_sum/count  # 친구에게 부여한 점수가 얼마나 잘못되었는지에 대한 지표.
+        try:  # answer이 빈 경우엔 에러가 난다.
+            answers = models.HomeworkAnswer.objects.filter(to_profile=respondent, question=question)  # 내가 부여한 것.
+            df = pd.DataFrame.from_records(answers.values('contents'))
+            df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
+            give_mean = df['contents'].mean()
+            give_var = df['contents'].var()
+            # 위 코드로 대체함.
+            # answers = models.HomeworkAnswer.objects.filter(question=question,
+            #                                                to_profile=respondent)
+            # 점수를 얼마나 잘 부여했는가에 대한 지표 구하기.
+            squere_sum = 0
+            count = 0
+            for answer in answers:
+                count += 1
+                squere_sum += float(answer.memo)
+            try:  # count=0 이면 나누기 에러.
+                verification_var = squere_sum/count  # 친구에게 부여한 점수가 얼마나 잘못되었는지에 대한 지표.
+            except:
+                pass
         except:
-            pass
+            give_mean, give_var, verification_var = None
         give_mean_list.append(give_mean)
         give_var_list.append(give_var)
         not_res_list.append(len_to_list - count)
@@ -515,21 +518,25 @@ def peerreview_statistics(request, posting_id):
         #     pass
         # give_var_list.append(give_var)
 
+
         # 받은 평균 담기.
         # given_mean = 0
         # count = 0
-        answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=respondent)
-        df = pd.DataFrame.from_records(answers.values('contents'))
-        df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
-        given_mean = df['contents'].mean()
-        # # 위 코드로 대체됨.
-        # for answer in answers:
-        #     count += 1
-        #     given_mean += float(answer.contents)
-        # try:  # count =0 인 경우가 있음.
-        #     given_mean = given_mean / count
-        # except:
-        #     given_mean = None
+        try:  # answer이 빈 경우엔 에러가 난다.
+            answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=respondent)
+            df = pd.DataFrame.from_records(answers.values('contents'))
+            df['contents'] = pd.to_numeric(df['contents'], errors='coerce')
+            given_mean = df['contents'].mean()
+            # # 위 코드로 대체됨.
+            # for answer in answers:
+            #     count += 1
+            #     given_mean += float(answer.contents)
+            # try:  # count =0 인 경우가 있음.
+            #     given_mean = given_mean / count
+            # except:
+            #     given_mean = None
+        except:
+            given_mean = None
         given_mean_list.append(given_mean)
 
         # 특수댓글 카운트.
