@@ -479,9 +479,9 @@ def peerreview_statistics(request, posting_id):
             to_list.append(submit.to_student)  # 평가대상리스트 만들기.
 
     given_mean_list = []  # 평가 대상자가 받은 평균값을 담을 리스트.
-    mean_list = []  # 각 응답자가 받은 평균값을 담을 리스트.
-    var_list = []  # 각 응답자의 평균 오차(분산)를 담을 리스트.
-    given_var_list = []  # 평가자가 얼마나 점수를 많이 분포시켰느냐.(무지성으로 한 점수만 찍는 아이들 대비)
+    give_mean_list = []  # 부여한 평균값을 담을 리스트.
+    var_list = []  # 각 응답자가 부여한 평균 오차(분산)를 담을 리스트.
+    give_var_list = []  # 평가자가 얼마나 점수를 많이 분포시켰느냐.(무지성으로 한 점수만 찍는 아이들 대비)
     not_res_list = []  # 응답자들이 평가하지 않은 횟수를 담을 리스트.
     to_list = set(to_list)  # 중복값 제거.
     len_to_list = len(to_list)  # 미응답자 계산을 위함.
@@ -494,7 +494,7 @@ def peerreview_statistics(request, posting_id):
                                                        to_profile=respondent)
         mean = 0
         count = 0
-        var = 0
+        var = 0  # 친구에게 부여한 점수가 얼마나 잘못되었는지에 대한 지표.
         for answer in answers:
             count += 1
             print(answer.contents)
@@ -505,9 +505,21 @@ def peerreview_statistics(request, posting_id):
             var = var/count
         except:
             pass
-        mean_list.append(mean)
+        give_mean_list.append(mean)
         var_list.append(var)
         not_res_list.append(len_to_list - count)
+
+        # 부여한 것에 대한 var 구하기. 위의 평균을 구하고 진행되어야 해서 다시 sql 호출.
+        give_var = 0
+        answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=respondent)
+        for answer in answers:
+            give_var += (mean - float(answer.contents)) ** 2  # 분산.
+        try:
+            give_var = give_var / count
+        except:
+            pass
+        give_var_list.append(give_var)
+
         # 받은 평균 담기. +특별설문 선정 횟수 계산.
         given_mean = 0
         count = 0
@@ -520,24 +532,16 @@ def peerreview_statistics(request, posting_id):
             given_mean = given_mean / count
         except:
             given_mean = None
+        given_mean_list.append(given_mean)
+
+        # 특수댓글 카운트.
         special_content = str(respondent.code) + respondent.name
         special_count = models.HomeworkSubmit.objects.filter(base_homework=homework, content=special_content).count
         #special_count = None
         special_comment_list.append(special_count)
-        given_mean_list.append(given_mean)
-        # given_var 구하기.
-        given_var = 0
-        answers = models.HomeworkAnswer.objects.filter(question=question, to_profile=respondent)
-        for answer in answers:
-            given_var += (mean - float(answer.contents)) **2  # 분산.
-        try:
-            given_var = given_var / count
-        except:
-            pass
-        given_var_list.append(given_var)
     # 초기 df 만들기.
     df = pd.DataFrame({'계정': submit_profile_list, '제출자': user_name_list, '받은 평균':given_mean_list,
-                       '부여점수 평균':mean_list, '부여분산(무지성 방지)':given_var_list, '평가점수 분산(벗어남정도)':var_list,'미응답 수':not_res_list,
+                       '부여점수 평균':give_mean_list, '부여한 점수의 분산(무지성 방지)':give_var_list, '평가한 점수가 받은 분산/n(평가의 벗어남정도)':var_list,'미응답 수':not_res_list,
                        '특수댓글 수':special_comment_list})
     df = df.set_index('계정')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
