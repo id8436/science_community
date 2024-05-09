@@ -489,14 +489,13 @@ def peerreview_statistics(request, posting_id):
         # 위 코드로 대체함.
         # answers = models.HomeworkAnswer.objects.filter(question=question,
         #                                                to_profile=respondent)
+        # 점수를 얼마나 잘 부여했는가에 대한 지표 구하기.
         squere_sum = 0
         count = 0
         for answer in answers:
             count += 1
-            mean += float(answer.contents)
             squere_sum += float(answer.memo)
         try:  # count=0 이면 나누기 에러.
-            mean = mean/count
             verification_var = squere_sum/count  # 친구에게 부여한 점수가 얼마나 잘못되었는지에 대한 지표.
         except:
             pass
