@@ -459,7 +459,7 @@ def peerreview_statistics(request, posting_id):
     if teacher:
         for submit in submit_list:
             profile = submit.to_profile
-            submit_profile_list.append(profile)  # 인덱스가 될 유저.
+            submit_profile_list.append(profile)  # 프로파일 순환하여 연산.
             user_name_list.append(str(profile.code)+profile.name)  # 학생계정 및 선생계정 이름. 평가자 목록.
             to_list.append(submit.target_profile)  # 동료평가 대상자에 추가.
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
