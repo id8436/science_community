@@ -548,7 +548,7 @@ def peerreview_statistics(request, posting_id):
     df = pd.DataFrame({'프로필': submit_profile_list, '제출자': user_name_list, '받은 평균':given_mean_list,
                        '부여점수 평균':give_mean_list, '부여한 점수의 분산(무지성 방지)':give_var_list, '평가한 점수가 받은 분산(평가의 벗어남정도)':verification_var_list,'미응답 수':not_res_list,
                        '특수댓글 수':special_comment_list})
-    df = df.sort_values(by='계정', ascending=True)
+    df = df.sort_values(by='프로필', ascending=True)
     df = df.set_index('프로필')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_list'] = df.to_dict(orient='records')
