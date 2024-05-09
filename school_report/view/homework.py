@@ -261,7 +261,7 @@ def survey_submit(request, submit_id):
 
     for question in question_list:
         try:  # 연동된 제출의 응답 가져오기.
-            answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile)
+            answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
             question.response = answer.contents  # 기존 답변을 추가하기 위한 과정.
             # 파일이 있다면 반영.
             if answer.file:

@@ -73,12 +73,24 @@ class Subject(models.Model):
         unique_together = (
             ('school', 'subject_name', 'master', 'subject_identifier')
         )
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            # 새로운 객체 생성 시 실행할 로직
+            is_new = True
+        else:
+            # 객체 업데이트 시 실행할 로직
+            pass
+        super().save(*args, **kwargs)  # 원래의 save 메서드 호출
+        if is_new:
+            homework_box, created = HomeworkBox.objects.get_or_create(subject=self)
+            Announce_box, created = AnnounceBox.objects.get_or_create(subject=self)
 class Classroom(models.Model):
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함. # 25년이 지나면 지우자.(다 학교 배정 없이 정리될 거니까.)
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)  # 연결할 모델.
     subject = models.CharField(max_length=10)  # 과목명  # 상위 과목의 과목명으로 연결될 거니까, 25년이 지나면 지워도 괜찮을듯. 그때 위의 null과 블랭크 조건 없애자.
-    master = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True)  # 메인관리자.
+    master = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True, blank=True)  # 메인관리자.
     master_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True)  # 훗날 null을 없애는 날이 오길...!
     # 나중에 메인관리자나 관리집단도 유저모델에 직접 연결시키자.
     name = models.CharField(max_length=25, null=True, blank=True)  # 클래스 이름. 과목명으로 대신하면 될듯. 이건 없어도 될듯? 역시, 25년이 지나면 지워도 괜찮을듯.
@@ -88,6 +100,17 @@ class Classroom(models.Model):
         unique_together = (
             ('school', 'homeroom', 'subject')
         )
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            # 새로운 객체 생성 시 실행할 로직
+            is_new = True
+        else:
+            # 객체 업데이트 시 실행할 로직
+            pass
+        super().save(*args, **kwargs)  # 원래의 save 메서드 호출
+        if is_new:
+            homework_box, created = HomeworkBox.objects.get_or_create(Classroom=self)
+            Announce_box, created = AnnounceBox.objects.get_or_create(Classroom=self)
 
 class Teacher(models.Model):
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='teacher_user')  # 교사계정 소유자.
@@ -151,7 +174,7 @@ class Profile(models.Model):
         unique_together = (
             ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
         )
-        ordering = ['code']
+        ordering = ['-created', 'code']
 class BaseBox(models.Model):
     '''각종 Box의 원본이 되는 클래스. 나머지 박스에선 상속받아 쓴다.'''
     '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
