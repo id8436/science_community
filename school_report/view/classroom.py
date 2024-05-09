@@ -465,7 +465,7 @@ def peerreview_statistics(request, posting_id):
     else:  # 학생이라면 자기의 결과만 볼 수 있게.
         profile = models.Profile.objects.get(admin=request.user, school=school)
         submit_profile_list.append(profile)
-        user_name_list.append(profile.name)
+        user_name_list.append(str(profile.code)+profile.name)
         for submit in submit_list:
             to_list.append(submit.target_profile)  # 평가대상리스트 만들기.
 
@@ -545,10 +545,11 @@ def peerreview_statistics(request, posting_id):
         #special_count = None
         special_comment_list.append(special_count)
     # 초기 df 만들기.
-    df = pd.DataFrame({'계정': submit_profile_list, '제출자': user_name_list, '받은 평균':given_mean_list,
-                       '부여점수 평균':give_mean_list, '부여한 점수의 분산(무지성 방지)':give_var_list, '평가한 점수가 받은 분산/n(평가의 벗어남정도)':verification_var_list,'미응답 수':not_res_list,
+    df = pd.DataFrame({'프로필': submit_profile_list, '제출자': user_name_list, '받은 평균':given_mean_list,
+                       '부여점수 평균':give_mean_list, '부여한 점수의 분산(무지성 방지)':give_var_list, '평가한 점수가 받은 분산(평가의 벗어남정도)':verification_var_list,'미응답 수':not_res_list,
                        '특수댓글 수':special_comment_list})
-    df = df.set_index('계정')  # 인덱스로 만든다.
+    df = df.sort_values(by='계정', ascending=True)
+    df = df.set_index('프로필')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_list'] = df.to_dict(orient='records')
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
