@@ -501,7 +501,7 @@ def peerreview_statistics(request, posting_id):
             except:
                 pass
         except:
-            give_mean, give_var, verification_var = None
+            give_mean, give_var, verification_var = None, None, None
         give_mean_list.append(give_mean)
         give_var_list.append(give_var)
         not_res_list.append(len_to_list - count)
