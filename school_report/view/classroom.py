@@ -547,11 +547,11 @@ def peerreview_statistics(request, posting_id):
 def peerreview_select_comment(request, submit_id):
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 제출 찾아오기.
     posting = submit.base_homework
-    box = posting.homework_box
-    school = box.get_school_model()
+    homework_box = posting.homework_box
+    school = homework_box.get_school_model()
     to_student = check.Student(user=request.user, school=school).in_school_and_none()  # 학생계정 배정.
 
-    if submit.to_user == request.user:#to_student
+    if submit.to_profile.admin == request.user:  #to_student
         pass
     else:
         messages.error(request, '설문의 주인만 선택할 수 있습니다.')
