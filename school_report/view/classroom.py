@@ -188,8 +188,8 @@ def make_spreadsheet_df(request, posting_id):
     for question in question_list:
         answer_list = []
         user_list = []
-        answers = models.HomeworkAnswer.objects.filter(question=question,
-                                                       target_profile=submit.target_profile)  # 해당 질문에 대한 답변들 모음.
+        answers = models.HomeworkAnswer.objects.filter(question=question,)
+                                                       #target_profile=submit.target_profile)  # 해당 질문에 대한 답변들 모음.
         for answer in answers:
             answer_list.append(answer.contents)
             user_list.append(answer.to_profile)
