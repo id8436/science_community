@@ -280,7 +280,7 @@ def spreadsheet_to_excel_download(request, posting_id):
 @login_required()
 def spreadsheet_upload_excel(request, posting_id):
     homework = get_object_or_404(models.Homework, id=posting_id)
-    if request.user == homework.author:
+    if request.user == homework.author_profile.admin:
         pass
     else:
         messages.error(request, '과제 작성자만 올릴 수 있습니다.')
@@ -288,10 +288,7 @@ def spreadsheet_upload_excel(request, posting_id):
 
     from main.view import df_funcs
     df = df_funcs.upload_to_df(request.FILES["uploadedFile"])
-    if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-        school = homework.classroom.school
-    if homework.subject_object:
-        school = homework.subject_object.school
+    school = homework.get_school_model()
 
     # 1단계. 질문 목록 호출.
     question_list = []
@@ -308,12 +305,12 @@ def spreadsheet_upload_excel(request, posting_id):
     for index in df.index:
         row = df.loc[index]
         try:
-            student = models.Student.objects.get(school=school, student_code=int(row['학번']))
+            student = models.Profile.objects.get(school=school, code=int(row['학번']))
         except:
             messages.error(request, '적절하지 않은 학번의 경우 건너뜁니다. ' + str(row[0]))
             continue
         for question_title, question in zip(df.columns[2:], question_list):
-            answer, _ = models.HomeworkAnswer.objects.get_or_create(question=question, respondent=student.admin)
+            answer, _ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=student)
             answer.contents = row[question_title]  # 질문의 열에 있는 정보를 담는다.
             answer.save()
 

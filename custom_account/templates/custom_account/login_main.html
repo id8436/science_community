@@ -39,6 +39,7 @@ window.setTimeout(function() {
             <h5>
             {{request.user.socialaccount_set.first.get_provider_display}}의
             '{{ request.user.socialaccount_set.first.get_provider_account }}'으로 연동을 진행하는 게 맞습니까?</h5>
+            <span>아니라면 <a href="{% url 'custom_account:logout' %}"><button class="btn btn-danger">로그아웃</button></a> 버튼을 누르세요.</span>
             <h4>메인계정 로그인</h4>
 
 
