@@ -262,9 +262,12 @@ def homework_survey_statistics_spreadsheet(request, posting_id):
     df = df.to_dict(orient='records')
     if homework.is_special == 'TalentEval':
         question_title = df[0]  # 기존 df의 첫번째 행을 가져온다.
-        #context['columns'] = question_title
+        context['columns'] = question_title
+        print(df)
+        print(user_pk_list)
         df = zip(user_pk_list, df)
-    context['data_list'] = df
+    context['data_list_with_pk'] = df
+    print(df)
 
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
 
