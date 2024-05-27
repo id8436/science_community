@@ -288,7 +288,7 @@ def spreadsheet_upload_excel(request, posting_id):
 
     from main.view import df_funcs
     df = df_funcs.upload_to_df(request.FILES["uploadedFile"])
-    school = homework.get_school_model()
+    school = homework.homework_box.get_school_model()
 
     # 1단계. 질문 목록 호출.
     question_list = []
