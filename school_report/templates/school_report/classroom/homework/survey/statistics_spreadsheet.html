@@ -63,14 +63,17 @@
     <a class="btn btn-success"
        href="{% url 'school_report:read_response' posting.id%}">AI 초안 보기</a>
 
+
+<div class="table">
+  {% include "df/df_body_fit_frame.html" with dataframe=data_list %}
+</div>
+
 <div class="table-responsive">
   {% include "df/df_body_fit_frame_with_checkbox.html" with dataframe=data_list %}
 </div>
 
 
-        <div class="table">
-  {% include "df/df_body_fit_frame.html" with dataframe=data_list %}
-</div>
+
 
 </form>
 
