@@ -179,6 +179,7 @@ def make_spreadsheet_df(request, posting_id):
         submit_profile_list.append(profile)
         user_name_list.append(profile.name)
         code_list.append(profile.code)
+        user_pk_list.append(profile.id)  # 세특작성용에서 사용.
     # 초기 df 만들기.
     df = pd.DataFrame({'프로필': submit_profile_list, '제출자': user_name_list, '학번': code_list})
     df = df.set_index('프로필')  # 인덱스로 만든다.
@@ -261,7 +262,7 @@ def homework_survey_statistics_spreadsheet(request, posting_id):
     df = df.to_dict(orient='records')
     if homework.is_special == 'TalentEval':
         question_title = df[0]  # 기존 df의 첫번째 행을 가져온다.
-        context['columns'] = question_title
+        #context['columns'] = question_title
         df = zip(user_pk_list, df)
     context['data_list'] = df
 

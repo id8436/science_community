@@ -283,7 +283,11 @@ def survey_statistics(request, submit_id):
     school = homework.homework_box.get_school_model()
     teacher = check.Teacher(user=request.user, school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
 
-    if submit.target_profile.admin == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+    try:
+        tartgetprofile = submit.target_profile.admin  # target이 None일 때 에러가 뜸;
+    except:
+        tartgetprofile = None
+    if tartgetprofile == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
         if not teacher and homework.is_secret_student:
             messages.error(request, '학생들에겐 비공개 되어 있습니다.')
             return redirect(request.META.get('HTTP_REFERER', None))
