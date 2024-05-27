@@ -145,10 +145,6 @@ def make_spreadsheet_df(request, posting_id):
     question_list = homework.homeworkquestion_set.order_by('ordering')
     box = homework.homework_box
     school = box.get_school_model()
-    # 1if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-    #     school = homework.classroom.school
-    # elif homework.subject_object:
-    #     school = homework.subject_object.school
 
     # 제출자 명단.
     submit_list = homework.homeworksubmit_set.all()
