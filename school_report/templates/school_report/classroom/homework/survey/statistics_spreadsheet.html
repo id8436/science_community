@@ -67,6 +67,32 @@
 <div class="table">
   {% include "df/df_body_fit_frame.html" with dataframe=data_list %}
 </div>
+<table class="table table-striped table-bordered table-hover">
+  <thead>
+    <tr class="table-info">
+      <th>제출</th>
+      {% for column_name in columns %}
+      <th>{{ column_name }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for pk, row in dataframe %}
+    <tr>
+      <td>
+      <input type="checkbox" name="pk_checks" value="{{pk}}" id="{{pk}}">
+      </td>
+      {% for value in row.values %}
+      <td><label for="{{pk}}">
+        {{ value|linebreaksbr|safe }}</label></td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
 
 <div class="table-responsive">
   {% include "df/df_body_fit_frame_with_checkbox.html" with dataframe=data_list %}
