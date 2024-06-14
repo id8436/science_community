@@ -14,15 +14,29 @@ def main(request, school_id):
     context = {}
     school = get_object_or_404(models.School, pk=school_id)
     context['school'] = school
-    context['homeroom_list'] = school.homeroom_set.all().order_by('name')
-    context['subject_list'] = school.subject_set.all().order_by('subject_name')
-    context['classroom_list'] = school.classroom_set.all().order_by('homeroom__name', 'name')
     context['announcement_list'] = school.announcebox.announcement_set.order_by('-create_date')
     context['homework_list'] = school.homeworkbox.homework_set.order_by('-create_date')
     # 교사여부.
-    context['teacher'] = check.Teacher(user=request.user, school=school, request=request).in_school_and_none()
+    teacher = check.Teacher(user=request.user, school=school, request=request).in_school_and_none()
+    context['teacher'] = teacher
     # 학생여부.
-    context['student'] = check.Student(user=request.user, school=school, request=request).in_school_and_none()
+    student = check.Student(user=request.user, school=school, request=request).in_school_and_none()
+    context['student']
+    # 소속교실, 소속교과만 가져온다.
+    if teacher:  # 교사인 경우엔 다.
+        context['homeroom_list'] = school.homeroom_set.all().order_by('name')
+        context['subject_list'] = school.subject_set.all().order_by('subject_name')
+        context['classroom_list'] = school.classroom_set.all().order_by('homeroom__name', 'name')
+    if student:
+        homeroom_list = student.homeroom.all().order_by('name')
+        context['homeroom_list'] = homeroom_list
+        classroom_list = school.classroom_set.filter(homeroom__in=homeroom_list).order_by('base_subject').select_related(
+            'homeroom')
+        # subject_list = []
+        # for homeroom in homeroom_list:
+        #     subjects = school.subject_set.filter(homeroom=homeroom).order_by('subject_name')
+        #     subject_list.append(subjects)
+        context['classroom_list'] = classroom_list
     # 시험문제목록.
     category = Board_category.objects.get(id=6)
     context['category'] = category  # 게시판 생성 때 카테고리 아이디도 필요해서.
