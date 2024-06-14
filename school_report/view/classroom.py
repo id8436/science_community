@@ -557,7 +557,7 @@ def peerreview_select_comment(request, submit_id):
     posting = submit.base_homework
     homework_box = posting.homework_box
     school = homework_box.get_school_model()
-    student = check.Student(user=request.user, school=school).in_school_and_none()  # 학생계정 배정.
+    profile = check.Student(user=request.user, school=school).in_school_and_none()  # 학생계정 배정.
 
     if submit.to_profile.admin == request.user:  #to_student
         pass
@@ -567,7 +567,7 @@ def peerreview_select_comment(request, submit_id):
 
 
     answer_key = request.GET.get('content')
-    answer = models.HomeworkAnswer.objects.get(target_profile=student, contents=answer_key)  # 고른 선택지 객체 가져오기.
+    answer = models.HomeworkAnswer.objects.get(target_profile=profile, contents=answer_key)  # 고른 선택지 객체 가져오기.
     respondent_student = answer.to_profile
     #respondent_student = models.Student.objects.get(admin=answer.to_profile, school=school)
     submit.content = str(respondent_student.code) + respondent_student.name  # 선택된 학생계정을 담는다.
