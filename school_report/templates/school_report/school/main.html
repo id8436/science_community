@@ -42,6 +42,12 @@
 <h6>학생메뉴</h6>
     어서오세요, {{ student.name }}님~!
 <h4 class="my-3 border-bottom pb-2">하위시험 목록</h4>
+
+<h4 class="my-3 border-bottom pb-2">학급 목록</h4>
+{% include "school_report/homeroom/list.html" %}
+<h4 class="my-3 border-bottom pb-2">교과교실 목록</h4>
+{% include "school_report/classroom/list.html" %}
+
 <table class="table table-hover" id="exam_table">
     <thead>
     <tr class="table-info">
