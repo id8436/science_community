@@ -7,8 +7,13 @@ object  # 학교, 교실, 교과 무엇인지.
 
 <h5>{{kind}} 목록</h5>
     {% if teacher %}
-    <a href="{% url 'school_report:homework_create' object.homeworkbox.id %}">{{kind}} 생성</a>
-    <a href="{% url 'school_report:homework_check_spreadsheet' object.homeworkbox.id %}">{{kind}} 제출여부 확인</a>
+        {% if kind "교과과제"%}
+            <a href="{% url 'school_report:homework_create' object.base_subject.homeworkbox.id %}">{{kind}} 생성</a>
+            <a href="{% url 'school_report:homework_check_spreadsheet' object.base_subject.homeworkbox.id %}">{{kind}} 제출여부 확인</a>
+        {% else %}
+            <a href="{% url 'school_report:homework_create' object.homeworkbox.id %}">{{kind}} 생성</a>
+            <a href="{% url 'school_report:homework_check_spreadsheet' object.homeworkbox.id %}">{{kind}} 제출여부 확인</a>
+        {% endif %}
     {% endif %}
 <table class="table table-hover" id="student_list">
     <thead>

@@ -21,7 +21,7 @@ def main(request, school_id):
     context['teacher'] = teacher
     # 학생여부.
     student = check.Student(user=request.user, school=school, request=request).in_school_and_none()
-    context['student']
+    context['student'] = student
     # 소속교실, 소속교과만 가져온다.
     if teacher:  # 교사인 경우엔 다.
         context['homeroom_list'] = school.homeroom_set.all().order_by('name')
