@@ -247,7 +247,7 @@ def posting_detail_on_board(request, posting_id):
     category = posting.board.category
     # 교사게시판인 경우. 확인 후 리다이렉팅.
     if category.name.split('_')[0] == 'teacher':
-        teacher = check.Teacher(request, posting.board.school).in_school_and_none()
+        teacher = check.Teacher(user=request.user, school=posting.board.school).in_school_and_none()
         if teacher != None:
             pass
         else:
