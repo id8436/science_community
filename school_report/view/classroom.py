@@ -254,6 +254,7 @@ def homework_check_spreadsheet(request, classroom_id):
 
 @login_required()
 def homework_survey_statistics_spreadsheet(request, posting_id):
+    '''스프레드시트형 통계.'''
     # 과거유산. 문제없음 버리자. submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
     homework = get_object_or_404(models.Homework, id=posting_id)
     context = {'posting':homework}
@@ -266,7 +267,8 @@ def homework_survey_statistics_spreadsheet(request, posting_id):
         print(df)
         print(user_pk_list)
         df = zip(user_pk_list, df)
-    context['data_list_with_pk'] = df
+        context['data_list_with_pk'] = df
+    context['data_frame'] = df
     print(df)
 
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
