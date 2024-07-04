@@ -4,7 +4,7 @@ from school_report.models import Profile, School
 
 class Board(models.Model):
     board_name = models.ForeignKey('Board_name', on_delete=models.PROTECT, null=True, blank=True)  # board_name.
-    name = models.CharField(max_length=50)
+    #name = models.CharField(max_length=50)  # 언젠가.. 그냥 이걸로 바꿔야지 원;
     category = models.ForeignKey('Board_category', on_delete=models.PROTECT, null=False, blank=True)
     enter_year = models.IntegerField(null=False, blank=True)  # 입학년도 혹은 개최년도를 기입하자.
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
