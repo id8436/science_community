@@ -78,7 +78,7 @@ class Teacher:
         school = self.args.get('school')
         # 판단.
         try:  # 프로필이 없거나.
-            profile = models.Profile.objects.filter(admin=user, school=school).last()  # 나중에 정리 되면 get으로 바꾸자. # 여러개가 있을 경우 가장 나중.
+            profile = models.Profile.objects.filter(admin=user, school=school).first()  # 나중에 정리 되면 get으로 바꾸자. # 여러개가 있을 경우 가장 최신.
             profile.position  # None이면 에러가 뜸.
         except:
             return None

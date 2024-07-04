@@ -232,7 +232,7 @@ def subject_register(request, board_id):
     board = get_object_or_404(Board, pk=board_id)
     context = {'board' : board}
     # 시험 주관기관에 해당하는 학생프로필이 있는지 찾기 위해.
-    target_student = check.Student(request, board.school).in_school_and_none()
+    target_student = check.Student(user=request.user, school=board.school).in_school_and_none()
 
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         form = ScoreForm(request.POST)
@@ -245,7 +245,7 @@ def subject_register(request, board_id):
                 from boards.templatetags.board_filter import create_random_name
                 profile.name = create_random_name(10)
             if target_student:  # 이미 등록되어 있는 학생계정이 있다면 다른 코드는 입력하지 못하게.
-                profile.test_code = target_student.student_code
+                profile.test_code = target_student.code
                 # messages.error(request, '이미 등록된 정보가 있어 다른 코드는 입력할 수 없습니다.')
             profile.modify_num += 1  # 수정 할때마다 추가.
             profile.save()
@@ -255,7 +255,7 @@ def subject_register(request, board_id):
                     score = None
                 else:
                     score = box[i]
-                tag_ = Score.objects.get(user=profile, base_subject=subject)  # 점수는 과목당 하나만 개설하게끔.
+                tag_, _ = Score.objects.get_or_create(user=profile, base_subject=subject)  # 점수는 과목당 하나만 개설하게끔.
                 tag_.score = score
                 tag_.save()
                 if target_student != None:

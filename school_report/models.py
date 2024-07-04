@@ -163,7 +163,7 @@ class Profile(models.Model):
     # 정보
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 어느 학교 소속 프로필인가.
     position = models.CharField(max_length=10)  # teacher or student or parent
-    homeroom = models.ManyToManyField('Homeroom')
+    homeroom = models.ManyToManyField('Homeroom', null=True, blank=True)
     name = models.CharField(max_length=10)  # 실명을 기입하게 하자.
     code = models.CharField(max_length=20, null=True, blank=True,)  # 학생 학번, 교사번호 등.
     def __str__(self):
@@ -174,7 +174,7 @@ class Profile(models.Model):
         unique_together = (
             ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
         )
-        ordering = ['-created', 'code']
+        ordering = ['code', '-created']  # 기본적으로 학번순 정렬.
 class BaseBox(models.Model):
     '''각종 Box의 원본이 되는 클래스. 나머지 박스에선 상속받아 쓴다.'''
     '''학교, 교과, 교실 등으로 연결하기 위해 공통적으로 담는 과제박스.'''
@@ -400,7 +400,7 @@ class HomeworkAnswer(models.Model):
         '''업로드 파일이 기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
         try:
             this = HomeworkAnswer.objects.get(id=self.id)
-            if this.file != self.file:
+            if this.file != self.file:  # 새로 올려진 것에 대한 명령.
                 this.file.delete(save=False)
         except:
             pass  # when new photo then we do nothing, normal case

@@ -506,3 +506,72 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
     context['filtered_profiles'] = filtered_profiles
 
     return render(request, 'school_report/classroom/homework/homework_distribution.html', context)
+
+def homework_end(request, homework_id):
+    homework = get_object_or_404(models.Homework, pk=homework_id)  # 과제 찾아오기.
+    # 과제 제출자인 경우에만 진행한다.
+    if request.user == homework.author_profile.admin:
+        # 세특인 경우 따로 마감.
+        if homework.is_special == "TalentEval":
+            questions = models.HomeworkQuestion.objects.filter(homework=homework)
+            for question in questions:
+                if question.question_type == "file":
+                    answers = models.HomeworkAnswer.objects.filter(question=question)
+                    for answer in answers:
+                        if answer.file:  # 파일이 없으면 에러나니까.
+                            print(f"파일 경로: {answer.file.path}")  # 디버깅 메시지 추가
+                            answer.contents = FileToTextConverter(answer.file.path).extract_text()
+                            answer.save()
+        # 일반 마감.
+        homework.deadline = datetime.now()
+        homework.is_end = True
+        homework.save()
+        messages.success(request, "과제를 현 시간으로 마감하였습니다.")
+    return redirect(request.META.get('HTTP_REFERER', '/'))  # 이전 화면으로 되돌아가기. 이전페이지 없으면 홈으로.
+# 파일의 텍스트화.
+import os
+import olefile
+import zlib
+import PyPDF2
+
+class FileToTextConverter:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.extension = os.path.splitext(file_path)[1].lower()  # 확장자 가져오기.
+    def extract_text(self):
+        if self.extension == '.txt':
+            return self._extract_text_from_txt()
+        elif self.extension == '.hwp':
+            return self._extract_text_from_hwp()
+        elif self.extension == '.pdf':
+            return self._extract_text_from_pdf()
+        else:
+            raise ValueError("지원되지 않는 파일 형식입니다.")
+    def _extract_text_from_txt(self):
+        with open(self.file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    def _extract_text_from_hwp(self):
+        if not olefile.isOleFile(self.file_path):
+            raise ValueError("올바른 HWP 파일이 아닙니다.")
+        ole = olefile.OleFileIO(self.file_path)
+        # 'PrvText' 스트림을 찾습니다.
+        if ole.exists('PrvText'):
+            encoded_text = ole.openstream('PrvText').read()
+            try:
+                # 텍스트가 압축되어 있을 수 있으므로 이를 압축 해제합니다.
+                decompressed_text = zlib.decompress(encoded_text, -zlib.MAX_WBITS)
+                # 압축 해제된 텍스트를 올바른 인코딩으로 디코딩합니다.
+                text = decompressed_text.decode('utf-16le')
+            except zlib.error:
+                # 압축이 안 되어 있을 경우 그대로 디코딩 시도
+                text = encoded_text.decode('utf-16le')
+            return text
+        else:
+            raise ValueError("'PrvText' 스트림을 찾을 수 없습니다.")
+    def _extract_text_from_pdf(self):
+        with open(self.file_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+            return text

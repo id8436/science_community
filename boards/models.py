@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from school_report.models import Student, School
+from school_report.models import Profile, School
 
 class Board(models.Model):
     board_name = models.ForeignKey('Board_name', on_delete=models.PROTECT, null=True, blank=True)  # board_name.
@@ -77,11 +77,12 @@ class Exam_profile(models.Model):
     '''테스트에서 비공개로 댓글 등을 사용하기 위함. + 점수 보게끔.'''
     # 생성될 때 임의의 이름을 부여하는 함수도 같이 짜주어야 한다.
     master = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='exam_user')
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
+    student = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True, blank=True)
     base_exam = models.ForeignKey(Board, null=True, blank=True, on_delete=models.CASCADE)
-    test_code = models.TextField(blank=False)  # 수험번호.
+    test_code = models.TextField(blank=False)  # 수험번호, 학번
     modify_num = models.IntegerField(default=-1, null=True, blank=True)  # 시험점수 수정횟수 지정.
     name = models.CharField(max_length=10)  # 랜덤한 숫자와 글자 조합으로 구성하게 할까.
+    official = models.BooleanField(default=False)  # 공식 프로필과 연결되었는지.
     # 하위모델로 score가 있어 함께 조작해주어야 한다.
     def __str__(self):
         try:

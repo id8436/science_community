@@ -193,14 +193,16 @@ def upload_excel_form(request, school_id):
                 # 담임교실 배정 및 생성.
                 if grade and cl_num:  # 학년, 반이 다 들어온 경우.
                     homeroom, cteated = models.Homeroom.objects.get_or_create(grade=grade, cl_num=cl_num, school=school)
-                    homeroom_name = f'{grade}학년 {cl_num}반'
-                    homeroom.name = homeroom_name
+                    homeroom_name_ = f'{grade}학년 {cl_num}반'
+                    homeroom.name = homeroom_name_  # 학년,반으로 홈룸이름 지정.
                     homeroom.master_profile = profile
                     if homeroom_name:  # 홈룸네임이 있는 경우 덮어쓰기.
                         homeroom.name = homeroom_name
                 elif homeroom_name:  # 홈룸네임만 있는 경우.
                     homeroom, cteated = models.Homeroom.objects.get_or_create(name=homeroom_name, school=school)
                     homeroom.master_profile = profile
+                else:
+                    continue  # 저장과정으로 넘어가지 않고 다음으로.
                 homeroom.save()
 
 
@@ -383,6 +385,7 @@ def school_student_upload_excel_form(request, school_id):
 
 @login_required()
 def student_code_input(request, school_id):
+    '''학생 인증하기.'''
     school = get_object_or_404(models.School, pk=school_id)
     context = {'school': school}
     student = check.Student(user=request.user, school=school).in_school_and_none()
@@ -418,24 +421,6 @@ def student_code_confirm(request, student_id):
             student.save()
             #request.user.student = student  # 계정에 등록. 이거 없어도 될듯. 필요없어진 기능.
             #request.user.save()
-            ## 기존에 시험 관련한 프로필이 있다면 연결해주어야 한다.
-            #### 이건 나중에 언젠가 다시 살려보자.
-            # from boards.models import Exam_profile
-            # exam_profiles = student.exam_profile_set.all()
-            # for profile in exam_profiles:  # 교사 점수등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
-            #     # 기존에 마스터 계정이 있던 경우엔 연결해서 옮기고 임시 학생프로필을 지워준다.
-            #     new_pro, created = Exam_profile.objects.get_or_create(master=request.user, base_exam=profile.base_exam)
-            #     if new_pro == profile:  # 같은 경우엔 넘어가자. 보통 이런 경우는 없는데.. 부정접근의 경우 발생한다.
-            #         continue
-            #     new_pro.test_code = profile.test_code
-            #     new_pro.student = profile.student
-            #     new_pro.modify_num = profile.modify_num
-            #     new_pro.name = profile.name
-            #     new_pro.save()
-            #     for score in profile.score_set.all():  # 스코어도 옮겨주어야지.
-            #         score.user = new_pro
-            #         score.save()
-            #     profile.delete()  # 옮기고 난 후엔 지워준다.
             messages.info(request, '인증에 성공하였습니다.')
             return redirect('school_report:school_main', school_id=student.school.id)
         else:

@@ -287,10 +287,10 @@ def subject_answer_info_form_upload(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
     board = subject.base_exam
     school = subject.base_exam.school
-    if check.Teacher(request, school).in_school_and_none() and request.method == "POST":
+    if check.Teacher(user=request.user, school=school).in_school_and_none() and request.method == "POST":
         pass
     else:
-        return check.Teacher(request, school).redirect_to_school()
+        return check.Teacher(user=request.user, school=school).redirect_to_school()
     uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
     wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
     work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
@@ -498,7 +498,7 @@ def show_answer(request, score_id):
 def show_answer_for_teacher(request, subject_id):
     subject = Subject.objects.get(id=subject_id)
     context = {}
-    if check.Teacher(request, subject.base_exam.school).in_school_and_none():
+    if check.Teacher(user=request.user, school=subject.base_exam.school).in_school_and_none():
         pass
     else:
         messages.error(request, '꼼수 쓰지 마라.')
