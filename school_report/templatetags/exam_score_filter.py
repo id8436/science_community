@@ -11,7 +11,6 @@ def teacher_manu(context):
     return_dict['board'] = board
     school = board.school
     teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
-    print(school)
     return_dict['teacher'] = teacher
     subjects = Subject.objects.filter(base_exam=board)
     return_dict['subjects'] = subjects

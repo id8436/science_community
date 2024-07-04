@@ -163,7 +163,7 @@ class Profile(models.Model):
     # 정보
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 어느 학교 소속 프로필인가.
     position = models.CharField(max_length=10)  # teacher or student or parent
-    homeroom = models.ManyToManyField('Homeroom', null=True, blank=True)
+    homeroom = models.ManyToManyField('Homeroom', blank=True)
     name = models.CharField(max_length=10)  # 실명을 기입하게 하자.
     code = models.CharField(max_length=20, null=True, blank=True,)  # 학생 학번, 교사번호 등.
     def __str__(self):
