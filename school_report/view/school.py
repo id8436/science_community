@@ -133,7 +133,8 @@ def download_excel_form(request, school_id):
     ws['D1'] = '학년'
     ws['E1'] = '반'
     ws['F1'] = '(선택)교실이름'
-    teachers = school.teacher_set.all()
+    #teachers = school.teacher_set.all()
+    teachers = models.Profile.objects.filter(school=school, position='teacher')
     code_line = 'A'
     name_line = 'B'  # 이름 담을 라인.
     confirm_code_line = 'C'
