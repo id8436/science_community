@@ -69,8 +69,8 @@ def homework_check(request, homework_box_id):
     context = {}
     school = homework_box.get_school_model()
     # 관련자만 접근하게끔.
-    student = check.Student(usser=request.user, school=school).in_school_and_none()
-    teacher = check.Teacher(usser=request.user, school=school).in_school_and_none()
+    student = check.Student(user=request.user, school=school).in_school_and_none()
+    teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
     if teacher:
         student_list = homework_box.get_profiles()
         homework_list = homework_box.homework_set().all()
@@ -108,10 +108,10 @@ def homework_check(request, homework_box_id):
                 info_dic[homework.subject].append("특수상황")
         df = pd.DataFrame(info_dic)
         df_dict = df.to_dict(orient='records')
-    else:
+    try:
+        context['data_list'] = df_dict
+    except:
         messages.info(request, "이 학교에 소속된 인원이 아닙니다.")
-
-    context['data_list'] = df_dict
     return render(request, 'school_report/classroom/homework/check_spreadsheet.html', context)
 @login_required()  ## 위로 대체되어서 버려질 코드.
 def subject_homework_check(request, subject_id):
