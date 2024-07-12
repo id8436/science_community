@@ -108,6 +108,8 @@ def homework_check(request, homework_box_id):
                 info_dic[homework.subject].append("특수상황")
         df = pd.DataFrame(info_dic)
         df_dict = df.to_dict(orient='records')
+    else:
+        messages.info(request, "이 학교에 소속된 인원이 아닙니다.")
 
     context['data_list'] = df_dict
     return render(request, 'school_report/classroom/homework/check_spreadsheet.html', context)

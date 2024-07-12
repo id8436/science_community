@@ -20,6 +20,7 @@
 <!--<a href="{% url 'school_report:subject_homework_check' subject.id %}">교과 공통 과제 제출여부 확인</a>-->
 
 {% with subject as object %}
+<!--교과과제 라고 하면 상위의 과제를 불러오게 되어서, 교과 과제라고 이름붙여둠.-->
 {% with kind='교과 과제' homework_list=homework_list %}
     {% include "school_report/classroom/homework/homework_list.html" %}
 <!-- 공지 리스트. -->
