@@ -73,7 +73,7 @@ def homework_check(request, homework_box_id):
     teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
     if teacher:
         student_list = homework_box.get_profiles()
-        homework_list = homework_box.homework_set().all()
+        homework_list = homework_box.homework_set.all()
         info_dic = {'student': student_list}
         for homework in homework_list:
             info_dic[homework.subject] = []  # 과제명으로 사전key, 리스트 만들기.
