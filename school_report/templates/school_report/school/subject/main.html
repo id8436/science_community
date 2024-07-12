@@ -20,7 +20,7 @@
 <!--<a href="{% url 'school_report:subject_homework_check' subject.id %}">교과 공통 과제 제출여부 확인</a>-->
 
 {% with subject as object %}
-{% with kind='교과 과제' homework_list=subject_homework_list %}
+{% with kind='교과 과제' homework_list=homework_list %}
     {% include "school_report/classroom/homework/homework_list.html" %}
 <!-- 공지 리스트. -->
     {% include "school_report/homeroom/announcement/announcement_list.html" %}
