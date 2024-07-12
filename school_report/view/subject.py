@@ -44,6 +44,9 @@ def create(request, school_id):
 def main(request, subject_id):
     subject = get_object_or_404(models.Subject, pk=subject_id)
     context = {'subject': subject}
+    # 선생님, 혹은 학생객체 가져오기.
+    context['student'] = check.Student(user=request.user, school=subject.school).in_school_and_none()
+    context['teacher'] = check.Teacher(user=request.user, school=subject.school).in_school_and_none()  # 선생님객체.
     # 교과과제목록.
     homework_box = subject.homeworkbox
     homework_list = homework_box.homework_set.order_by('-create_date')
@@ -60,14 +63,63 @@ def subject_homework_create(request, homework_box_id):
 #    return homework.create(request, homework_box_id=homework_box.id)
 
 @login_required()
+def homework_check(request, homework_box_id):
+    '''학교, 교실, 교과 등 박스정보를 받아 과제 했나 여부를 체크.'''
+    homework_box = get_object_or_404(models.HomeworkBox, pk=homework_box_id)
+    context = {}
+    school = homework_box.get_school_model()
+    # 관련자만 접근하게끔.
+    student = check.Student(usser=request.user, school=school).in_school_and_none()
+    teacher = check.Teacher(usser=request.user, school=school).in_school_and_none()
+    if teacher:
+        student_list = homework_box.get_profiles()
+        homework_list = homework_box.homework_set().all()
+        info_dic = {'student': student_list}
+        for homework in homework_list:
+            info_dic[homework.subject] = []  # 과제명으로 사전key, 리스트 만들기.
+            for student in student_list:
+                try:  # 동료평가 등 특수설문에서 에러.(과제 부여가 안된 경우에도)
+                    submit = models.HomeworkSubmit.objects.get(base_homework=homework, to_profile=student)
+                    if submit.check:
+                        info_dic[homework.subject].append("제출")
+                    elif submit.read:
+                        info_dic[homework.subject].append("읽음")
+                    else:
+                        info_dic[homework.subject].append("미열람")
+                except:
+                    info_dic[homework.subject].append("특수상황")
+        print(info_dic)
+        df = pd.DataFrame(info_dic)
+        df_dict = df.to_dict(orient='records')
+    elif student:  # 학생인 경우.
+        homework_list = homework_box.homework_set.all()
+        info_dic = {'student': student}
+        for homework in homework_list:
+            info_dic[homework.subject] = []  # 과제명으로 사전key, 리스트 만들기.
+            try:
+                submit = models.HomeworkSubmit.objects.get(base_homework=homework, to_profile=student)
+                if submit.check:
+                    info_dic[homework.subject].append("제출")
+                elif submit.read:
+                    info_dic[homework.subject].append("읽음")
+                else:
+                    info_dic[homework.subject].append("미열람")
+            except:  # 동료평가 등 특수설문에서 에러.(과제 부여가 안된 경우에도)
+                info_dic[homework.subject].append("특수상황")
+        df = pd.DataFrame(info_dic)
+        df_dict = df.to_dict(orient='records')
+
+    context['data_list'] = df_dict
+    return render(request, 'school_report/classroom/homework/check_spreadsheet.html', context)
+@login_required()  ## 위로 대체되어서 버려질 코드.
 def subject_homework_check(request, subject_id):
     '''homework_check_spreadsheet 에서 약간 변형함.'''
     subject = get_object_or_404(models.Subject, id=subject_id)
     context = {}
     # 관련자만 접근하게끔.
     school = subject.school
-    student = check.Student(request, school).in_school_and_none()
-    teacher = check.Teacher(request, school).in_school_and_none()
+    student = check.Student(usser=request.user, school=school).in_school_and_none()
+    teacher = check.Teacher(usser=request.user, school=school).in_school_and_none()
     if teacher:
         student_list = []
         classrooms = subject.classroom_set.all()

@@ -217,6 +217,7 @@ class BaseBox(models.Model):
             profiles = homeroom.profile_set.all()
         return profiles
     def get_profiles_id(self, teacher=None):
+        '''각 박스에 속한 인원들의 ID 반환.'''
         type, id = self.type()
         if type == 'school':
             if teacher=="teacher":
@@ -326,7 +327,7 @@ class HomeworkSubmit(models.Model):
     '''간단 과제제출, 동료평가 설문나누기용.'''
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
     # to_user에서 학생이 아직 등록하지 않은 상태라면? 경고를 주기라도 해야 할듯.
-    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아?
+    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아? 아래 프로파일로 대체.
     to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True,
                                     default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯.
                                    )  # 프로필에 과제 부여. 프로필 완성되면 위 지우자.
