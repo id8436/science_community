@@ -387,10 +387,10 @@ def subject_descriptive_info_form_upload(request, subject_id):
     subject = get_object_or_404(Subject, pk=subject_id)
     board = subject.base_exam
     school = subject.base_exam.school
-    if check.Teacher(request, school).in_school_and_none() and request.method == "POST":
+    if check.Teacher(user=request.user, school=school).in_school_and_none() and request.method == "POST":
         pass
     else:
-        return check.Teacher(request, school).redirect_to_school()
+        return check.Teacher(school=school).redirect_to_school()
     uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
     wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
     work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
@@ -433,7 +433,7 @@ def subject_descriptive_info_form_upload(request, subject_id):
             continue
         student_code = str(data[0])
         try:
-            student = Student.objects.get(school=school, student_code=student_code)
+            student = Profile.objects.get(school=school, code=student_code)
         except Exception as e:
             messages.error(request, str(student_code) +'수험자 정보에 이상이 있습니다. 수험자를 기관에 먼저 등록하세요.')
             return redirect('boards:board_detail', board_id=board.id)
