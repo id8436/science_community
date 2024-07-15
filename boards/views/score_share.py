@@ -393,7 +393,7 @@ def subject_descriptive_info_form_upload(request, subject_id):
         return check.Teacher(school=school).redirect_to_school()
     uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
     wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
-    work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
+    work_sheet = wb.worksheets[0]  # 첫번째 워크시트를 사용한다.
 
     # 엑셀 데이터를 리스트 처리한다.
     work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
