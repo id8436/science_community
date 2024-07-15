@@ -264,12 +264,9 @@ def homework_survey_statistics_spreadsheet(request, posting_id):
     if homework.is_special == 'TalentEval':
         question_title = df[0]  # 기존 df의 첫번째 행을 가져온다.
         context['columns'] = question_title
-        print(df)
-        print(user_pk_list)
         df = zip(user_pk_list, df)
         context['data_list_with_pk'] = df
     context['data_frame'] = df
-    print(df)
 
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
 
@@ -544,7 +541,8 @@ def peerreview_statistics(request, posting_id):
     df = df.sort_values(by='제출자', ascending=True)
     df = df.set_index('프로필')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
-    context['data_list'] = df.to_dict(orient='records')
+    context['data_frame'] = df.to_dict(orient='records')
+    print(df)
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
 
 def peerreview_select_comment(request, submit_id):
