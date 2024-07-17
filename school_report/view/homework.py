@@ -302,8 +302,6 @@ def question_list_statistics(question_list, submit):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
         answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
-        print(question)
-        print(answers)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.
 
@@ -575,3 +573,41 @@ class FileToTextConverter:
             for page in reader.pages:
                 text += page.extract_text() + "\n"
             return text
+
+import os
+from zipfile import ZipFile
+from django.http import FileResponse
+@login_required()
+def submit_file_download(request, private_submit_id, question_id):
+    '''설문으로 제출한 파일 다운로드.'''
+    submit = models.HomeworkSubmit.objects.get(id=private_submit_id)
+    question = models.HomeworkQuestion.objects.get(id=question_id)
+    homework = submit.base_homework
+    context = {}
+    school = homework.homework_box.get_school_model()
+    teacher = check.Teacher(user=request.user,
+                            school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
+    try:
+        tartgetprofile = submit.target_profile.admin  # target이 None일 때 에러가 뜸;
+    except:
+        tartgetprofile = None
+    if tartgetprofile == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+        if not teacher and homework.is_secret_student:
+            messages.error(request, '학생들에겐 비공개 되어 있습니다.')
+            return redirect(request.META.get('HTTP_REFERER', None))
+
+    answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
+
+    with ZipFile('answers.zip', 'w') as zipfile:
+        base_name = f"{question.question_title}"  # 기본 파일명.
+        for answer in answers:
+            if answer.file:
+                submit_info = f"{answer.to_profile.code}{answer.to_profile.name}"
+                extension = f"{os.path.splitext(answer.file.name)[-1]}"  # 확장자를 뽑아낸다.
+                if request.GET.get('name_first') == 'true':
+                    file_name = f"{submit_info}_{base_name}.{extension}"
+                else:
+                    file_name = f"{base_name}_{submit_info}.{extension}"
+                zipfile.write(answer.file.path, file_name)
+
+    return FileResponse(open('answers.zip', 'rb'), as_attachment=True, filename='answers.zip')

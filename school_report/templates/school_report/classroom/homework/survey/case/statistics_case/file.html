@@ -1,3 +1,14 @@
 <div>설문유형: 파일, 총 {{question.answer_count}}개의 응답.</div>
-따로 통계를 지원하진 않습니다.
-좋은 아이디어가 있으신 분들은 건의해주세요~
+<form action="{% url 'school_report:submit_file_download' submit.id question.id %}" method="get">
+    <label>
+        <input type="radio" name="name_first" value="true">
+        제출정보(학번,이름)가 앞으로
+    </label>
+    <br>
+    <label>
+        <input type="radio" name="name_first" value="false">
+        제출정보(학번,이름)가 뒤로
+    </label>
+    <button>zip 다운로드</button>
+</form>
+따로 통계를 지원하진 않고 다운로드만 제공합니다. 좋은 아이디어가 있으신 분들은 건의 ㄱㄱ

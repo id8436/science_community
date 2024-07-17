@@ -83,6 +83,7 @@ urlpatterns = [
          name='homework_survey_statistics_spreadsheet'),
     path('classroom/homework/spreadsheet_to_excel_download/<int:posting_id>/', classroom.spreadsheet_to_excel_download,
          name='spreadsheet_to_excel_download'),
+    path('homework/submit_file_download/<int:private_submit_id>/<int:question_id>/', homework.submit_file_download, name='submit_file_download'),  # 제출 파일 다운로드.
 
 
     # 특수설문.
