@@ -110,15 +110,15 @@ def upload_excel_form(request, homeroom_id):
             work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
             # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
         work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
-        teacher = check.Teacher(request, homeroom).in_homeroom_and_none()
-        if teacher != None:
+        #teacher = check.Teacher(user=request.user, homeroom=homeroom).in_homeroom_and_none()
+        teacher = homeroom.master_profile
+        if teacher:
             for data in work_sheet_data:  # 행별로 데이터를 가져온다.
                 student_code = data[0]
                 name = data[1]
-                student, created = models.Student.objects.get_or_create(school=homeroom.school,
-                                                                        student_code=student_code)
+                student, created = models.Profile.objects.get_or_create(school=homeroom.school, name=name, # 전학생도 고려해야 하니, 생성도 허용한다.
+                                                                        code=student_code, position='student')
                 student.homeroom.add(homeroom)
-                student.name = name
                 if created:
                     student.code = random.randint(100000, 999999)  # 코드 지정.
                 student.save()
