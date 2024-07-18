@@ -2,7 +2,7 @@
 (10MB 이내)</div>
 
 {% if question.response.name %}
-    <a href="{{ question.response.url }}" download>기존에 올린 파일 다운로드({{question.response.file.name|basename}})</a>
+    <a href="{{ question.response.url }}" download>기존에 올린 파일 다운로드({{question.response.file.name}})</a>
 <!-- file.name으로 하니까 경로까지 나와서 너무 길어; -->
     <div class="file-upload-container">
         <input id="file_check{{question.id}}" type="checkbox" class="delete-file-checkbox">
