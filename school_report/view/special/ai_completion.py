@@ -13,18 +13,12 @@ import openai
 @login_required()
 def spreadsheet_to_ai(request, posting_id):
     '''세특 작성을 위한... ai의 연산 시작'''
-    # ai가 작동중일 땐
     df = make_spreadsheet_df(request, posting_id)  # 스프레드시트의 df
     # 답변은 submit의 content에 json으로 저장해도 괜찮을듯? 아니, 그럼 모델을 추가해서 살펴볼 때 지워지지 않나? 아니면... df로 복원한 다음 다루는 것도 괜찮을듯.
     homework = get_object_or_404(models.Homework, id=posting_id)
-    # 아래는 pk와 id를 직접 넣으면서 필요없어진 부분.
-    # if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-    #     school = homework.classroom.school
-    # if homework.subject_object:
-    #     school = homework.subject_object.school
-
+    print(homework.is_pending)
     # 가격 계산 앞부분과 동일.
-    pk_list = request.POST.getlist("pk_checks")
+    pk_list = request.POST.getlist("pk_checks")  # 프로파일 pk가 오게.
     token_num = int(request.POST.get('token_num'))
     # classroom.py의 스프레드시트 df 만들기와 유사하게.
     contents_list, submit_id_list = make_ai_input_data(posting_id, pk_list)
@@ -34,7 +28,7 @@ def spreadsheet_to_ai(request, posting_id):
     #나중에 아래 함수의 delay 속성으로 진행하자.
     if type(total_charge) == type(redirect(request.META.get('HTTP_REFERER', None))):
         return redirect(request.META.get('HTTP_REFERER', None))
-    if homework.is_end == False:
+    if homework.is_pending == True:
         messages.error(request, '기존에 요청한 작업을 진행중입니다.')
         return redirect(request.META.get('HTTP_REFERER', None))
     else:
@@ -47,7 +41,7 @@ def spreadsheet_to_ai(request, posting_id):
 def read_response(request, posting_id):
     '''ai가 써준 세특 초안을 보여주는 기능.'''
     homework = get_object_or_404(models.Homework, id=posting_id)
-    if request.user == homework.author:
+    if request.user == homework.author_profile.admin:
         pass
     else:
         messages.error(request, '작성자만 열람할 수 있습니다.')
@@ -62,8 +56,8 @@ def read_response(request, posting_id):
             continue  # 기록된 게 없으면 건너뛰자.
             # work_df = work_df.set_index('계정')  # 인덱스로 만든다.
         merged_df = pd.concat([merged_df, work_df], axis=0, ignore_index=True)
-    context['data_list'] = merged_df.to_dict(orient='records')
-    if homework.is_end == False:  # 작업진행여부 불리언.
+    context['data_frame'] = merged_df.to_dict(orient='records')
+    if homework.is_pending == True:  # 작업진행여부 불리언.
         messages.error(request, '아직 ai의 작업이 진행중입니다.')
     debts = Debt.objects.filter(user=request.user, is_paid=False)
     if debts:
@@ -101,15 +95,15 @@ def make_ai_input_data(posting_id, pk_list):
     for pk in pk_list:
         if pk == None:
             continue  # 유저모델에 대한 정보 없으면 다음으로 넘기게끔.
-        response_user = get_object_or_404(get_user_model(), id=pk)
-        submit = models.HomeworkSubmit.objects.get(to_user=response_user, base_homework=homework)
+        response_user = get_object_or_404(models.Profile, id=pk)
+        submit = models.HomeworkSubmit.objects.get(to_profile=response_user, base_homework=homework)
         submit_list.append(submit)
         submit_id_list.append(submit.id)
         content = ''  # 텍스트를 담을...
         for question in question_list:
             try:
                 answer = models.HomeworkAnswer.objects.get(question=question,
-                                                           respondent=response_user)  # 해당 질문에 대한 답변들 모음.
+                                                           to_student=response_user)  # 해당 질문에 대한 답변들 모음.
                 content += "\n" + question.question_title + ":"  # 줄바꿈 후 데이터 입력.
                 content += answer.contents
             except:

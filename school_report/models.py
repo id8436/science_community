@@ -277,7 +277,7 @@ class Homework(models.Model):
     # school이나 홈룸은 있으면 다 넣게 하면 어떨까?
     homework_box = models.ForeignKey('HomeworkBox', on_delete=models.CASCADE, null=True, blank=True)
     # 위 4개 중 하나의 모델로 연결되어 있음.
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Homework_author", blank=True)
     author_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True)
     subject = models.CharField(max_length=100)  # 제목
     content = models.TextField()  # 내용

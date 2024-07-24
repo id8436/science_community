@@ -34,6 +34,7 @@ $(function(){
     {% for row in dataframe %}
     <tr>
       {% for value in row.values %}
+<!--     \n이 사용된 경우엔 이걸 써야 하는데... 흠;       <td>{{ value|linebreaksbr|safe }}</td>   -->
       <td>{{ value|linebreaksbr|safe }}</td>
       {% endfor %}
     </tr>

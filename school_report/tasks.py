@@ -15,13 +15,14 @@ def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_
 
     # submit에 내용 저장할 때 정보를 담기 위해 school이 필요해서.
     homework = models.Homework.objects.get(id=posting_id)
-    if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-        school = homework.classroom.school
-    if homework.subject_object:
-        school = homework.subject_object.school
-    homework.is_end = False  # False = pending
+    box = homework.homework_box
+    school = box.get_school_model()
+    # if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
+    #     school = homework.classroom.school
+    # if homework.subject_object:
+    #     school = homework.subject_object.school
+    homework.is_pending = True
     homework.save()
-
     # 학생의 과제 제출 객체 획득, 변경.
     import pandas as pd
     for input_text, submit_id in zip(contents_list, submit_id_list):
@@ -29,8 +30,9 @@ def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_
         try:
             work_df = pd.read_json(submit.content)  # 기존 과제 추출.
         except:
-            student = models.Student.objects.get(school=school, admin=submit.to_user)
-            work_df = pd.DataFrame({'계정': [student.admin], '제출자': [student.name], '학번': [student.student_code]})
+            # student = models.Profile.objects.get(school=school, admin=submit.to_user)
+            student = submit.to_profile
+            work_df = pd.DataFrame({'계정': [student.admin], '제출자': [student.name], '학번': [student.code]})
             work_df = work_df.set_index('계정')  # 인덱스로 만든다.
         for ai_model in ai_models:
             match ai_model:
@@ -44,7 +46,7 @@ def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_
 
 
     # 나중에 여기에 빛, 혹은 point 넣자.
-    homework.is_end = True
+    homework.is_pending = False
     homework.save()
     # 나중에 작업 끝날 때 정산.
     cause_text = str(len(contents_list)) + "건에 대한 AI 연산."
