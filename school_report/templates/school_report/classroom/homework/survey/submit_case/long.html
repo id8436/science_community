@@ -1,3 +1,19 @@
 <label for="question{{ question.id }}-response">{{ question.question_title|linebreaks }}</label>
-<textarea class="form-control" id="question{{ question.id }}-response" rows="3" placeholder="당신의 응답!"
-          name="response{{question.id}}">{{ question.response }}</textarea>
+<textarea class="form-control" id="question{{ question.id }}-response" placeholder="당신의 응답!"
+          name="response{{question.id}}">{{ question.response }}
+</textarea>
+
+
+<script>
+  // 텍스트 영역의 높이를 자동으로 조정하는 함수
+  function autoGrowTextArea(element) {
+    element.style.height = "auto";
+    element.style.height = element.scrollHeight + "px";
+  }
+
+  // 텍스트 영역에 입력 이벤트 리스너 추가
+  var textareaElement = document.getElementById("question{{ question.id }}-response");
+  textareaElement.addEventListener("input", function() {
+    autoGrowTextArea(this);
+  });
+</script>

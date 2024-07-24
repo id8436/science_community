@@ -506,6 +506,7 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
     return render(request, 'school_report/classroom/homework/homework_distribution.html', context)
 
 def homework_end(request, homework_id):
+    '''과제 마감과 관련하여'''
     homework = get_object_or_404(models.Homework, pk=homework_id)  # 과제 찾아오기.
     # 과제 제출자인 경우에만 진행한다.
     if request.user == homework.author_profile.admin:
@@ -531,6 +532,8 @@ import os
 import olefile
 import zlib
 import PyPDF2
+import zipfile
+import xml.etree.ElementTree as ET
 
 class FileToTextConverter:
     def __init__(self, file_path):
@@ -541,6 +544,8 @@ class FileToTextConverter:
             return self._extract_text_from_txt()
         elif self.extension == '.hwp':
             return self._extract_text_from_hwp()
+        elif self.extension == '.hwpx':
+            return self._extract_text_from_hwpx()
         elif self.extension == '.pdf':
             return self._extract_text_from_pdf()
         else:
@@ -566,6 +571,24 @@ class FileToTextConverter:
             return text
         else:
             raise ValueError("'PrvText' 스트림을 찾을 수 없습니다.")
+
+    def _extract_text_from_hwpx(self):
+        with zipfile.ZipFile(self.file_path, 'r') as zip_ref:
+            # 압축된 파일 목록을 가져옵니다.
+            file_list = zip_ref.namelist()
+            text = ""
+
+            # 모든 XML 파일을 순회하며 텍스트 추출
+            for file_name in file_list:
+                if file_name.endswith('.xml'):
+                    with zip_ref.open(file_name) as content_file:
+                        tree = ET.parse(content_file)
+                        root = tree.getroot()
+                        for elem in root.iter():
+                            if elem.text:
+                                text += elem.text + " "
+
+            return text.strip()
     def _extract_text_from_pdf(self):
         with open(self.file_path, 'rb') as file:
             reader = PyPDF2.PdfReader(file)

@@ -278,6 +278,7 @@ def spreadsheet_to_excel_download(request, posting_id):
     return response
 @login_required()
 def spreadsheet_upload_excel(request, posting_id):
+    '''기본적으로 세특용으로, long형태로 질문을 정리한다.'''
     homework = get_object_or_404(models.Homework, id=posting_id)
     if request.user == homework.author_profile.admin:
         pass
