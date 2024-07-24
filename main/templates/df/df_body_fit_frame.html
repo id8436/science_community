@@ -34,8 +34,8 @@ $(function(){
     {% for row in dataframe %}
     <tr>
       {% for value in row.values %}
-<!--     \n이 사용된 경우엔 이걸 써야 하는데... 흠;       <td>{{ value|linebreaksbr|safe }}</td>   -->
-      <td>{{ value|linebreaksbr|safe }}</td>
+<!--  뷰에서 \n을 <br>로 처리하여 safe 태그만으로도 괜찮음.   -->
+      <td>{{ value|safe }}</td>
       {% endfor %}
     </tr>
     {% endfor %}

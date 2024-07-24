@@ -107,7 +107,6 @@ def detail(request, posting_id):
     if homework.author_profile.admin == request.user:
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=homework)
         context['submit_list'] = submit_list
-
     context['survey'] = homework.homeworkquestion_set.exists()  # 설문객체 여부.
 
     # 개인 과제에 대해
@@ -574,21 +573,23 @@ class FileToTextConverter:
 
     def _extract_text_from_hwpx(self):
         with zipfile.ZipFile(self.file_path, 'r') as zip_ref:
-            # 압축된 파일 목록을 가져옵니다.
             file_list = zip_ref.namelist()
-            text = ""
+            text_parts = []
 
-            # 모든 XML 파일을 순회하며 텍스트 추출
             for file_name in file_list:
                 if file_name.endswith('.xml'):
                     with zip_ref.open(file_name) as content_file:
                         tree = ET.parse(content_file)
                         root = tree.getroot()
+
+                        # 기본 네임스페이스를 얻기 위한 방법
+                        ns = {'ns': root.tag.split('}')[0].strip('{')}
+
                         for elem in root.iter():
                             if elem.text:
-                                text += elem.text + " "
+                                text_parts.append(elem.text.strip())
 
-            return text.strip()
+            return ' '.join(text_parts)
     def _extract_text_from_pdf(self):
         with open(self.file_path, 'rb') as file:
             reader = PyPDF2.PdfReader(file)

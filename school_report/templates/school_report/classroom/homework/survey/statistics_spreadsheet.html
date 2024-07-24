@@ -19,17 +19,21 @@
         {% csrf_token %}
         <h4>사용할 모델을 선택하세요.(복수선택 가능)</h4>
     <h5 class="border-bottom my-3 py-2">GPT 계열</h5>
-        <input type="checkbox" name="ai_model" value="text-davinci-003" id="text-davinci-003">
-            <label for="text-davinci-003">text-davinci-003(10포인트)</label>
         <input type="checkbox" name="ai_model" value="gpt-3.5-turbo" id="gpt-3.5-turbo">
-            <label for="gpt-3.5-turbo">gpt-3.5-turbo(10포인트)</label>
+            <label for="gpt-3.5-turbo">gpt-3.5-turbo(1포인트)</label>
         <input type="checkbox" name="ai_model" value="gpt-3.5-turbo-instruct" id="gpt-3.5-turbo-instruct">
-            <label for="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct(10포인트)</label>
+            <label for="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct(0.25포인트)</label>
+        <br>
         <input type="checkbox" name="ai_model" value="gpt-4" id="gpt-4">
-            <label for="gpt-4">gpt-4(100포인트)</label>
-        <input type="checkbox" name="ai_model" value="gpt-4-1106-preview" id="gpt-4-1106-preview">
-            <label for="gpt-4-1106-preview">gpt-4-1106-preview(50포인트)</label>
-    <h5 class="border-bottom my-3 py-2">구글 계열</h5>
+            <label for="gpt-4">gpt-4(10포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-4o" id="gpt-4o">
+            <label for="gpt-4o">gpt-4o(20포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-4o-mini" id="gpt-4o-mini">
+            <label for="gpt-4o-mini">gpt-4o-mini(0.25포인트)</label>
+        <input type="checkbox" name="ai_model" value="gpt-4-turbo" id="gpt-4-turbo">
+            <label for="gpt-4-turbo">gpt-4-turbo(40포인트)</label>
+
+    <h5 class="border-bottom my-3 py-2">구글 계열(GPT로도 충분해보여 아직은 구현하지 않을랍니다.)</h5>
         <input type="checkbox" name="ai_model" value="gemini-pro" id="gemini-pro">
             <label for="gemini-pro">gemini-pro(10포인트)(요청이 너무 많아지면 서비스가 종료될 수 있습니다;;)</label>
 
@@ -43,7 +47,7 @@
     <h3>당부의 말</h3>
     <li>초안을 만들어주는 것이기에 결국 교사가 잘 읽고 수정해야 합니다.(창조보단 첨삭이 쉬우니까!!)</li>
     <li>100포인트는 100원 정도라 생각하시면 됩니다.(응답 토큰 700자 정도까지 합한 값이 나옵니다.)</li>
-    <li>시험을 위해 한 학생에 대해서만 실행해 보세요~(내용이 없는 학생도 요청이 들어가니, 유의해주세요~)</li>
+    <li>모델에 대한 테스트로 한 학생에 대해서만 실행해 보세요~(전체 선택하면 내용이 없는 학생도 요청이 들어가니, 유의해주세요~)</li>
     <li>모델별로 토큰 계산법이 다르기도 합니다.</li>
 
     <script>

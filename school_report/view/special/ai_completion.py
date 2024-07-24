@@ -16,7 +16,6 @@ def spreadsheet_to_ai(request, posting_id):
     df = make_spreadsheet_df(request, posting_id)  # 스프레드시트의 df
     # 답변은 submit의 content에 json으로 저장해도 괜찮을듯? 아니, 그럼 모델을 추가해서 살펴볼 때 지워지지 않나? 아니면... df로 복원한 다음 다루는 것도 괜찮을듯.
     homework = get_object_or_404(models.Homework, id=posting_id)
-    print(homework.is_pending)
     # 가격 계산 앞부분과 동일.
     pk_list = request.POST.getlist("pk_checks")  # 프로파일 pk가 오게.
     token_num = int(request.POST.get('token_num'))
@@ -82,11 +81,6 @@ def info_how_much_point_taken(request, posting_id):
     return redirect(request.META.get('HTTP_REFERER', None))
 def make_ai_input_data(posting_id, pk_list):
     homework = get_object_or_404(models.Homework, id=posting_id)
-    # 바로 pk로 가져오면서 필요없어진 부분.
-    # if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-    #     school = homework.classroom.school
-    # if homework.subject_object:
-    #     school = homework.subject_object.school
     # 아예 df로 pk와 콘텐츠 데이터 담아 보내기.(ai 처리엔 submit 리스트를 직접 보내는 것도 좋지 않을까??)
     question_list = homework.homeworkquestion_set.order_by('ordering')
     contents_list = []  # 질문과 답변을 모은 개인 전체 텍스트를 담을 리스트.
@@ -103,11 +97,11 @@ def make_ai_input_data(posting_id, pk_list):
         for question in question_list:
             try:
                 answer = models.HomeworkAnswer.objects.get(question=question,
-                                                           to_student=response_user)  # 해당 질문에 대한 답변들 모음.
+                                                           to_profile=response_user)  # 해당 질문에 대한 답변들 모음.
                 content += "\n" + question.question_title + ":"  # 줄바꿈 후 데이터 입력.
                 content += answer.contents
             except:
-                pass
+                print('ai_completion.py 작성한 답변이 없는 상태.')
         contents_list.append(content)
     return contents_list, submit_id_list
 def count_ai_use_point(request, contents_list, ai_models, token_num):
@@ -144,7 +138,8 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
             print('토큰갯수')
             print(num_tokens + token_num)
             if (num_tokens + token_num) >= max_tocken_list[ai_model]:  # 글자수 제한 반려.
-                messages.error(request, '선택하신 '+ai_model +'은 입력 및 출력 데이터의 합이 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.'+ '입력데이터'+num_tokens+', 출력토큰'+token_num+'(제한 토큰 갯수를 줄이거나 입력 내용을 줄이세요~!)')
+                messages.error(request, '선택하신 '+ai_model +'은 입력 및 출력 데이터의 합이 '+str(max_tocken_list[ai_model])+'을 넘을 수 없습니다.'
+                               + ' 입력데이터'+str(num_tokens)+', 출력토큰'+str(token_num)+'(제한 토큰 갯수를 줄이거나 입력 내용을 줄이세요~!)')
                 return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
             tokens_for_count = (num_tokens + token_num) / 1000  # 복사용 토큰. 1천개당 계산을 위해 정리.  # 반환토큰까지 고려.
             tokens_for_count = math.ceil(tokens_for_count)  # 올림 처리. 1000개 당 가격을 매기기 위해.
