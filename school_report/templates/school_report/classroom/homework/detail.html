@@ -46,11 +46,8 @@
     {% endif %}
     <div>
         <a href="{% url 'school_report:homework_distribution' posting.id%}" class="btn btn-info">과제 재분배</a>
-        {% if posting.is_special %}
-            특수설문입니다.
-        {% else %}
-            <a href="{% url 'school_report:homework_survey_list' posting.id%}" class="btn btn-info">특수설문 제작하기</a>
-        {% endif %}
+
+        <a href="{% url 'school_report:homework_survey_list' posting.id%}" class="btn btn-info">설문유형 변경</a>
     </div>
 
 
