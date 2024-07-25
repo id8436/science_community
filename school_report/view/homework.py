@@ -140,8 +140,8 @@ def delete(request, posting_id):
     homework_box = homework.homework_box
     return homework_box.redirect_to_upper()  # box를 소유한 상위객체로 리다이렉트.
 @login_required()
-def reset_pending(request, posting_id):
-    homework = get_object_or_404(models.Homework, pk=posting_id)
+def reset_pending(request, homework_id):
+    homework = get_object_or_404(models.Homework, pk=homework_id)
     if request.user != homework.author_profile.admin:
         messages.error(request, '권한이 없습니다. 꼼수쓰지 마라;')
         return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
