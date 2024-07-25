@@ -66,8 +66,17 @@
 
     <a class="btn btn-success"
        href="{% url 'school_report:read_response' posting.id%}">AI 초안 보기</a>
-
-
+    <a class="btn btn-warning"
+       href="{% url 'school_report:homework_reset_pending' posting.id%}">아무리 기다려도 초안이 안나오는 경우, 강제 초기화.</a>
+<script>
+function showWarningMessage() {
+    if (confirm('정말로 초안을 강제 초기화하시겠습니까? 작업이 진행 중이라면 요금이 2중으로 부과될 수 있습니다.')) {
+        return true; // 확인 버튼을 눌렀을 때 실제 URL로 이동하게 함
+    } else {
+        return false; // 취소 버튼을 눌렀을 때 URL 이동을 막음
+    }
+}
+</script>
 
 <div class="table-responsive">
   {% include "df/df_body_fit_frame_with_checkbox.html" with dataframe=data_list_with_pk %}

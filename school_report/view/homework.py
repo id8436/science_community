@@ -70,17 +70,17 @@ def modify(request, posting_id):
             if is_secret:
                 homework.is_secret = is_secret
             homework.save()
-            # 개별 확인을 위한 개별과제 체크 해제.(제출상태 취소)
-            submit_list = models.HomeworkSubmit.objects.filter(base_homework=homework)
-            for submit in submit_list:
-                submit.check = False
-                submit.save()
+            # # 개별 확인을 위한 개별과제 체크 해제.(제출상태 취소)
+            # submit_list = models.HomeworkSubmit.objects.filter(base_homework=homework)
+            # for submit in submit_list:
+            #     submit.check = False
+            #     submit.save()
             return redirect('school_report:homework_detail', posting_id=homework.id)
     else:  # GET으로 요청된 경우.
         form = HomeworkForm(instance=homework)  # 해당 모델의 내용을 가져온다!
         # 태그를 문자열화 하여 form과 함께 담는다.
     context = {'form': form}
-    messages.error(request, '수정하면 기존 확인한 학생들의 체크는 "읽지않음"으로 갱신됩니다.')
+    messages.error(request, '수정하고 학생들에게도 안내하셔요오~')
     return render(request, 'school_report/classroom/homework/create.html', context)
 @login_required()
 def detail(request, posting_id):
@@ -139,6 +139,16 @@ def delete(request, posting_id):
     messages.success(request, '삭제 성공~!')
     homework_box = homework.homework_box
     return homework_box.redirect_to_upper()  # box를 소유한 상위객체로 리다이렉트.
+@login_required()
+def reset_pending(request, posting_id):
+    homework = get_object_or_404(models.Homework, pk=posting_id)
+    if request.user != homework.author_profile.admin:
+        messages.error(request, '권한이 없습니다. 꼼수쓰지 마라;')
+        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+    homework.is_pending = False
+    homework.save()
+    messages.success(request, '진행상황을 초기화하였습니다.')
+    return redirect(request.META.get('HTTP_REFERER', None))
 def survey_create(request, posting_id):
     '''설문의 수정도 이곳에서 처리.'''
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.

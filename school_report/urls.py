@@ -75,6 +75,10 @@ urlpatterns = [
     path('homework/distribution/<int:homework_id>/', homework.distribution, name='homework_distribution'),
     path('homework/below_standard_set/<int:submit_id>/', homework.below_standard_set, name='homework_below_standard_set'),  # 수준미달 지정
     path('homework/below_standard_unset/<int:submit_id>/', homework.below_standard_unset, name='homework_below_standard_unset'),  # 수준미달 해제
+    path('homework/reset_pending/<int:submit_id>/', homework.reset_pending,
+         name='homework_reset_pending'),  # 수준미달 해제
+
+
     # 설문 관련.
     path('homework/survey_create/<int:posting_id>/', homework.survey_create, name='homework_survey_create'),
     path('homework/survey_submit/<int:submit_id>/', homework.survey_submit, name='homework_survey_submit'),

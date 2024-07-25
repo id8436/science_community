@@ -5,7 +5,7 @@ from custom_account.view import payment
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
-@shared_task
+@shared_task(max_retries=10, default_retry_delay=60)
 def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_list, total_charge, token_num):
     '''테스크 처리.'''
     #  시작하기 전에 점검부터
@@ -17,10 +17,6 @@ def api_answer(request_user_id, posting_id, ai_models, contents_list, submit_id_
     homework = models.Homework.objects.get(id=posting_id)
     box = homework.homework_box
     school = box.get_school_model()
-    # if homework.classroom:  # 지금은 어쩔 수 없이 학교..로 해뒀는데, 나중엔 교실에 속한 경우에도 할 수 있도록... 구성하자.
-    #     school = homework.classroom.school
-    # if homework.subject_object:
-    #     school = homework.subject_object.school
     homework.is_pending = True
     homework.save()
     # 학생의 과제 제출 객체 획득, 변경.

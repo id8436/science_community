@@ -23,7 +23,7 @@
 
         <label>내용</label>
     <textarea class="form-control" name="content" id="summernote">
-        {{ form.content.value|default_if_none:'이거 지우고 여기에 기입하쇼' |safe }}</textarea>
+        {{ form.content.value|default_if_none:'' |safe }}</textarea>
     </div>
 
     <label>제출기한</label>
