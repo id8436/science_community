@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 
 '''의견. 훗날 앱 자체를 재구성해보자.
 1. 학교, 교실, 교과교실, 교과 등 객체는 하나의 모델로 type 처리해서 활용할 수 있지 않을까? board 모델로 활용해도 괜찮을듯.
@@ -11,7 +12,26 @@ from django.shortcuts import render, get_object_or_404, redirect
 5. 학년공지 및 학년 정보를 모아놓아야 할 수도 있으니, 학급 상위로 학년 놓게 하는 것도 괜찮을듯...?
 '''
 
-class School(models.Model):
+class BaseRoom(models.Model):
+    '''기본적인 공간에 대한 것들.'''
+    def get_self_type(self):
+        '''어느 객체에 속하는지 확인.'''
+        if hasattr(self, 'school_code'):  # 속성에 학교코드가 있는 경우.
+            return 'school'
+        elif hasattr(self, 'cl_num'):
+            return 'homeroom'
+        elif hasattr(self, 'subject_name'):
+            return 'subject'
+        elif hasattr(self, 'base_subject'):
+            return 'classroom'
+    def get_self_url(self):
+        '''본인의 경로 얻기'''
+        name = f'school_report:{self.get_self_type()}_main'
+        return reverse(name, kwargs={'room_id': self.pk})
+    class Meta:
+        abstract = True  # 이 클래스가 추상 기반 클래스임을 Django에 알립니다.
+
+class School(BaseRoom):
     name = models.CharField(max_length=30, blank=False)
     year = models.IntegerField(blank=False)
     level = models.CharField(max_length=10, blank=False)  # 초중고대, 대학원 + 기타.
@@ -29,7 +49,7 @@ class School(models.Model):
         unique_together = (
             ('name', 'year')
         )
-class Homeroom(models.Model):
+class Homeroom(BaseRoom):
     school = models.ForeignKey('School', on_delete=models.CASCADE)
     grade = models.IntegerField(null=True, blank=True)   # 학년
     cl_num = models.IntegerField(null=True, blank=True)  # 반
@@ -57,10 +77,7 @@ class Homeroom(models.Model):
         if is_new:
             homework_box, created = HomeworkBox.objects.get_or_create(homeroom=self)
             Announce_box, created = AnnounceBox.objects.get_or_create(homeroom=self)
-
-
-
-class Subject(models.Model):
+class Subject(BaseRoom):
     '''학교 하위의, 클래스룸을 만들기 위한 교과.'''
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함.
     subject_name = models.CharField(max_length=20)  # 과목명
@@ -85,7 +102,7 @@ class Subject(models.Model):
         if is_new:
             homework_box, created = HomeworkBox.objects.get_or_create(subject=self)
             Announce_box, created = AnnounceBox.objects.get_or_create(subject=self)
-class Classroom(models.Model):
+class Classroom(BaseRoom):
     school = models.ForeignKey('School', on_delete=models.CASCADE)  # 학교 아래 귀속시키기 위함. # 25년이 지나면 지우자.(다 학교 배정 없이 정리될 거니까.)
     homeroom = models.ForeignKey('Homeroom', on_delete=models.CASCADE)  # 학생명단을 가져올 홈룸.
     base_subject = models.ForeignKey('Subject', on_delete=models.CASCADE)  # 연결할 모델.
@@ -150,7 +167,6 @@ class Student(models.Model):
             ('school', 'student_code')
         )
         ordering = ['student_code']
-
 class Profile(models.Model):
     # 교사, 학생 정보를 담는 프로필.
     admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
@@ -172,7 +188,7 @@ class Profile(models.Model):
         return self.name
     class Meta:
         unique_together = (
-            ('school', 'name', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
+            ('school', 'code')  # 교사와 이름도 같고 코드도 같을 일은 없겠지...
         )
         ordering = ['code']  # 기본적으로 학번순 정렬. 학번이 겹칠 일은 없으니... 보조지표는 필요 없을듯?
 class BaseBox(models.Model):
@@ -270,9 +286,30 @@ class BaseBox(models.Model):
             return redirect('school_report:classroom_main', object_id)
     class Meta:
         abstract = True  # 이 클래스가 추상 기반 클래스임을 Django에 알립니다.
+class UnderBox(models.Model):
+    def get_self_type(self):
+        '''과제인지, 공지인지.'''
+        if hasattr(self, 'homework_box'):  # 공지 확인.
+            return 'homework'
+        elif hasattr(self, 'announce_box'):  # 공지 확인.
+            return 'announce'
+    def get_self_url(self):
+        '''본인의 경로 얻기'''
+        if self.get_self_type() == 'homework':
+            return reverse('school_report:homework_detail', kwargs={'posting_id': self.pk})
+        else:
+            return reverse('school_report:announcement_detail', kwargs={'posting_id': self.pk})
+    def get_upper_box(self):
+        '''해당 과제, 공지가 속한 객체 얻기.'''
+        if self.get_self_type() == 'homework':
+            return self.homework_box
+        else:
+            return self.announce_box
+    class Meta:
+        abstract = True  # 이 클래스가 추상 기반 클래스임을 Django에 알립니다.
 class HomeworkBox(BaseBox):
     pass
-class Homework(models.Model):
+class Homework(UnderBox):
     # 아래의 school은 곧장 연결되는 것으로.. 없을 수도 있음.
     # school이나 홈룸은 있으면 다 넣게 하면 어떨까?
     homework_box = models.ForeignKey('HomeworkBox', on_delete=models.CASCADE, null=True, blank=True)
@@ -301,23 +338,30 @@ class Homework(models.Model):
 
     def __str__(self):
         return self.subject
-    def copy_create(self, classroom_list=None, subject_list=None):
+    def copy_create(self, homework_box, author_profile):
+                    #(self, classroom_list=None, subject_list=None, homeroom_list=None):
         '''특정 모델에서 진행되는 카피. 객체의 ID 목록을 받아와 실행한다.'''
-        copied_instance = Homework.objects.create(homework_box=self.homework_box,
-            author_profile=self.author_profile, subject=self.subject, content=self.content, deadline=self.deadline, is_special=self.is_special)
-        # 학교냐, 교과냐, 교실이냐. 어디에 복사할 것인가.
-        for classroom in classroom_list:
-            classroom_ob = Classroom.objects.get(id=classroom)  # 교실객체 찾기.
-            copied_instance.classroom = classroom_ob
-        for subject in subject_list:
-            subject_ob = Subject.objects.get(id=subject)
-            copied_instance.subject_object = subject_ob
+        copied_instance = Homework.objects.create(homework_box=homework_box, author_profile=author_profile,
+          # 아래는 복사정보.
+            subject=self.subject, content=self.content, deadline=self.deadline, is_special=self.is_special)
+        # 이전 코드인데, 뭔가 이상함;;; 학급으로의 복사가 안되어, 새로 짬. 잘 되면 지우자.
+        # copied_instance = Homework.objects.create(homework_box=self.homework_box,
+        #     author_profile=self.author_profile, subject=self.subject, content=self.content, deadline=self.deadline, is_special=self.is_special)
+        # # 학교냐, 교과냐, 교실이냐. 어디에 복사할 것인가.
+        # for classroom in classroom_list:
+        #     classroom_ob = Classroom.objects.get(id=classroom)  # 교실객체 찾기.
+        #     copied_instance.classroom = classroom_ob
+        # for subject in subject_list:
+        #     subject_ob = Subject.objects.get(id=subject)
+        #     copied_instance.subject_object = subject_ob
+        # for homeroom in homeroom_list:
+        #     homeroom_ob = Homeroom.objects.get(id=homeroom)
+        #     copied_instance.homeroom_object = homeroom_ob
 
         # 과제 하위의 설문 질문 복사 및 homework와 연결.
         homework_questions = self.homeworkquestion_set.all()  # all()을 붙여야 하나?
         for homework_question in homework_questions:
             homework_question.question_copy_create(copied_instance)
-
         copied_instance.save()  # 변경사항은 마지막에 반영.
         return copied_instance
     def to_homework(self):
@@ -414,7 +458,7 @@ def delete_homework_answer_file(sender, instance, **kwargs):
 
 class AnnounceBox(BaseBox):
     pass
-class Announcement(models.Model):
+class Announcement(UnderBox):
     announce_box = models.ForeignKey('AnnounceBox', on_delete=models.CASCADE, null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="Announce_author")
     author_profile = models.ForeignKey('Profile', on_delete=models.SET_NULL, null=True)

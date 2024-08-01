@@ -420,26 +420,43 @@ def copy(request, homework_id):
     context = {}
     admin = homework.author_profile.admin
     if request.method == 'POST':
+        # 각 객체의 id를 얻어옴.
         classroom_list = request.POST.getlist('classroom_list')
         subject_list = request.POST.getlist('subject_list')
-        # 여기부터 복사과정
-        copied = homework.copy_create(classroom_list=classroom_list, subject_list=subject_list)
-        ### 자동 과제 분배.
-        type, id = copied.homework_box.type()
-        if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
-            profiles = copied.homework_box.get_profiles()
-            for to_profile in profiles:
-                individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
+        homeroom_list = request.POST.getlist('homeroom_list')
+        boxes = []  # 과제는 박스의 하위이므로, 박스들에 과제를 복사하면 된다.
+        for classroom_id in classroom_list:
+            object = models.Classroom.objects.get(pk=classroom_id)
+            boxes.append(object.homeworkbox)
+        for subject_id in subject_list:
+            object = models.Subject.objects.get(pk=subject_id)
+            boxes.append(object.homeworkbox)
+        for homeroom_id in homeroom_list:
+            object = models.Homeroom.objects.get(pk=homeroom_id)
+            boxes.append(object.homeworkbox)
+        for homework_box in boxes:
+            author_profile = homework_box.get_upper_model()[1].master_profile
+            # 여기부터 복사과정
+            copied = homework.copy_create(homework_box=homework_box, author_profile=author_profile)
+            ### 자동 과제 분배.
+            type, id = copied.homework_box.type()
+            if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
+                profiles = copied.homework_box.get_profiles()
+                for to_profile in profiles:
+                    individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
                                                                               base_homework=copied)
-        return redirect('school_report:homework_detail', copied.id)
+        messages.success(request, "복사에 성공하였습니다.")
+        return redirect('school_report:homework_detail', homework_id)
     # 사용자가 관리하는 객체를 보이기 위한 사전작업.
     homework_box = homework.homework_box
     school = homework_box.get_school_model()
     # 사용자가 관리하는 객체들을 보여준다.
-    admin_profile = models.Profile.objects.get(admin=admin, school=school)
+    admin_profile = models.Profile.objects.filter(admin=admin, school=school).first()
+    homeroom_list = models.Homeroom.objects.filter(master_profile=admin_profile, school=school)
     subject_list = models.Subject.objects.filter(master_profile=admin_profile, school=school)
     subject_ids = [subject.id for subject in subject_list]
     classroom_list = models.Classroom.objects.filter(base_subject__id__in=subject_ids)
+    context['homeroom_list'] = homeroom_list
     context['classroom_list'] = classroom_list
     context['subject_list'] = subject_list
 

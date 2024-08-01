@@ -1,9 +1,13 @@
 {% extends "school_report/section.html" %}
 
 {% block content %}
+<div><a href="{{posting.get_self_url}}">상위 페이지로 돌아가기</a></div>
+
 {% if posting %}
 <a href="{% url 'school_report:spreadsheet_to_excel_download' posting.id%}">엑셀로 양식 다운받기.</a>
 {% endif %}
+
+
 
 {% if posting.is_special == 'TalentEval' %}
 

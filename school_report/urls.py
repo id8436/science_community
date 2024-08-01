@@ -8,14 +8,14 @@ urlpatterns = [
     path('', views.main, name='main'),
 
     # 학교기능 관련.
-    path('school/<int:school_id>/', school.main, name='school_main'),
+    path('school/<int:room_id>/', school.main, name='school_main'),
     path('school_create/', school.school_create, name='school_create'),
     path('school_modify/<int:school_id>/', school.school_modify, name='school_modify'),
     path('school/school_list/', school.list, name='school_list'),
     path('meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
     # 과목, 교과 관련
     path('subject_create/<int:school_id>/', subject.create, name='subject_create'),
-    path('subject_main/<int:subject_id>/', subject.main, name='subject_main'),
+    path('subject_main/<int:room_id>/', subject.main, name='subject_main'),
     path('create_performance_score/<int:subject_id>/', school.create_performance_score, name='create_performance_score'),
     #path('subject_homework/<int:subject_id>/', subject.subject_homework_create, name='subject_homework_create'),
     path('subject_homework_check/<int:subject_id>/', subject.subject_homework_check, name='subject_homework_check'),
@@ -41,7 +41,7 @@ urlpatterns = [
     path('school/profile_delete/<int:profile_id>/', school.school_profile_delete, name='school_profile_delete'),
     # 학급 관련.
     path('homeroom/create/<int:school_id>/', homeroom.create, name='homeroom_create'),
-    path('homeroom/main/<int:homeroom_id>/', homeroom.main, name='homeroom_main'),
+    path('homeroom/main/<int:room_id>/', homeroom.main, name='homeroom_main'),
     path('homeroom/student_assignment/<int:homeroom_id>/', homeroom.assignment, name='homeroom_student_assignment'),
     path('homeroom/download_excel_form/<int:homeroom_id>/', homeroom.download_excel_form, name='homeroom_download_excel_form'),
     path('homeroom/upload_excel_form/<int:homeroom_id>/', homeroom.upload_excel_form, name='homeroom_upload_excel_form'),
@@ -60,7 +60,7 @@ urlpatterns = [
 
     # 교과교실 관련.
     path('classroom/create/<int:school_id>/', classroom.create, name='classroom_create'),
-    path('classroom/main/<int:classroom_id>/', classroom.main, name='classroom_main'),
+    path('classroom/main/<int:room_id>/', classroom.main, name='classroom_main'),
     # 과제
     path('homework/create/<int:homework_box_id>/', homework.create, name='homework_create'),
     path('detail/<int:posting_id>/', homework.detail, name='homework_detail'),

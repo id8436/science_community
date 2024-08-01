@@ -41,8 +41,8 @@ def create(request, school_id):
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/homeroom/create.html', context)
 
-def main(request, homeroom_id):
-    homeroom = get_object_or_404(models.Homeroom, pk=homeroom_id)
+def main(request, room_id):
+    homeroom = get_object_or_404(models.Homeroom, pk=room_id)
     context ={'homeroom': homeroom}
 
     # 선생님, 혹은 학생객체 가져오기.
@@ -120,7 +120,7 @@ def upload_excel_form(request, homeroom_id):
                                                                         code=student_code, position='student')
                 student.homeroom.add(homeroom)
                 if created:
-                    student.code = random.randint(100000, 999999)  # 코드 지정.
+                    student.confirm_code = random.randint(100000, 999999)  # 코드 지정.
                 student.save()
             messages.info(request,'반영 완료.')
 

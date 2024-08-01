@@ -10,9 +10,9 @@ import random
 from boards.models import Board, Board_category, Board_name
 from .for_api import SchoolMealsApi
 from django.utils.encoding import escape_uri_path
-def main(request, school_id):
+def main(request, room_id):
     context = {}
-    school = get_object_or_404(models.School, pk=school_id)
+    school = get_object_or_404(models.School, pk=room_id)
     context['school'] = school
     context['announcement_list'] = school.announcebox.announcement_set.order_by('-create_date')
     context['homework_list'] = school.homeworkbox.homework_set.order_by('-create_date')

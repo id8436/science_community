@@ -3,9 +3,21 @@
 {% block content %}
 <div class="container my-3">
 
-<h4 class="border-bottom py-2">관리 과목 목록</h4>
 
 <form method="post">{% csrf_token %}
+<h4 class="border-bottom py-2">관리 학급 목록</h4>
+<div class="card my-3">
+    <div class="card-body">
+            {% for homeroom in homeroom_list %}
+            <div>
+    <input type="checkbox" name="homeroom_list" id="homeroom{{forloop.counter}}"
+           value="{{homeroom.id}}"> <label for="homeroom{{forloop.counter}}">{{homeroom}}</label>
+            </div>
+            {% endfor %}
+    </div>
+</div>
+
+<h4 class="border-bottom py-2">관리 과목 목록</h4>
 <div class="card my-3">
     <div class="card-body">
             {% for subject in subject_list %}

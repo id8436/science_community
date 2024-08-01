@@ -41,8 +41,8 @@ def create(request, school_id):
         form = SubjectForm()
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/school/subject/subject_create.html', context)
-def main(request, subject_id):
-    subject = get_object_or_404(models.Subject, pk=subject_id)
+def main(request, room_id):
+    subject = get_object_or_404(models.Subject, pk=room_id)
     context = {'subject': subject}
     # 선생님, 혹은 학생객체 가져오기.
     context['student'] = check.Student(user=request.user, school=subject.school).in_school_and_none()

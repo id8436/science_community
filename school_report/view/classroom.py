@@ -49,8 +49,8 @@ def create(request, school_id):
         pass
     #context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
     return render(request, 'school_report/classroom/create.html', context)
-def main(request, classroom_id):
-    classroom = get_object_or_404(models.Classroom, pk=classroom_id)
+def main(request, room_id):
+    classroom = get_object_or_404(models.Classroom, pk=room_id)
     context ={'classroom': classroom}
     # 선생님, 혹은 학생객체 가져오기.
     context['student'] = check.Student(request=request, user=request.user,
