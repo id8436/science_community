@@ -452,13 +452,16 @@ def copy(request, homework_id):
     school = homework_box.get_school_model()
     # 사용자가 관리하는 객체들을 보여준다.
     admin_profile = models.Profile.objects.filter(admin=admin, school=school).first()
-    homeroom_list = models.Homeroom.objects.filter(master_profile=admin_profile, school=school)
-    subject_list = models.Subject.objects.filter(master_profile=admin_profile, school=school)
+    homeroom_list = models.Homeroom.objects.filter(master_profile=admin_profile)
+    subject_list = models.Subject.objects.filter(master_profile=admin_profile)
     subject_ids = [subject.id for subject in subject_list]
     classroom_list = models.Classroom.objects.filter(base_subject__id__in=subject_ids)
     context['homeroom_list'] = homeroom_list
     context['classroom_list'] = classroom_list
     context['subject_list'] = subject_list
+    # 관리 프로파일들을 토대로 진행하는 게 좋을듯.
+    admin_profiles = models.Profile.objects.filter(admin=admin)
+    context['profiles'] = admin_profiles
 
     return render(request, 'school_report/classroom/homework/copy.html', context)
 #    return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
