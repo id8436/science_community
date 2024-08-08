@@ -5,13 +5,14 @@
 
 
 <form method="post">{% csrf_token %}
+    {{profiles}}
     {% for profile in profiles %}
+
         <h3 class="border-bottom py-2">{{profile.school}}</h3>
-    {{profile.homeroom_set.all}}{{profile.homeroom}}
     <h4 class="border-bottom py-2">관리 학급 목록</h4>
     <div class="card my-3">
         <div class="card-body">
-                {% for homeroom in profile.homeroom_set.all %}
+                {% for homeroom in profile.homeroom_master.all %}
                 <div>
         <input type="checkbox" name="homeroom_list" id="homeroom{{forloop.counter}}"
                value="{{homeroom.id}}"> <label for="homeroom{{forloop.counter}}">{{homeroom}}</label>
@@ -19,48 +20,71 @@
                 {% endfor %}
         </div>
     </div>
+
+    <h4 class="border-bottom py-2">관리 과목 목록</h4>
+    <div class="card my-3">
+        <div class="card-body">
+                {% for subject in profile.subject_set.all %}
+                <div>
+        <input type="checkbox" name="subject_list" id="subject{{forloop.counter}}"
+               value="{{subject.id}}"> <label for="subject{{forloop.counter}}">{{subject}}</label>
+                </div>
+                        <h6 class="border-bottom py-2">하위 교과교실 목록</h6>
+                        <div class="card my-3">
+                            <div class="card-body">
+                                    {% for classroom in subject.classroom_set.all %}
+                                    <div>
+                            <input type="checkbox" name="classroom_list" id="classroom{{forloop.counter}}"
+                                   value="{{classroom.id}}"> <label for="classroom{{forloop.counter}}">{{classroom}}</label>
+                                    </div>
+                                    {% endfor %}
+                            </div>
+                        </div>
+                {% endfor %}
+        </div>
+    </div>
     {%endfor%}
 
 
+<!-- 예전에 쓴 것. 사용에 문제 없으면 지우자.-->
+<!--</br>-->
+<!--&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+<!--<h4 class="border-bottom py-2">관리 학급 목록</h4>-->
+<!--<div class="card my-3">-->
+<!--    <div class="card-body">-->
+<!--            {% for homeroom in homeroom_list %}-->
+<!--            <div>-->
+<!--    <input type="checkbox" name="homeroom_list" id="homeroom{{forloop.counter}}"-->
+<!--           value="{{homeroom.id}}"> <label for="homeroom{{forloop.counter}}">{{homeroom}}</label>-->
+<!--            </div>-->
+<!--            {% endfor %}-->
+<!--    </div>-->
+<!--</div>-->
 
-</br>
-------------------------------
-<h4 class="border-bottom py-2">관리 학급 목록</h4>
-<div class="card my-3">
-    <div class="card-body">
-            {% for homeroom in homeroom_list %}
-            <div>
-    <input type="checkbox" name="homeroom_list" id="homeroom{{forloop.counter}}"
-           value="{{homeroom.id}}"> <label for="homeroom{{forloop.counter}}">{{homeroom}}</label>
-            </div>
-            {% endfor %}
-    </div>
-</div>
+<!--<h4 class="border-bottom py-2">관리 과목 목록</h4>-->
+<!--<div class="card my-3">-->
+<!--    <div class="card-body">-->
+<!--            {% for subject in subject_list %}-->
+<!--            <div>-->
+<!--    <input type="checkbox" name="subject_list" id="subject{{forloop.counter}}"-->
+<!--           value="{{subject.id}}"> <label for="subject{{forloop.counter}}">{{subject}}</label>-->
+<!--            </div>-->
+<!--            {% endfor %}-->
+<!--    </div>-->
+<!--</div>-->
 
-<h4 class="border-bottom py-2">관리 과목 목록</h4>
-<div class="card my-3">
-    <div class="card-body">
-            {% for subject in subject_list %}
-            <div>
-    <input type="checkbox" name="subject_list" id="subject{{forloop.counter}}"
-           value="{{subject.id}}"> <label for="subject{{forloop.counter}}">{{subject}}</label>
-            </div>
-            {% endfor %}
-    </div>
-</div>
-
-<h4 class="border-bottom py-2">관리 교과교실 목록</h4>
-<div class="card my-3">
-    <div class="card-body">
-            {% for classroom in classroom_list %}
-            <div>
-    <input type="checkbox" name="classroom_list" id="classroom{{forloop.counter}}"
-           value="{{classroom.id}}"> <label for="classroom{{forloop.counter}}">{{classroom}}</label>
-            </div>
-            {% endfor %}
-    </div>
-</div>
-    <button type="submit" id="submit-button" class="btn btn-primary">복사</button>
-</form>
+<!--<h4 class="border-bottom py-2">관리 교과교실 목록</h4>-->
+<!--<div class="card my-3">-->
+<!--    <div class="card-body">-->
+<!--            {% for classroom in classroom_list %}-->
+<!--            <div>-->
+<!--    <input type="checkbox" name="classroom_list" id="classroom{{forloop.counter}}"-->
+<!--           value="{{classroom.id}}"> <label for="classroom{{forloop.counter}}">{{classroom}}</label>-->
+<!--            </div>-->
+<!--            {% endfor %}-->
+<!--    </div>-->
+<!--</div>-->
+<!--    <button type="submit" id="submit-button" class="btn btn-primary">복사</button>-->
+<!--</form>-->
 
 {% endblock content %}
