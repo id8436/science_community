@@ -12,9 +12,13 @@
       case 'short':
         // 단답형 처리
         break;
-
+//////////////////// 나중에 처리할 때 장문형을 참고하면 어떨지...
       case 'long':
         // 장문형 처리
+        var htmlContent = `{% include "school_report/classroom/homework/survey/case/long.html" %}`;
+
+        // inputContainer에 HTML 추가
+        inputContainer.innerHTML = htmlContent;
         break;
 
       case 'numeric':

@@ -26,11 +26,10 @@
         {{ form.content.value|default_if_none:'' |safe }}</textarea>
     </div>
 
-    <label>제출기한</label>
-    <p><input type="datetime-local" name="deadline"></p>
+    <label>제출기한 </label><input type="datetime-local" name="deadline" id="deadlineInput" value="{{ form.deadline.value|date:'Y-m-d\TH:i' }}">
         <p>
       <input type="checkbox" name="is_secret_student" id="is_secret_student" {% if form.is_secret_student.value %}checked{% endif %}>
-      <label for="is_secret_student"> 제출된 과제를 학생들에게 비공개로 유지합니다.)</label>
+      <label for="is_secret_student"> 제출된 과제를 학생들에게 비공개로 유지합니다.)</label></p><p>
       <input type="checkbox" name="is_secret" id="is_secret" {% if form.is_secret.value %}checked disabled{% endif %}>
       <label for="is_secret"> 제출된 과제를 비공개로 유지합니다.(교사에게도 제출자를 공개하지 않습니다. 비공개 설문용.)</label>
         </p>
@@ -86,6 +85,21 @@
 
 </div>
 
+<script>
+// 제출기한은 자바스크립트로 기입해야 하는 불편이 있음;;
+document.addEventListener("DOMContentLoaded", function() {
+    var deadlineInput = document.getElementById('deadlineInput');
+    var deadlineDisplay = document.getElementById('deadlineDisplay');
+
+    // 초기값 설정
+    deadlineDisplay.textContent = deadlineInput.value;
+
+    // 입력 필드의 값이 변경될 때마다 레이블에 반영
+    deadlineInput.addEventListener('input', function() {
+        deadlineDisplay.textContent = this.value;
+    });
+});
+</script>
 
 <script>
   // 비공개 체크 박스를 클릭할 때 경고 메시지를 보여줌
@@ -97,5 +111,7 @@
     }
   });
 </script>
+
+
 
 {% endblock %}

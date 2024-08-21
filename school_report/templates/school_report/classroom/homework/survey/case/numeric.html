@@ -1,6 +1,6 @@
 <div id="inputContainer">
-    <span class="input-group-text">최솟값
-<input type="number" class="form-control form-control" name="lower_lim" placeholder="최솟값" value="{{question.lower_lim}}"></span>
-    <span class="input-group-text">최댓값
-<input type="number" class="form-control form-control" name="upper_lim" placeholder="최댓값" value="{{question.upper_lim}}"></span>
+    <span class="input-group-text">최솟값(정수)
+<input type="number" class="form-control form-control" name="lower_lim" placeholder="최솟값(정수)" value="{{question.lower_lim|floatformat:0}}" step="1">></span>
+    <span class="input-group-text">최댓값(정수)
+<input type="number" class="form-control form-control" name="upper_lim" placeholder="최댓값(정수)" value="{{question.upper_lim|floatformat:0}}" step="1">></span>
 </div>

@@ -2,7 +2,7 @@
 <input type="number" class="form-control" id="question{{ question.id }}-response"
        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
        min="{{question.lower_lim}}" max="{{question.upper_lim}}"
-       placeholder="응답해주세요~(숫자) 최소 {{question.lower_lim}}, 최대 {{question.upper_lim}}" name="response{{question.id}}"
+       placeholder="응답해주세요~(숫자) 최소 {{question.lower_lim|floatformat:0}}, 최대 {{question.upper_lim|floatformat:0}}" name="response{{question.id}}"
         value="{{ question.response }}">
 
 

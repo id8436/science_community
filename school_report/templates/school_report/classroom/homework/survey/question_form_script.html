@@ -20,22 +20,27 @@ function handleOptionChange(selectElement) {
       return inputElement.value !== '';
     });
 
-    if (hasContent) {
-      var confirmed = confirm('이전에 입력된 내용이 삭제됩니다. 계속하시겠습니까?');
-      if (!confirmed) {
-        this.value = this.dataset.originalValue;
-        return;
-      }
-    }
+<!-- 굳이 지우진 않아도 되지 않나. -->
+<!--    if (hasContent) {-->
+<!--      var confirmed = confirm('이전에 입력된 내용이 삭제됩니다. 계속하시겠습니까?');-->
+<!--      if (!confirmed) {-->
+<!--        this.value = this.dataset.originalValue;-->
+<!--        return;-->
+<!--      }-->
+<!--    }-->
 
-// 기존 title textarea의 내용을 지우는 부분
+<!--// 기존 title textarea의 내용을 지우는 부분-->
   var cardBody = this.closest('.card-body');  // 현재 selectElement가 속한 '문항' 요소를 찾습니다.
   if (cardBody) {
-    var textarea = cardBody.querySelector('textarea[name="question_title"]');
-    if (textarea) {
-      textarea.value = '';
-    }
+
+<!--  질문을 지우는 실질적인 부분. 문제 없으면 나중에 없애버리자.-->
+<!--    var textarea = cardBody.querySelector('textarea[name="question_title"]');-->
+<!--    if (textarea) {-->
+<!--      textarea.value = '';-->
+<!--    }-->
+
   }
+
     {% include "school_report/classroom/homework/survey/segment/switch.html" %}
 
   };

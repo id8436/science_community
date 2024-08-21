@@ -1,19 +1,45 @@
-<label for="question{{ question.id }}-response">{{ question.question_title|linebreaks }}</label>
-<textarea class="form-control" id="question{{ question.id }}-response" placeholder="당신의 응답!"
-          name="response{{question.id}}">{{ question.response }}
-</textarea>
+<label for="question{{ question.id }}-response">{{ question.question_title|linebreaks}}</label>
+<div style="color: gray;">
+{% if question.lower_lim  %}최소 {{question.lower_lim|floatformat:0}}자. {% endif %}
+{% if question.upper_lim  %}최대 {{question.upper_lim|floatformat:0}}자.{% endif %}
+</div>
 
+<textarea class="form-control" id="question{{ question.id }}-response" placeholder="당신의 응답!"
+          name="response{{question.id}}">{{ question.response }}</textarea>
+
+<div id="characterCount{{ question.id }}" style="color: gray;">0자</div>
 
 <script>
   // 텍스트 영역의 높이를 자동으로 조정하는 함수
   function autoGrowTextArea(element) {
-    element.style.height = "auto";
-    element.style.height = element.scrollHeight + "px";
+    element.style.height = "auto"; // 높이를 초기화
+    element.style.height = element.scrollHeight + "px"; // 콘텐츠에 맞게 높이 조정
   }
 
-  // 텍스트 영역에 입력 이벤트 리스너 추가
-  var textareaElement = document.getElementById("question{{ question.id }}-response");
-  textareaElement.addEventListener("input", function() {
-    autoGrowTextArea(this);
+  // 현재 글자 수를 업데이트하는 함수
+  function updateCharacterCount(textareaId, count) {
+    document.getElementById("characterCount" + textareaId).textContent = count + '자';
+  }
+
+  // 페이지 로드 시 초기화 및 이벤트 리스너 추가
+  document.addEventListener("DOMContentLoaded", function() {
+    var textareaElement = document.getElementById("question{{ question.id }}-response");
+    var lowerLim = {{ question.lower_lim|default:0 }};
+    var upperLim = {{ question.upper_lim|default:0 }};
+
+    // 초기 글자 수 업데이트
+    updateCharacterCount("{{ question.id }}", textareaElement.value.length);
+
+    // 텍스트 영역 높이 자동 조정
+    autoGrowTextArea(textareaElement); // 페이지 로드 시 높이 조정
+
+    // 입력 이벤트 리스너 추가
+    textareaElement.addEventListener("input", function() {
+      var count = this.value.length;
+      updateCharacterCount("{{ question.id }}", count);
+      autoGrowTextArea(this); // 높이 자동 조정 호출
+      validateInput(this, lowerLim, upperLim); // 검증 함수 호출
+    });
+
   });
 </script>

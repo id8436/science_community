@@ -418,6 +418,8 @@ class HomeworkQuestion(models.Model):
             ordering=self.ordering, is_special=self.is_special, options=self.options,
             upper_lim=self.upper_lim, lower_lim=self.lower_lim)
         return copied_instance
+    def __str__(self):
+        return self.question_title
 
 from datetime import datetime  # 저장경로 관련.
 from os.path import basename  # 파일명 관련.
