@@ -206,6 +206,7 @@ def survey_create(request, posting_id):
     for question in question_list:  # option값을 탬플릿에 전달하기 위함.
         if question.options:
             question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
+    context['Infinity'] = float('inf')
     return render(request, 'school_report/classroom/homework/survey/create.html', context)
 @login_required()
 def survey_submit(request, submit_id):
