@@ -36,10 +36,6 @@ document.getElementById('submit-button').addEventListener('click', function(even
     cards.forEach(function(card) {
         card.style.backgroundColor = '';
     });
-    // 확인 알림
-    if (!confirm("제출하시겠습니까?")) {
-        return; // 사용자가 취소하면 함수 종료
-    }
 
     var isValid = true;  // 전체 form 제출 여부에 대한 판단.
 
