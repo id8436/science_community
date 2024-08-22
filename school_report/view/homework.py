@@ -245,12 +245,13 @@ def survey_submit(request, submit_id):
             answer,_ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
             # response 태그가 있는 경우.
             response = request.POST.get('response'+question_id)
+            print(response)
             if response:
                 answer.contents = response
                 question.respond = response  # 표시를 위해 담기.
             # option이 있는 경우. json으로 담는다.(객관식 선택의 경우임.)
             option = request.POST.getlist('option_for'+question_id)
-            if option:
+            if option or (not response and not option):  # 옵션 선택이 없었을 때 None을 담는 로직도 있어야 해.
                 answer.contents = json.dumps(option, ensure_ascii=False)
             # file이 있는 경우.
             file = request.FILES.get('response' + question_id)
@@ -263,6 +264,7 @@ def survey_submit(request, submit_id):
                 # 파일을 모델에 저장합니다.
                 answer.file = file  # 업로드.
             answer.save()
+
 
         submit.check = True
         submit.submit_date =datetime.now()

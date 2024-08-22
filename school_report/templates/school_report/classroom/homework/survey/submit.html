@@ -28,83 +28,87 @@
       <button type="submit" id="submit-button" class="btn btn-primary">제출</button>
     </div>
   </form>
-
-
+ㅋㅋㅋㅋ
 <script>
 document.getElementById('submit-button').addEventListener('click', function(event) {
-    event.preventDefault();
-
-    var inputs = document.querySelectorAll('input[name^="response"], textarea[name^="response"], .question');
-    var isValid = true;
-
-    for (var i = 0; i < inputs.length; i++) {
-        var input = inputs[i];
-
-        if (input.matches('.question')) {
-            // 객관식 질문 검사 (기존 코드 유지)
-            var parent = input.parentNode;
-            var checkboxes, minSelections;
-
-            if (input.querySelector('input[type=checkbox]')) {
-                checkboxes = input.querySelectorAll('input[type=checkbox]:checked');
-                minSelections = parseInt(parent.querySelector('input[name=lower_lim]').value, 10);
-            } else if (input.querySelector('input[type=radio]')) {
-                checkboxes = input.querySelectorAll('input[type=radio]:checked');
-                minSelections = 1;
-            }
-
-            if (checkboxes.length < minSelections) {
-                alert('객관식 질문에서 최소 ' + minSelections + '개를 선택해야 합니다.');
-                var card = input.closest('.card');
-                card.style.backgroundColor = '#f8d7da';
-                card.scrollIntoView({block: 'center'});
-                isValid = false;
-            } else {
-                var card = input.closest('.card');
-                card.style.backgroundColor = '';
-            }
-        } else {
-            // 필수 입력 필드 검사
-            var parent = input.parentNode;
-            var isEssential = parent.querySelector('input[name="is_essential"][value="True"]');
-            if (isEssential && input.value.trim() === '') {
-                alert('필수 질문에 답변해주세요.');
-                var card = parent.closest('.card');
-                card.style.backgroundColor = '#f8d7da';
-                card.scrollIntoView({block: 'center'});
-                isValid = false;
-            } else {
-                var card = parent.closest('.card');
-                card.style.backgroundColor = '';
-            }
-        }
+    // 배경색 초기화
+    var cards = document.querySelectorAll('.card');
+    cards.forEach(function(card) {
+        card.style.backgroundColor = '';
+    });
+    // 확인 알림
+    if (!confirm("제출하시겠습니까?")) {
+        return; // 사용자가 취소하면 함수 종료
     }
 
-    // 글자 수 검증 추가
-    var textareas = document.querySelectorAll('textarea[name^="response"]');
-    for (var j = 0; j < textareas.length; j++) {
-        var textarea = textareas[j];
-        var lowerLim = parseInt(textarea.parentNode.querySelector('div').textContent.match(/최소 (\d+)자/)[1] || 0, 10);
-        var upperLim = parseInt(textarea.parentNode.querySelector('div').textContent.match(/최대 (\d+)자/)[1] || 0, 10);
-        var count = textarea.value.length;
+    var isValid = true;  // 전체 form 제출 여부에 대한 판단.
 
-        if ((lowerLim && count < lowerLim) || (upperLim && count > upperLim)) {
-            alert('응답이 글자 수 제한을 초과하거나 미달입니다.');
-            var card = textarea.closest('.card');
-            card.style.backgroundColor = '#f8d7da';
-            card.scrollIntoView({block: 'center'});
-            isValid = false;
-        } else {
-            var card = textarea.closest('.card');
-            card.style.backgroundColor = '';
+    // 각 질문에 대해 검사
+    cards.forEach(function(card) {
+        var isEssential = card.querySelector('input[name="is_essential"]');
+        var responseField = card.querySelector('input[name^="response"], textarea[name^="response"]');
+
+        if (isEssential) {
+            // 객관식 검사
+            var checkboxes = card.querySelectorAll('input[type=checkbox]:checked');
+            var radios = card.querySelectorAll('input[type=radio]:checked');
+            var lowerLim = parseInt(card.querySelector('input[name=lower_lim]')?.value || 0, 10);
+            // 체크박스 유효성 검사
+            if (checkboxes.length > 0) {  // 체크박스가 있어야 진행됨.
+                if (checkboxes.length < lowerLim && lowerLim > 0) {
+                    showError(card, '객관식 질문에서 최소 ' + lowerLim + '개를 선택해야 합니다.');
+                    isValid = false;
+                    return; // 다음 카드로 이동
+                }
+                // 체크박스가 통과했으므로 더 이상 검사하지 않음(이거 안해주면 이거 통과해도 다음 필터링에 걸려서;;)
+                return;
+            }
+
+            // 라디오 버튼 유효성 검사
+            if (radios.length > 0) {
+                if (radios.length < 1) {
+                    showError(card, '객관식 질문에서 하나 이상의 선택이 필요합니다.');
+                    isValid = false;
+                    return; // 다음 카드로 이동
+                }
+                // 라디오 버튼이 통과했으므로 더 이상 검사하지 않음
+                return;
+            }
+
+            // 일반 응답 필드 검증
+            if (!responseField || responseField.value.trim() === '') {
+                showError(card, '필수 질문에 답변해주세요.');
+                isValid = false;
+                return; // 다음 카드로 이동
+            }
+
+            // 장문형 검증
+            if (responseField.tagName === 'TEXTAREA') {
+                var limits = card.querySelector('div').textContent;
+                var lowerLimText = parseInt(limits.match(/최소 (\d+)자/)?.[1] || -1, 10);
+                var upperLimText = parseInt(limits.match(/최대 (\d+)자/)?.[1] || -1, 10);
+                var count = responseField.value.length;
+                console.log(lowerLimText);
+                if ((lowerLimText > -1 && count < lowerLimText) || (upperLimText > -1 && count > upperLimText)) {
+                    showError(card, '응답이 글자 수 제한을 초과하거나 미달입니다.');
+                    isValid = false;
+                }
+            }
         }
-    }
+    }); // 'forEach' 루프의 닫는 중괄호
 
     if (isValid) {
         event.currentTarget.form.submit();
+    } else {
+        event.preventDefault();
     }
-});
-</script>
 
+    function showError(card, message) {
+        alert(message); // 또는 다른 방법으로 사용자에게 메시지를 표시할 수 있습니다.
+        card.style.backgroundColor = '#f8d7da';
+        card.scrollIntoView({ block: 'center' });
+    }
+}); // 'addEventListener'의 닫는 중괄호
+</script>
 
 {% endblock %}
