@@ -135,7 +135,6 @@ def homework_survey_list(request, posting_id):
             address = 'school_report/classroom/homework/survey/special/' + str(surveyType) + '.html'
             return render(request, address, context)
         else:  # 이외, 특수설문 타입만 바꾸면 되는 경우.
-            print('확인용.')
             box = posting.homework_box
             return redirect('school_report:homework_detail', posting_id=posting_id)
     return render(request, 'school_report/classroom/homework/survey/special/list.html', context)

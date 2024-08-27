@@ -65,7 +65,7 @@ class Notification(models.Model):
     # 여긴 정리되면 지울, 예전의 유산. 11:관심게시, 12:게시글추가, 21:포스팅좋아요, 22:답글추가, 31:답글좋아요, 32:대댓글추가, 41:코멘트좋아요
     # 2 : 추가하였습니다, 3. 수정하였습니다,
     type = models.IntegerField()  # 하위분류.
-    from_user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='from_user')
+    from_user = models.CharField(max_length=30)  # 굳이 모델로 해둘 필요가 없잖아?
     message = models.TextField()  # 메모 등의 기록. 보통은 목적어.
     user_has_seen = models.BooleanField(default=False)
     url = models.URLField()  # 이동할 url이 담기는 곳.

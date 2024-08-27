@@ -8,16 +8,17 @@
   {% for notification in official_notifications %}
   <li
   {% if notification.user_has_seen %}
+
   {% else %}
-  class="bg-error bg-opacity-25"
+  class="bg-danger bg-opacity-25"
   {% endif %}
   >
         <a class="dropdown-item" href="{% url 'custom_account:notification_click' notification.id %}">
-              {{notification.from_user.nickname}}님이 {{ notification.message|truncatechars:10 }}에
+{{notification.created_date|date:"m/d H:i"}} {{notification.from_user}}님이 {{ notification.message|truncatechars:10 }}에
 
     {% if notification.classification == 11 %}
               공지를
-    {% elif notification.type == 12 %}
+    {% elif notification.classification == 12 %}
               과제를
     {% endif %}
 
@@ -39,7 +40,7 @@
       {% endif %}
       >
             <a class="dropdown-item" href="{% url 'custom_account:notification_click' notification.id %}">
-                  {{notification.from_user.nickname}}님이 {{ notification.message|truncatechars:10 }}에
+{{notification.created_date|date:"m/d H:i"}} {{notification.from_user}}님이 {{ notification.message|truncatechars:10 }}에
 
         {% if notification.classification == 1 %}
                   게시글을

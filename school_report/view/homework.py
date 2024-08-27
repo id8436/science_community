@@ -52,9 +52,9 @@ def create_base(request, homework_box):
             pass
         else:
             profiles = homework_box.get_profiles()
-            for to_profile in profiles:
-                individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
-                                                                              base_homework=homework)
+            distribute_homework(profiles=profiles, base_homework=homework)
+
+
 @login_required()
 def modify(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)
@@ -234,7 +234,7 @@ def survey_submit(request, submit_id):
     if submit.to_profile.admin == request.user:
         pass
     else:
-        messages.error(request, '다른 사람의 응답을 할 수는 없어요~')
+        messages.error(request, '다른 사람의 응답을 할 수는 없어요~(로그인이 풀린 것일지도.)')
         return redirect('school_report:homework_detail', posting_id=homework.id)
 
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
@@ -445,9 +445,7 @@ def copy(request, homework_id):
             type, id = copied.homework_box.type()
             if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
                 profiles = copied.homework_box.get_profiles()
-                for to_profile in profiles:
-                    individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile,
-                                                                              base_homework=copied)
+                distribute_homework(profiles=profiles, base_homework=homework)
         messages.success(request, "복사에 성공하였습니다.")
         return redirect('school_report:homework_detail', homework_id)
     ## 예전에 썼던 것. 사용에 문제 없으면 지우자.
@@ -470,6 +468,21 @@ def copy(request, homework_id):
     return render(request, 'school_report/classroom/homework/copy.html', context)
 #    return redirect('school_report:homework_detail', posting_id=submit.base_homework.id)
 
+from custom_account.views import notification_add_for_one
+from django.urls import reverse
+def distribute_homework(profiles, base_homework):
+    '''기본 과제 분배 기능.'''
+    for profile in profiles:
+        # 과제 부여.
+        individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=profile, base_homework=base_homework)
+        # 알림 만들기.
+        where = base_homework.homework_box.get_upper_model()[1]
+        print(where)
+        print(str(where))
+        notification_add_for_one(official=True, classification=12, type=2, from_user=base_homework.author_profile, to_user=profile.admin,
+                                 message=str(where), # 과제를 올린 교과, 교실 명.
+                                 url=reverse('school_report:homework_detail', kwargs={'posting_id': base_homework.id}))
+
 def distribution(request, homework_id):  # [profile로 바꾸자.]
     # 개별 확인을 위한 개별과제 생성.
     # 개별 부여할 사람을 탬플릿에서 받는 것도 괜찮을듯...? 흠... []
@@ -486,8 +499,7 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
             for profile_id in profile_ids:
                 if profile_id == "all_student" or "teacher":
                     profiles = school.homeworkbox.get_profiles(teacher=profile_id)  # 학생 계정만 받아옴.
-                    for profile in profiles:
-                        individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=profile, base_homework=homework)
+                    distribute_homework(profiles=profiles, base_homework=homework)
                 else:  # 학년이 지정된 경우.
                     grade_set = set(profile_ids)
                     homeroom_list = []
@@ -501,14 +513,12 @@ def distribution(request, homework_id):  # [profile로 바꾸자.]
                         propro = list(homeroom.homeworkbox.get_profiles_id())
                         profiles_id.extend(propro)
                     profiles = models.Profile.objects.filter(id__in=profiles_id)
-                    for profile in profiles:
-                        individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=profile, base_homework=homework)
+                    distribute_homework(profiles=profiles, base_homework=homework)
                 return redirect('school_report:homework_detail', posting_id=homework.id)
 
         # 일반 배정.
-        for profile_id in profile_ids:
-            to_profile = models.Profile.objects.get(id=profile_id)
-            individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=to_profile, base_homework=homework)
+        profiles = models.Profile.objects.filter(id__in=profile_ids)
+        distribute_homework(profiles=profiles, base_homework=homework)
         return redirect('school_report:homework_detail', posting_id=homework.id)
 
     if type=='school':  # 학교의 경우, 다른 방식으로 진행한다.
