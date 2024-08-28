@@ -1,39 +1,6 @@
-{% for profile in user.school_profile.all %}
-
-{{profile}}{% if profile.position == 'teacher'%} 선생님{%endif%}(활성일자:{{profile.activated}})
-<p>소속 : <a href="{% url 'school_report:school_main' profile.school.id %}">{{ profile.school }}</a></p>
-
-{% if profile.position == 'teacher'%}
-<p>담임 학급
-    {% with profile.homeroom_master.all as homeroom_list %}
-        {% include "school_report/homeroom/list.html" %}
-    {% endwith %}
-</p>
-<p>담당 교과
-    {% with profile.subject_set.all as subject_list %}
-        {% include "school_report/school/subject/list.html" %}
-    {% endwith %}
-</p>
-<!-- 교사가 아니라면.-->
-{% else %}
-
-<p>소속 학급<br>
-    {% for homeroom in profile.homeroom.all %}
-    <a href="{% url 'school_report:homeroom_main' homeroom.id%}">{{homeroom}}</a>
-<!--    {% with profile.homeroom.all as homeroom_list %}-->
-<!--        {% include "school_report/homeroom/list.html" %}-->
-<!--    {% endwith %}-->
-
-소속 교과
-    {% with homeroom.classroom_set.all as classroom_list %}
-        {% include "school_report/classroom/list.html" %}
-    {% endwith %}
-</p>
-{%endfor%}
-{% endif %}
-
-{% endfor %}
-
+{% load school_report_filter %}
+{% objects_order_by_profile_activated %}
+<!-- 각종 오브젝트 정렬. -->
 
 
 학교 찾기

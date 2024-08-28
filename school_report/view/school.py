@@ -86,7 +86,7 @@ def school_create(request):
             # 과제박스 생성.
             homework_box, created = models.HomeworkBox.objects.get_or_create(school=school)
             announce_box, created = models.AnnounceBox.objects.get_or_create(school=school)
-            return redirect('school_report:school_main', school_id=school.id)
+            return redirect('school_report:school_main', room_id=school.id)
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = SchoolForm()
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
