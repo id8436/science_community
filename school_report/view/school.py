@@ -146,9 +146,15 @@ def download_excel_form(request, school_id):
         ws[code_line + num] = teacher.code
         ws[name_line + num] = teacher.name
         ws[confirm_code_line + num] = teacher.confirm_code
-        ws[grade_line + num] = teacher.homeroom.last().grade
-        ws[cl_num_line + num] = teacher.homeroom.last().cl_num
-        ws[homeroom_name_line + num] = teacher.homeroom.last().name
+        try:
+            ws[grade_line + num] = teacher.homeroom.last().grade  # 마지막 객체의 속성을 가져오는데 None이면 에러가 뜬다.
+            ws[cl_num_line + num] = teacher.homeroom.last().cl_num
+        except:
+            pass
+        try:
+            ws[homeroom_name_line + num] = teacher.homeroom.last().name
+        except:
+            pass
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{escape_uri_path("교사명단.xlsx")}"'
     wb.save(response)
