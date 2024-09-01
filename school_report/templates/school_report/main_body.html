@@ -1,5 +1,7 @@
+{% if user.is_authenticated %}
 {% load school_report_filter %}
 {% objects_order_by_profile_activated %}
+{%endif%}
 <!-- 각종 오브젝트 정렬. -->
 
 
