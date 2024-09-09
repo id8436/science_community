@@ -1,0 +1,26 @@
+{% extends "school_report/section.html" %}
+
+{% block content %}
+
+
+{% if method %}
+<div class="table-responsive">
+  {% include "df/df_body_fit_frame.html" with dataframe=data_frame %}
+</div>
+{%else%}
+<form method="post">
+        {% csrf_token %}
+<div class="table-responsive">
+  {% include "df/df_body_fit_frame_with_radio_button.html" with dataframe=data_list_with_pk %}
+</div>
+
+<button type="submit" id="submit-button" class="btn btn-primary">제출</button>
+</form>
+{% endif %}
+
+
+
+
+
+
+{% endblock %}

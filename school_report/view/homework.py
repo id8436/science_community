@@ -445,7 +445,7 @@ def copy(request, homework_id):
             type, id = copied.homework_box.type()
             if type != 'school':  # 학교객체가 아니라면 자동으로 하위에 과제 부여.
                 profiles = copied.homework_box.get_profiles()
-                distribute_homework(profiles=profiles, base_homework=homework)
+                distribute_homework(profiles=profiles, base_homework=copied)
         messages.success(request, "복사에 성공하였습니다.")
         return redirect('school_report:homework_detail', homework_id)
     ## 예전에 썼던 것. 사용에 문제 없으면 지우자.
@@ -477,8 +477,6 @@ def distribute_homework(profiles, base_homework):
         individual, created = models.HomeworkSubmit.objects.get_or_create(to_profile=profile, base_homework=base_homework)
         # 알림 만들기.
         where = base_homework.homework_box.get_upper_model()[1]
-        print(where)
-        print(str(where))
         notification_add_for_one(official=True, classification=12, type=2, from_user=base_homework.author_profile, to_user=profile.admin,
                                  message=str(where), # 과제를 올린 교과, 교실 명.
                                  url=reverse('school_report:homework_detail', kwargs={'posting_id': base_homework.id}))
@@ -570,6 +568,8 @@ def homework_end(request, homework_id):
         homework.save()
         messages.success(request, "과제를 현 시간으로 마감하였습니다.")
     return redirect(request.META.get('HTTP_REFERER', '/'))  # 이전 화면으로 되돌아가기. 이전페이지 없으면 홈으로.
+
+
 # 파일의 텍스트화.
 import os
 import olefile
@@ -679,3 +679,46 @@ def submit_file_download(request, private_submit_id, question_id):
                 zipfile.write(answer.file.path, file_name)
 
     return FileResponse(open('answers.zip', 'rb'), as_attachment=True, filename='answers.zip')
+
+@login_required()
+def collect_answer(request, homework_box_id):
+    '''해당 방에서 제출한 학생의 답변들을 모으기.(추천서, 세특 작성용)'''
+    homework_box = models.HomeworkBox.objects.get(id=homework_box_id)
+    school = homework_box.get_school_model()
+    context = {}
+    teacher = check.Teacher(user=request.user, school=school).in_school()
+    if teacher:
+        pass
+    else:
+        return redirect(request.META.get('HTTP_REFERER', None))
+    if request.method == 'POST':
+        context['method'] = 'post'
+        profile_id = request.POST.get('pk_checks')
+        profile = models.Profile.objects.get(id=profile_id)
+        homeworks = models.Homework.objects.filter(homework_box=homework_box)
+        submits = models.HomeworkSubmit.objects.filter(to_profile=profile, base_homework__in=homeworks)
+        answers = models.HomeworkAnswer.objects.filter(submit__in=submits)
+        question_list = []  # 질문을 모을 리스트.
+        answer_list = []  # 답변모음.
+        for answer in answers:
+            question_list.append(answer.question.question_title)
+            answer_list.append(answer.contents)
+        df = pd.DataFrame({'질문':question_list, '답변':answer_list})
+        df = df.to_dict(orient='records')
+        context['data_frame'] = df
+        return render(request, 'school_report/classroom/homework/survey/collect_answer.html', context)
+    # 해당 박스에 속한 프로필 가져와서 띄우게 하자.
+    profiles = homework_box.get_profiles()
+    ids = []
+    names = []  # 학번, 이름.
+    profiles = list(profiles)  # 객체세트에 프로파일 합치기 위해서.. 리스트로 변환해서 합치긴 하지만... 이것밖에 방법이 없나?
+    profiles.append(teacher)  # 교사 프로필 정보도 합치기.
+    for profile in profiles:
+        ids.append(profile.id)
+        names.append(profile.__str__())
+    df = pd.DataFrame({'학번,이름': names})
+    df = df.to_dict(orient='records')
+    df = zip(ids, df)
+    context['columns'] = ['학번,이름']
+    context['data_list_with_pk'] = df
+    return render(request, 'school_report/classroom/homework/survey/collect_answer.html', context)

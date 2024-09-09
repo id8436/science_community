@@ -26,16 +26,15 @@ def create(request, school_id):
             homeroom = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
             homeroom.master_profile = profile
             homeroom.school = school
-            # # homeroom 이름 지정하는건데, 없어도 될듯.
-            # if homeroom.name:  # 기존 이름이 있으면 이것이 우선.
-            #     pass
-            # else:
-            #     homeroom_name = str(request.POST.get('grade'))+'학년' + str(request.POST.get('cl_num')) +'반'
-            #     homeroom.name = homeroom_name
+            if homeroom.name:  # 기존 이름이 있으면 이것이 우선.
+                pass
+            else:
+                homeroom_name = str(request.POST.get('grade'))+'학년' + str(request.POST.get('cl_num')) +'반'
+                homeroom.name = homeroom_name
             homeroom.save()
             homework_box, created = models.HomeworkBox.objects.get_or_create(homeroom=homeroom)
             announce_box, created = models.AnnounceBox.objects.get_or_create(homeroom=homeroom)
-            return redirect('school_report:homeroom_main', homeroom_id=homeroom.id)
+            return redirect('school_report:homeroom_main', room_id=homeroom.id)
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = HomeroomForm()
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.

@@ -168,9 +168,10 @@ def notification_add(request, classification, type, to_users, message, url):
                                                url=url,
                                                message=message)
 def notification_add_for_one(official, classification, type, from_user, to_user, message, url):
-    Notification.objects.create(official=official, classification=classification, type=type, to_user=to_user, from_user=from_user,
-                                url=url,
-                                message=message)
+    if to_user:  # 전달할 유저가 있을 때에만 진행.
+        Notification.objects.create(official=official, classification=classification, type=type, to_user=to_user, from_user=from_user,
+                                    url=url,
+                                    message=message)
 def notification_click(request, notification_id):
     notification = get_object_or_404(Notification, pk=notification_id)
     notification.user_has_seen = True

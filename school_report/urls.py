@@ -77,7 +77,7 @@ urlpatterns = [
     path('homework/below_standard_unset/<int:submit_id>/', homework.below_standard_unset, name='homework_below_standard_unset'),  # 수준미달 해제
     path('homework/reset_pending/<int:homework_id>/', homework.reset_pending,
          name='homework_reset_pending'),  # 수준미달 해제
-
+    path('homework/collect_answers/<int:homework_box_id>/', homework.collect_answer, name='collect_answers'),  # 수준미달 지정
 
     # 설문 관련.
     path('homework/survey_create/<int:posting_id>/', homework.survey_create, name='homework_survey_create'),

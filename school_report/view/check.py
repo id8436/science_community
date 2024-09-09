@@ -30,7 +30,7 @@ class Teacher:
             if request:
                 messages.error(request, self.message_school)
             return None
-        if profile.position != self.position:  # 학생프로필로 들어온 경우도 처리.
+        if profile.position != self.position:  # 학생프로필로 들어온 경우도 처리하기 위한 상속용.
             check = None
         # 판단 후처리.
         if check == None:

@@ -15,6 +15,8 @@ object  # 학교, 교실, 교과 무엇인지.
             <a href="{% url 'school_report:homework_check' object.homeworkbox.id %}">{{kind}} 제출여부 확인</a>
         {% endif %}
     {% endif %}
+<a href="{% url 'school_report:collect_answers' object.homeworkbox.id %}">개별응답 모아보기(세특, 추천서를 위하여..)</a>
+
 <table class="table table-hover" id="student_list">
     <thead>
     <tr class="table-info">

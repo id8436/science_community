@@ -59,6 +59,10 @@ class Homeroom(BaseRoom):
     code = models.TextField()  # 비밀코드
     def __str__(self):
         return self.name
+        # if self.name:
+        #     return self.name
+        # else:
+        #     return str('None')
     class Meta:
         unique_together = (
             ('school', 'name')
@@ -430,9 +434,9 @@ def get_upload_to(instance, filename):
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 class HomeworkAnswer(models.Model):
-    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자.
+    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자. 지워가야 할까? 아니면 임의 설문을 위해 남겨야 하나.
     to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True, related_name='homework_answer_user',
-                                   default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯.
+                                   default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯. submit에 엮이니까. 어차피.
                                    )  # 프로필에 과제 부여. 프로필 완성되면 위 지우자.
     submit = models.ForeignKey('HomeworkSubmit', on_delete=models.CASCADE, blank=True, null=True)  # 동료평가에서 쓰일 평가대상 나누기용 제출.
     to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. 평가 대상자에 대한 정보를 빠르게 모으기 위해.

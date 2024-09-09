@@ -38,6 +38,8 @@
 
 {%else%}
 <h3>분배 가능 대상자.</h3>
+<input type="checkbox" id="selectAll"><label for="selectAll">전체 선택/해제</label>
+
 <form action="#" method="POST" id="myForm">
     {% csrf_token %}
     <table class="table">
@@ -69,6 +71,15 @@ document.getElementById('myForm').addEventListener('submit', function (event) {
         event.preventDefault(); // 제출을 취소합니다.
     }
 });
+</script>
+<script>
+// 선택에 대한 스크립트.
+document.getElementById("selectAll").onclick = function() {
+  var checkboxes = document.getElementsByName("profile_ids");
+  for(var i = 0; i < checkboxes.length; i++) {
+    checkboxes[i].checked = this.checked;
+  }
+}
 </script>
 
 {% endblock %}

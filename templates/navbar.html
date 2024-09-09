@@ -36,7 +36,7 @@
             <!--로그인, 로그아웃 기능-->
             {% if user.is_authenticated %}
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a class="dropdown-menu dropdown-menu-end" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 {{ user.nickname }}
               </a>
                 {% load custom_tags %}
