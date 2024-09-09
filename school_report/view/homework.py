@@ -694,18 +694,24 @@ def collect_answer(request, homework_box_id):
     if request.method == 'POST':
         context['method'] = 'post'
         profile_id = request.POST.get('pk_checks')
+        print(profile_id)
         profile = models.Profile.objects.get(id=profile_id)
         homeworks = models.Homework.objects.filter(homework_box=homework_box)
-        submits = models.HomeworkSubmit.objects.filter(to_profile=profile, base_homework__in=homeworks)
-        answers = models.HomeworkAnswer.objects.filter(submit__in=submits)
+        print(homeworks)
+        questions = models.HomeworkQuestion.objects.filter(homework__in=homeworks)
+        print(questions)
+        answers = models.HomeworkAnswer.objects.filter(question__in=questions, to_profile=profile, target_profile=None)
+        print(answers)
         question_list = []  # 질문을 모을 리스트.
         answer_list = []  # 답변모음.
         for answer in answers:
             question_list.append(answer.question.question_title)
             answer_list.append(answer.contents)
         df = pd.DataFrame({'질문':question_list, '답변':answer_list})
+        print(df)
         df = df.to_dict(orient='records')
         context['data_frame'] = df
+        print(df)
         return render(request, 'school_report/classroom/homework/survey/collect_answer.html', context)
     # 해당 박스에 속한 프로필 가져와서 띄우게 하자.
     profiles = homework_box.get_profiles()
