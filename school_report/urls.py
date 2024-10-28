@@ -95,6 +95,7 @@ urlpatterns = [
          name='homework_survey_list'),  # 특수설문 리스트.
     # 동료평가
     path('classroom/homework/peerreview_create/<int:posting_id>/', classroom.peerreview_create, name='peerreview_create'),  # 동료평가할 때 동료평가 대상 지정.
+    path('classroom/homework/peerreview_delete/<int:submit_id>/', classroom.peerreview_delete, name='peerreview_delete'),  # 동료평가 대상자에 대한 과제 모두 삭제.
     path('classroom/homework/peerreview_end/<int:posting_id>/', classroom.peerreview_end, name='peerreview_end'),  # 동료평가 마감.
     path('classroom/homework/peerreview_statistics/<int:posting_id>/', classroom.peerreview_statistics,
              name='peerreview_statistics'),  # 동료평가 통계 확인.

@@ -334,7 +334,7 @@ def summit_file_download(request, pk):
 
 def peerreview_create(request, posting_id):
     homework = get_object_or_404(models.Homework, pk=posting_id)  # 과제 찾아오기.
-    context = {'posting': homework}  # 어떤 과제의 하위로 만들지 전달하기 위해.
+    context = {'homework': homework}  # 어떤 과제의 하위로 만들지 전달하기 위해.
 
     # 과제에 속한 학생 목록 얻기.(동료평가 지정 대상자를 설정함, POST에서 단체에 해당하는 학생에게 과제를 부여하기 위해.)
     box = homework.homework_box
@@ -363,17 +363,29 @@ def peerreview_create(request, posting_id):
             for to_profile in student_list:
                 submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
                 target_profile=target_profile, to_profile=to_profile, title=target_profile)
-            # 작성자도 대응시킨다.(확인용, 교사 채점용.)
+            # (확인용, 교사 채점용.)
             submit, _ = models.HomeworkSubmit.objects.get_or_create(base_homework=homework,
             target_profile=target_profile, to_profile=teacher_profile, title=target_profile)
         return redirect('school_report:homework_detail', posting_id=homework.id)
 
 
     for to_student in student_list:  # 동료평가를 만들 수 있는 학생 목록.
-        submit = models.HomeworkSubmit.objects.filter(base_homework=homework ,target_profile=to_student).exists()  # 있나 여부만 파악.
+        submit = models.HomeworkSubmit.objects.filter(base_homework=homework ,target_profile=to_student).first()  # 있나 여부만 파악.(삭제로 넘기기 위해서 맨 위의 제출과제를 넘김.)
         to_student.submit = submit  # 있으면 True
     context['student_list'] = student_list
-    return render(request, 'school_report/classroom/homework/survey/special/peerReview_create.html', context)
+    return render(request, 'school_report/classroom/homework/survey/special/peerReview_create_delete.html', context)
+
+@login_required()
+def peerreview_delete(request, submit_id):
+    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    school = submit.target_profile.school
+    teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
+    if teacher:
+        homework = submit.base_homework
+        submits = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=submit.target_profile)
+        for submit in submits:
+            submit.delete()
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
 
 def peerreview_end(request, posting_id):

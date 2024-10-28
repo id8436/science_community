@@ -295,6 +295,10 @@ def survey_statistics(request, submit_id):
     school = homework.homework_box.get_school_model()
     teacher = check.Teacher(user=request.user, school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
 
+    ### 열람 관련.
+    if homework.is_special == "peerReview" and not homework.is_end: # 동료평가의 경우, 평가 끝날 때까지 못 봄.
+        messages.error(request, "동료평가의 경우, 설문이 마감된 후에 열람할 수 있습니다.")
+        return redirect(request.META.get('HTTP_REFERER', None))
     try:
         tartgetprofile = submit.target_profile.admin  # target이 None일 때 에러가 뜸;
     except:
@@ -694,24 +698,18 @@ def collect_answer(request, homework_box_id):
     if request.method == 'POST':
         context['method'] = 'post'
         profile_id = request.POST.get('pk_checks')
-        print(profile_id)
         profile = models.Profile.objects.get(id=profile_id)
         homeworks = models.Homework.objects.filter(homework_box=homework_box)
-        print(homeworks)
         questions = models.HomeworkQuestion.objects.filter(homework__in=homeworks)
-        print(questions)
         answers = models.HomeworkAnswer.objects.filter(question__in=questions, to_profile=profile, target_profile=None)
-        print(answers)
         question_list = []  # 질문을 모을 리스트.
         answer_list = []  # 답변모음.
         for answer in answers:
             question_list.append(answer.question.question_title)
             answer_list.append(answer.contents)
         df = pd.DataFrame({'질문':question_list, '답변':answer_list})
-        print(df)
         df = df.to_dict(orient='records')
         context['data_frame'] = df
-        print(df)
         return render(request, 'school_report/classroom/homework/survey/collect_answer.html', context)
     # 해당 박스에 속한 프로필 가져와서 띄우게 하자.
     profiles = homework_box.get_profiles()

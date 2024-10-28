@@ -2,7 +2,8 @@
 
 {% block content %}
 
-학생에 대한 설문을 만들 수는 있지만, 기존 설문을 없앨 수 있어, 삭제기능은 만들지 않았습니다.
+<div><a href="{% url 'school_report:homework_detail' homework.id %}">상위 페이지로 돌아가기</a></div>
+
 <form action="#" method="POST" id="allForm" class="myForm">
       {% csrf_token %}
   <input type="hidden" name="all_random" value="true"></input>
@@ -25,8 +26,8 @@
             <label for="{{profile.id}}">{{profile.code}} {{profile.name}}</label>
           </td>
           <td><input type="checkbox" id="{{profile.id}}"
-                     {%if profile.submit %}checked disabled
-                     {%else %}name="user_list" value="{{profile.id}}" {%endif%}></td>
+                     {%if profile.submit %}checked disabled><a class="btn btn-danger" href="{% url 'school_report:peerreview_delete' profile.submit.id %}" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+                     {%else %}name="user_list" value="{{profile.id}}"> {%endif%}</td>
         </tr>
       {% endfor %}
 <!-- 추가적인 설문 종류와 설명을 필요에 따라 행을 추가할 수 있습니다 -->
@@ -43,7 +44,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.myForm').forEach(function(form) {
         form.addEventListener('submit', function(event) {
-            var confirmation = confirm("제출하시겠습니까? 삭제는 불가합니다. \n 너무 많이 선택하면 서버에러가 납니다."); // 확인 메시지를 표시합니다.
+            var confirmation = confirm("제출하시겠습니까?\n 너무 많이 선택하면 서버에러가 납니다."); // 확인 메시지를 표시합니다.
             if (!confirmation) {
                 event.preventDefault(); // 제출을 취소합니다.
             }
