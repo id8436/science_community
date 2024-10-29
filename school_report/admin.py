@@ -15,7 +15,7 @@ admin.site.register(Homework)
 admin.site.register(HomeworkQuestion)
 #admin.site.register(HomeworkSubmit)
 class HomeworkSubmitAdmin(admin.ModelAdmin):
-    search_fields = ['title', 'target_homeworks']  # 제목과 저자 이름으로 검색 가능
+    search_fields = ['base_homework__title', 'target_profile__name']  # 제목과 저자 이름으로 검색 가능
 admin.site.register(HomeworkSubmit, HomeworkSubmitAdmin)
 admin.site.register(HomeworkAnswer)
 admin.site.register(HomeworkBox)
