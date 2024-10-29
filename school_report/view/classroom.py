@@ -559,7 +559,6 @@ def peerreview_statistics(request, posting_id):
     df = df.set_index('프로필')  # 인덱스로 만든다.
     df = df[~df.index.duplicated(keep='first')]  # 제출자가 여럿 나와서, 중복자를 제거한다.
     context['data_frame'] = df.to_dict(orient='records')
-    print(df)
     return render(request, 'school_report/classroom/homework/survey/statistics_spreadsheet.html', context)
 
 def peerreview_select_comment(request, submit_id):
