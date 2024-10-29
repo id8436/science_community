@@ -543,7 +543,7 @@ def peerreview_statistics(request, posting_id):
             # except:
             #     given_mean = None
         except:
-            given_mean = None
+            given_mean = "0(에러)"
         given_mean_list.append(given_mean)
 
         # 특수댓글 카운트.
