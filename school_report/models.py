@@ -434,6 +434,7 @@ def get_upload_to(instance, filename):
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 class HomeworkAnswer(models.Model):
+    '''질문의 하위로 구성되어 있음.'''
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자. 지워가야 할까? 아니면 임의 설문을 위해 남겨야 하나.
     to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True, related_name='homework_answer_user',
                                    default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯. submit에 엮이니까. 어차피.

@@ -377,7 +377,7 @@ def peerreview_create(request, posting_id):
 
 @login_required()
 def peerreview_delete(request, submit_id):
-    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    submit = get_object_or_404(models.HomeworkSubmit, id=submit_id)
     school = submit.target_profile.school
     teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
     if teacher:
@@ -385,6 +385,11 @@ def peerreview_delete(request, submit_id):
         submits = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=submit.target_profile)
         for submit in submits:
             submit.delete()
+        questions = models.HomeworkQuestion.objects.filter(homework=homework)
+        for question in questions:
+            answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
+            for answer in answers:
+                answer.delete()
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
 
