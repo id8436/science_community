@@ -564,7 +564,8 @@ def homework_end(request, homework_id):
                     for answer in answers:
                         if answer.file:  # 파일이 없으면 에러나니까.
                             print(f"파일 경로: {answer.file.path}")  # 디버깅 메시지 추가
-                            answer.contents = FileToTextConverter(answer.file.path).extract_text(request=request)
+                            profile_name = answer.to_profile.name
+                            answer.contents = FileToTextConverter(answer.file.path).extract_text(request=request, profile_name=profile_name)
                             answer.save()
         # 일반 마감.
         homework.deadline = datetime.now()
@@ -597,7 +598,8 @@ class FileToTextConverter:
             return self._extract_text_from_pdf()
         else:
             request = kwargs.get('request', None)
-            messages.error(request, f"지원되지 않는 파일 형식이 있습니다.{self.extension}")
+            profile_name = kwargs.get('profile_name', None)
+            messages.error(request, f"지원되지 않는 파일 형식이 있습니다.{self.extension}, {profile_name}")
     def _extract_text_from_txt(self):
         with open(self.file_path, 'r', encoding='utf-8') as file:
             return file.read()
