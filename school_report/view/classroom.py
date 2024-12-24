@@ -385,6 +385,7 @@ def peerreview_delete(request, submit_id):
         submits = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=submit.target_profile)
         for submit in submits:
             submit.delete()
+        # 점수계산은 answer로 하기 때문에 이것도 지워주어야 함.
         questions = models.HomeworkQuestion.objects.filter(homework=homework)
         for question in questions:
             answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)

@@ -151,7 +151,7 @@ def count_ai_use_point(request, contents_list, ai_models, token_num):
 import google.generativeai as genai
 from config.secret import Google_AI_KEY
 
-role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 세부능력, 특기사항을 기록할 것임. 활동 데이터는 '활동명:활동내용'의 형식으로 제공됨. 다음의 까다로운 요구사항에 따라 글을 작성해야 함.
+role = '''너는 대한민국의 교사로, 학생들의 활동을 평가하고 세부능력, 특기사항을 기록할 것임. 활동 데이터는 '활동명:활동내용'의 형식으로 제공됨. 다음의 까다로운 요구사항에 따라 글을 작성해야 함. 두번 일 하지 않게 아래 조건을 잘 지켜서 작성해주기 바람!
 - 객관적인 사실만 기입.
 - 주어를 빼고 작성.
 - 모든 문장은 음슴체로 끝나야 함(~함, ~임, ~음).

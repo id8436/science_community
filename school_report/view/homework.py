@@ -564,7 +564,7 @@ def homework_end(request, homework_id):
                     for answer in answers:
                         if answer.file:  # 파일이 없으면 에러나니까.
                             print(f"파일 경로: {answer.file.path}")  # 디버깅 메시지 추가
-                            answer.contents = FileToTextConverter(answer.file.path).extract_text()
+                            answer.contents = FileToTextConverter(answer.file.path).extract_text(request=request)
                             answer.save()
         # 일반 마감.
         homework.deadline = datetime.now()
@@ -586,7 +586,7 @@ class FileToTextConverter:
     def __init__(self, file_path):
         self.file_path = file_path
         self.extension = os.path.splitext(file_path)[1].lower()  # 확장자 가져오기.
-    def extract_text(self):
+    def extract_text(self, **kwargs):
         if self.extension == '.txt':
             return self._extract_text_from_txt()
         elif self.extension == '.hwp':
@@ -596,7 +596,8 @@ class FileToTextConverter:
         elif self.extension == '.pdf':
             return self._extract_text_from_pdf()
         else:
-            raise ValueError("지원되지 않는 파일 형식입니다.")
+            request = kwargs.get('request', None)
+            messages.error(request, f"지원되지 않는 파일 형식이 있습니다.{self.extension}")
     def _extract_text_from_txt(self):
         with open(self.file_path, 'r', encoding='utf-8') as file:
             return file.read()
