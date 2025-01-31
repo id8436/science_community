@@ -607,9 +607,9 @@ class FileToTextConverter:
         if not olefile.isOleFile(self.file_path):
             raise ValueError("올바른 HWP 파일이 아닙니다.")
         ole = olefile.OleFileIO(self.file_path)
-        # 'PrvText' 스트림을 찾습니다.
-        if ole.exists('PrvText'):
-            encoded_text = ole.openstream('PrvText').read()
+        # 'Text' 스트림을 찾습니다.
+        if ole.exists('Text'):
+            encoded_text = ole.openstream('Text').read()
             try:
                 # 텍스트가 압축되어 있을 수 있으므로 이를 압축 해제합니다.
                 decompressed_text = zlib.decompress(encoded_text, -zlib.MAX_WBITS)
@@ -620,7 +620,7 @@ class FileToTextConverter:
                 text = encoded_text.decode('utf-16le')
             return text
         else:
-            raise ValueError("'PrvText' 스트림을 찾을 수 없습니다.")
+            raise ValueError("'Text' 스트림을 찾을 수 없습니다.")
 
     def _extract_text_from_hwpx(self):
         with zipfile.ZipFile(self.file_path, 'r') as zip_ref:

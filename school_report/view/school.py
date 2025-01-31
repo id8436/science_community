@@ -339,6 +339,7 @@ def school_student_download_excel_form(request, school_id):
 
 @login_required()
 def school_student_upload_excel_form(request, school_id):
+    '''학생명단 업로드'''
     context = {}
     if request.method == "POST":
         school = get_object_or_404(models.School, pk=school_id)

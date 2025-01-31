@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect, resolve_url
 import openpyxl
 import requests
+from bs4 import BeautifulSoup
 import json
 
 from utility.tasks import correct_text
 from django.contrib.auth.decorators import login_required
 from utility.models import Spell, SpellObject
+from config import secret
 
 def main(request):
     context = {}
@@ -24,8 +26,26 @@ def han_spell(text):
     cor_num = 0  # 수정한 횟수.
     # 1. 텍스트 준비 & 개행문자 처리
     text = text.replace('\n', '\r\n')  # 개행문자를 검사기에 맞게 변경.
-    # 2. 맞춤법 검사 요청 (requests)
-    response = requests.post('http://164.125.7.61/speller/results', data={'text1': text})
+    ### 이젠 chkKey를 동적으로 생성해서 자동 접근을 막은 듯하다... 해결방법은 찾지 못함;
+    with requests.Session() as session:
+        # 2. 페이지 로드하여 chkKey 추출
+        response = session.get('https://nara-speller.co.kr/speller/')
+        soup = BeautifulSoup(response.text, 'html.parser')
+        chk_key = soup.find('input', {'id': 'chkKey'}).get('value')
+
+        # 3. 맞춤법 검사 요청
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
+        data = {
+            'text1': text,
+            'chkKey': chk_key
+        }
+        response = session.post('https://nara-speller.co.kr/speller/results', data=data, headers=headers)
+        return response.text
+    print(response)
     # 3. 응답에서 필요한 내용 추출 (html 파싱)
     data = response.text.split('data = [', 1)[-1].rsplit('];', 1)[0]  # 단순 데이터 찾기..
     try:
@@ -76,7 +96,11 @@ def upload_excel_form(request):
                 inner_data.append(str(cell))
         list_data = json.dumps(inner_data)  # json으로 바꾼다.
 
-        correct_text.delay(request.user.id, list_data)  # 비동기처리.
+        if secret.Is_server:
+            correct_text.delay(request.user.id, list_data)  # 비동기처리.
+        else:
+            print(list_data)
+            correct_text(request.user.id, list_data)
         return redirect('utility:korean_spell')
 
 
