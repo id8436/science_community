@@ -604,23 +604,75 @@ class FileToTextConverter:
         with open(self.file_path, 'r', encoding='utf-8') as file:
             return file.read()
     def _extract_text_from_hwp(self):
+        # 파일 검증.
         if not olefile.isOleFile(self.file_path):
             raise ValueError("올바른 HWP 파일이 아닙니다.")
-        ole = olefile.OleFileIO(self.file_path)
-        # 'Contents' 스트림을 찾습니다.
-        if ole.exists('Contents'):
-            encoded_text = ole.openstream('Contents').read()
-            try:
-                # 텍스트가 압축되어 있을 수 있으므로 이를 압축 해제합니다.
-                decompressed_text = zlib.decompress(encoded_text, -zlib.MAX_WBITS)
-                # 압축 해제된 텍스트를 올바른 인코딩으로 디코딩합니다.
-                text = decompressed_text.decode('utf-16le')
-            except zlib.error:
-                # 압축이 안 되어 있을 경우 그대로 디코딩 시도
-                text = encoded_text.decode('utf-16le')
-            return text
-        else:
-            raise ValueError("'Contents' 스트림을 찾을 수 없습니다.")
+        file_hwp = olefile.OleFileIO(self.file_path)
+        dirs = file_hwp.listdir()
+
+        # HWP 파일 검증
+        if ["FileHeader"] not in dirs or \
+                ["\x05HwpSummaryInformation"] not in dirs:
+            raise Exception("Not Valid HWP.")
+
+        # 문서 포맷 압축 여부 확인
+        header = f.openstream("FileHeader")
+        header_data = header.read()
+        is_compressed = (header_data[36] & 1) == 1
+
+        # Body Sections 불러오기
+        nums = []
+        for d in dirs:
+            if d[0] == "BodyText":
+                nums.append(int(d[1][len("Section"):]))
+        sections = ["BodyText/Section" + str(x) for x in sorted(nums)]
+
+        # 전체 text 추출
+        text = ""
+        for section in sections:
+            bodytext = f.openstream(section)
+            data = bodytext.read()
+            if is_compressed:
+                unpacked_data = zlib.decompress(data, -15)
+            else:
+                unpacked_data = data
+
+            # 각 Section 내 text 추출
+            section_text = ""
+            i = 0
+            size = len(unpacked_data)
+            while i < size:
+                header = struct.unpack_from("<I", unpacked_data, i)[0]
+                rec_type = header & 0x3ff
+                rec_len = (header >> 20) & 0xfff
+
+                if rec_type in [67]:
+                    rec_data = unpacked_data[i + 4:i + 4 + rec_len]
+                    section_text += rec_data.decode('utf-16')
+                    section_text += "\n"
+
+                i += 4 + rec_len
+
+            text += section_text
+            text += "\n"
+
+        return text
+
+        # #### 이전 함수.
+        # # 'Contents' 스트림을 찾습니다.
+        # if file_hwp.exists('Contents'):
+        #     encoded_text = file_hwp.openstream('Contents').read()
+        #     try:
+        #         # 텍스트가 압축되어 있을 수 있으므로 이를 압축 해제합니다.
+        #         decompressed_text = zlib.decompress(encoded_text, -zlib.MAX_WBITS)
+        #         # 압축 해제된 텍스트를 올바른 인코딩으로 디코딩합니다.
+        #         text = decompressed_text.decode('utf-16le')
+        #     except zlib.error:
+        #         # 압축이 안 되어 있을 경우 그대로 디코딩 시도
+        #         text = encoded_text.decode('utf-16le')
+        #     return text
+        # else:
+        #     raise ValueError("'Contents' 스트림을 찾을 수 없습니다.")
 
     def _extract_text_from_hwpx(self):
         with zipfile.ZipFile(self.file_path, 'r') as zip_ref:
