@@ -579,11 +579,15 @@ def homework_end(request, homework_id):
 import os
 import olefile
 import zlib
+import struct
+
 import PyPDF2
 import zipfile
 import xml.etree.ElementTree as ET
 
 class FileToTextConverter:
+    '''각종 파일들을 텍스트로 변환. GPT에 쉽게 넣기 위함.'''
+    # 나중에 PPT도 넣으면 좋을듯.
     def __init__(self, file_path):
         self.file_path = file_path
         self.extension = os.path.splitext(file_path)[1].lower()  # 확장자 가져오기.
@@ -616,7 +620,7 @@ class FileToTextConverter:
             raise Exception("Not Valid HWP.")
 
         # 문서 포맷 압축 여부 확인
-        header = f.openstream("FileHeader")
+        header = file_hwp.openstream("FileHeader")
         header_data = header.read()
         is_compressed = (header_data[36] & 1) == 1
 
@@ -630,7 +634,7 @@ class FileToTextConverter:
         # 전체 text 추출
         text = ""
         for section in sections:
-            bodytext = f.openstream(section)
+            bodytext = file_hwp.openstream(section)
             data = bodytext.read()
             if is_compressed:
                 unpacked_data = zlib.decompress(data, -15)
