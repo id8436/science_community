@@ -8,7 +8,7 @@ urlpatterns = [
     path('', views.main, name='main'),
 
     # 학교기능 관련.
-    path('school/<int:room_id>/', school.main, name='school_main'),
+    path('school/<int:school_id>/', school.main, name='school_main'),
     path('school_create/', school.school_create, name='school_create'),
     path('school_modify/<int:school_id>/', school.school_modify, name='school_modify'),
     path('school/school_list/', school.list, name='school_list'),
@@ -30,21 +30,24 @@ urlpatterns = [
     path('school/teacher_delete/<int:teacher_id>/', school.teacher_delete, name='teacher_delete'),
 
     #학생명단
-    path('school/student_assignment/<int:school_id>/', school.student_assignment, name='student_assignment'),
-    path('school/student_download_excel_form/<int:school_id>/', school.school_student_download_excel_form, name='school_student_download_excel_form'),
-    path('school/student_upload_student_excel_form/<int:school_id>/', school.school_student_upload_excel_form,
-         name='school_student_upload_excel_form'),
+    path('<str:type>/student_assignment/<int:baseRoom_id>/', school.student_assignment, name='student_assignment'),
+    path('<str:type>/student_download_excel_form/<int:baseRoom_id>/', school.student_download_excel_form, name='student_download_excel_form'),
+    path('<str:type>/student_upload_student_excel_form/<int:baseRoom_id>/', school.student_upload_excel_form,
+         name='student_upload_excel_form'),
+    path('student_password_reset/<int:profile_id>/', school.student_password_reset, name='student_password_reset'),
+    path('validate_teacher_password/', school.validate_teacher_password, name='validate_teacher_password'),
     path('school/student_code_input/<int:school_id>/', school.student_code_input, name='student_code_input'),
     path('school/student_code_confirm/<int:student_id>/', school.student_code_confirm, name='student_code_confirm'),
     path('school/profile_reset/<int:profile_id>/', school.profile_reset, name='profile_reset'),
     # 프로필 관련.
-    path('school/profile_delete/<int:profile_id>/', school.school_profile_delete, name='school_profile_delete'),
+    path('<str:type>/delete_profile/<int:profile_id>/<int:baseRoom_id>', school.delete_profile, name='delete_profile'),
+    #path('school/profile_delete/<int:profile_id>/', school.school_profile_delete, name='school_profile_delete'),
     # 학급 관련.
     path('homeroom/create/<int:school_id>/', homeroom.create, name='homeroom_create'),
     path('homeroom/main/<int:room_id>/', homeroom.main, name='homeroom_main'),
-    path('homeroom/student_assignment/<int:homeroom_id>/', homeroom.assignment, name='homeroom_student_assignment'),
-    path('homeroom/download_excel_form/<int:homeroom_id>/', homeroom.download_excel_form, name='homeroom_download_excel_form'),
-    path('homeroom/upload_excel_form/<int:homeroom_id>/', homeroom.upload_excel_form, name='homeroom_upload_excel_form'),
+    #path('homeroom/student_assignment/<int:homeroom_id>/', homeroom.assignment, name='homeroom_student_assignment'),
+    #path('homeroom/download_excel_form/<int:homeroom_id>/', homeroom.download_excel_form, name='homeroom_download_excel_form'),
+    #path('homeroom/upload_excel_form/<int:homeroom_id>/', homeroom.upload_excel_form, name='homeroom_upload_excel_form'),
     path('homeroom/neis_timetable/<int:homeroom_id>/', homeroom.neis_timetable, name='neis_timetable'),
     # 공지
     path('announcement/create/<int:announce_box_id>/', announcement.create, name='announcement_create'),
@@ -82,6 +85,9 @@ urlpatterns = [
     # 설문 관련.
     path('homework/survey_create/<int:posting_id>/', homework.survey_create, name='homework_survey_create'),
     path('homework/survey_submit/<int:submit_id>/', homework.survey_submit, name='homework_survey_submit'),
+    path('homework/survey_temporary_save/<int:submit_id>/', homework.survey_temporary_save, name='homework_survey_temporary_save'),
+    path('homework/survey_temp_restore/<int:submit_id>/', homework.survey_temp_restore, name='survey_temp_restore'),
+    path('homework/survey_delete/<int:submit_id>/', homework.survey_delete, name='homework_survey_delete'),
     path('homework/survey_statistics/<int:submit_id>/', homework.survey_statistics, name='homework_survey_statistics'),
     path('classroom/homework/survey_statistics_spreadsheet/<int:posting_id>/', classroom.homework_survey_statistics_spreadsheet,
          name='homework_survey_statistics_spreadsheet'),

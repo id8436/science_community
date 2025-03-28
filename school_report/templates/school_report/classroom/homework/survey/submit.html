@@ -2,7 +2,7 @@
 
 {% block content %}
 여기는 제출페이지입니당
-  <form action="{% url 'school_report:homework_survey_submit' submit.id%}" method="post" enctype="multipart/form-data">
+  <form action="{% url 'school_report:homework_survey_submit' submit.id%}" method="post" enctype="multipart/form-data" id="survey-form">
       {% csrf_token %}
     <div id="questionContainer">
         {% for question in question_list %}
@@ -19,15 +19,151 @@
                 </div>
               </div>
         {% endfor %}
-    </div> 
+    </div>
 
 
 
 
     <div class="mt-3">
+    <a type="button" class="btn btn-outline-info" href="{% url 'school_report:survey_temp_restore' submit.id%}">제출본으로 되돌리기</a>
+
+
+    <button type="submit" id="temp-save-button" class="btn btn-outline-success">임시저장(파일은 자동저장 되지 않으니, 임시저장 버튼 눌러주세요~)</button>
       <button type="submit" id="submit-button" class="btn btn-primary">제출</button>
     </div>
   </form>
+
+<script>
+//// 임시저장버튼 관련 코드.
+    // CSRF 토큰을 가져오는 함수
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // 쿠키 이름이 name으로 시작하는지 확인
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrfToken = getCookie('csrftoken'); // CSRF 토큰 가져오기
+
+    // 임시 저장 버튼 클릭 기능
+    document.getElementById('temp-save-button').addEventListener('click', function(event) {
+        event.preventDefault(); // 폼 제출 방지
+
+        // 폼 데이터 수집
+        const formData = new FormData(document.getElementById('survey-form'));
+
+        // 임시 저장 시 POST 요청 보내기
+        fetch('{% url "school_report:homework_survey_temporary_save" submit.id %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken // CSRF 토큰 추가
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // 성공적으로 임시 저장된 경우의 처리
+                alert('임시 저장이 완료되었습니다.');
+            } else {
+                alert('임시 저장에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('오류가 발생했습니다.');
+        });
+    });
+</script>
+
+<script>
+//// 3분마다 자동저장 관련 코드.
+    let saveTimeout;
+
+    function onInputChange() {
+        if (saveTimeout) {
+            clearTimeout(saveTimeout);
+        }
+
+        saveTimeout = setTimeout(autoSave, 6000); // 3분(180000) 테스트용으론 6초(6000) 사용하면 좋음.
+    }
+
+    function autoSave() {
+        const formData = new FormData(document.getElementById('survey-form'));
+
+        // 파일 입력 필드 제외
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            formData.delete(input.name);
+        });
+
+        fetch('{% url "school_report:homework_survey_temporary_save" submit.id %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            showMessage(data.message); // 메시지 표시
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('자동 저장 중 오류가 발생했습니다.');
+        });
+    }
+
+    // 메시지를 표시하는 함수
+function showMessage(message) {
+    // 이전 메시지가 존재하면 제거
+    const existingMessageBox = document.querySelector('.message-box');
+    if (existingMessageBox) {
+        existingMessageBox.remove();
+    }
+
+    const messageBox = document.createElement('div');
+    messageBox.className = 'message-box'; // 클래스 추가
+    messageBox.innerText = message;
+
+    // 스타일 설정
+        messageBox.style.position = 'fixed';
+        messageBox.style.top = '10px';
+        messageBox.style.right = '10px';
+        messageBox.style.backgroundColor = 'rgba(128, 128, 128, 0.6)'; // 회색 배경에 60% 투명도
+        messageBox.style.color = 'white'; // 텍스트 색상
+        messageBox.style.padding = '10px';
+        messageBox.style.borderRadius = '5px'; // 모서리 둥글게
+        messageBox.style.border = '1px solid gray'; // 테두리 색상
+        messageBox.style.zIndex = '1000';
+        messageBox.style.opacity = '1'; // 초기 opacity
+        messageBox.style.transition = 'opacity 3s ease'; // 부드러운 애니메이션 추가
+
+        document.body.appendChild(messageBox);
+
+        // 3초 후에 opacity를 0으로 변경하여 사라지게 함
+        setTimeout(() => {
+            messageBox.style.opacity = '0'; // opacity를 0으로 변경
+            // 애니메이션이 끝난 후 메시지 박스를 제거
+            setTimeout(() => {
+                messageBox.remove();
+            }, 3000); // 애니메이션 시간과 동일하게 설정
+        }, 3000); // 3초 후에 사라지기 시작
+    }
+    // 모든 입력 요소에 변경 감지 이벤트 추가
+    document.querySelectorAll('#survey-form input, #survey-form textarea, #survey-form select').forEach(element => {
+        element.addEventListener('change', onInputChange);
+        element.addEventListener('input', onInputChange);
+    });
+</script>
 
 <script>
 document.getElementById('submit-button').addEventListener('click', function(event) {
@@ -108,12 +244,12 @@ document.getElementById('submit-button').addEventListener('click', function(even
 
 
 // 페이지를 떠나기 전에 경고 표시
-window.addEventListener("beforeunload", function(event) {
-    var textareaElement = document.getElementById("question{{ question.id }}-response");
+    function showUnloadWarning(event) {
         var confirmationMessage = '입력한 내용이 저장되지 않을 수 있습니다. 정말로 떠나시겠습니까?';
         event.returnValue = confirmationMessage; // 일부 브라우저에서 메시지를 표시
         return confirmationMessage; // 다른 브라우저에서 메시지를 표시
-});
+    }
+    window.addEventListener("beforeunload", showUnloadWarning);
 
 </script>
 

@@ -8,7 +8,7 @@
 {% if homeroom.master_profile.admin == request.user%}
 <h4 class="my-3 border-bottom pb-2">담임 교사 메뉴</h4>
     <div>
-        <a href="{% url 'school_report:homeroom_student_assignment' homeroom.id %}">학생명단 관리하기</a>
+        <a href="{% url 'school_report:student_assignment' 'homeroom' homeroom.id %}">학생명단 관리</a>
     </div>
 {% endif %}
 

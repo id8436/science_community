@@ -10,9 +10,12 @@ import random
 from boards.models import Board, Board_category, Board_name
 from .for_api import SchoolMealsApi
 from django.utils.encoding import escape_uri_path
-def main(request, room_id):
+from django.http import JsonResponse, HttpResponseForbidden
+from django.contrib.auth.models import User
+
+def main(request, school_id):
     context = {}
-    school = get_object_or_404(models.School, pk=room_id)
+    school = get_object_or_404(models.School, pk=school_id)
     context['school'] = school
     context['announcement_list'] = school.announcebox.announcement_set.order_by('-create_date')
     context['homework_list'] = school.homeworkbox.homework_set.order_by('-create_date')
@@ -278,118 +281,285 @@ def teacher_assignment(request, school_id):
         context['teacher_list_unresistered'] = teacher_list_unresistered
         return render(request, 'school_report/school/assignment.html', context)
 
-def school_profile_delete(request, profile_id):
-    profile = get_object_or_404(models.Profile, pk=profile_id)
-    school = profile.school
-    if school.master == request.user:
-        messages.error(request, "삭제하였습니다.")
-        profile.delete()
-        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
-    else:
-        messages.error(request, '관리자만이 가능합니다.')
-        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+# def school_profile_delete(request, profile_id):
+#     '''다른 데 기능을 구현해서 쓸모 없어짐.'''
+#     profile = get_object_or_404(models.Profile, pk=profile_id)
+#     school = profile.school
+#     if school.master == request.user:
+#         messages.error(request, "삭제하였습니다.")
+#         profile.delete()
+#         return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+#     else:
+#         messages.error(request, '관리자만이 가능합니다.')
+#         return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
 ############################## 학생 관련.
-def student_assignment(request, school_id):
-    school = get_object_or_404(models.School, pk=school_id)
-    context = {'school': school}
-    if school.master == request.user:
-        student_list_resistered = models.Profile.objects.filter(school=school, obtained=True, position='student')  # 학교 내에 등록된 프로필만 가져온다.
-        context['student_list_resistered'] = student_list_resistered
+def student_assignment(request, type, baseRoom_id):
+    if type == 'school':
+        school = get_object_or_404(models.School, pk=baseRoom_id)
+        context = {'baseRoom': school}
+        if school.master == request.user:
+            student_list_resistered = models.Profile.objects.filter(school=school, obtained=True, position='student')  # 학교 내에 등록된 프로필만 가져온다.
+            context['student_list_resistered'] = student_list_resistered
 
-        student_list_unresistered = models.Profile.objects.filter(school=school, obtained=False, position='student')  # 등록 안한 사람만 반환.
-        context['student_list_unresistered'] = student_list_unresistered
-        return render(request, 'school_report/school/student_assignment.html', context)
-
-@login_required()
-def school_student_download_excel_form(request, school_id):
-    school = get_object_or_404(models.School, pk=school_id)
-    wb = openpyxl.Workbook()
-    ws = wb.create_sheet('명단 form', 0)
-    ws['A1'] = '학번'
-    ws['B1'] = '이름'
-    ws['C1'] = '가입인증코드(없으면 랜덤 6개)'
-    ws['D1'] = '학년(선택사항)'
-    ws['E1'] = '반(선택사항)'
-    students = models.Profile.objects.filter(school=school, position='student')  # 학교에 속한 학생.
-    a = 'A'  # 학번쓰는 라인.
-    b = 'B'  # 이름쓰는 라인.
-    c = 'C'  # 코드 쓰는 라인.
-    d = 'D'  # 학년
-    e = 'E'  # 반
-    for i, student in enumerate(students):
-        num = str(i + 2)
-        ws[a + num] = student.code
-        ws[b + num] = student.name
-        if student.obtained:
-            ws[c + num] = '등록함'
+            student_list_unresistered = models.Profile.objects.filter(school=school, obtained=False, position='student')  # 등록 안한 사람만 반환.
+            context['student_list_unresistered'] = student_list_unresistered
+            return render(request, 'school_report/school/student_assignment.html', context)
+    if type == 'homeroom':
+        homeroom = get_object_or_404(models.Homeroom, pk=baseRoom_id)
+        context = {'baseRoom': homeroom}
+        if check.Teacher(user=request.user, homeroom=homeroom).in_homeroom_and_none:
+            resistered = models.Profile.objects.filter(homeroom=homeroom, obtained=True)
+            context['student_list_resistered'] = resistered
+            unresistered = models.Profile.objects.filter(homeroom=homeroom, obtained=False)  # 등록 안한 사람만 반환.
+            context['student_list_unresistered'] = unresistered
+            return render(request, 'school_report/school/student_assignment.html', context)
         else:
-            ws[c + num] = student.confirm_code  # 가입인증코드.
-        if student.homeroom:
-            homeroom = student.homeroom.all().first()  # 여러 학급에 등록되어 있을 수 있으니.
-            ws[d + num] = homeroom.grade
-            ws[e + num] = homeroom.cl_num
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename="{escape_uri_path("학생명단.xlsx")}"'
-    wb.save(response)
+            messages.error(request, '당신은 학급의 관리자가 아닙니다.')
+            return redirect('school_report:homeroom_main', homeroom_id=baseRoom_id)
+@login_required()
+def student_download_excel_form(request, type, baseRoom_id):
+    if type == 'school':
+        school = get_object_or_404(models.School, pk=baseRoom_id)
+        if school.master == request.user:
+            pass
+        else:
+            messages.error(request, '부정접근.')
+            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+        wb = openpyxl.Workbook()
+        ws = wb.create_sheet('명단 form', 0)
+        ws['A1'] = '학번'
+        ws['B1'] = '이름'
+        ws['C1'] = '가입인증코드(없으면 랜덤 6개)'
+        ws['D1'] = '학년(선택사항)'
+        ws['E1'] = '반(선택사항)'
+        students = models.Profile.objects.filter(school=school, position='student')  # 학교에 속한 학생.
+        a = 'A'  # 학번쓰는 라인.
+        b = 'B'  # 이름쓰는 라인.
+        c = 'C'  # 코드 쓰는 라인.
+        d = 'D'  # 학년
+        e = 'E'  # 반
+        for i, student in enumerate(students):
+            num = str(i + 2)
+            ws[a + num] = student.code
+            ws[b + num] = student.name
+            if student.obtained:
+                ws[c + num] = '등록함'
+            else:
+                ws[c + num] = student.confirm_code  # 가입인증코드.
+            if student.homeroom:
+                homeroom = student.homeroom.all().first()  # 여러 학급에 등록되어 있을 수 있으니.(그래도 기본적으로 1학급.)
+                ws[d + num] = homeroom.grade
+                ws[e + num] = homeroom.cl_num
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        file_name = f'학생명단({school}).xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{escape_uri_path(file_name)}"'
+        wb.save(response)
 
-    return response
-
+        return response
+    if type == 'homeroom':
+        homeroom = get_object_or_404(models.Homeroom, pk=baseRoom_id)
+        if check.Teacher(user=request.user, homeroom=homeroom).in_homeroom_and_none:
+            pass
+        else:
+            return check.Teacher.redirect_to_homeroom()
+        # students = homeroom.student_set.all()
+        students = models.Profile.objects.filter(homeroom=homeroom)  # 학급에 속한 학생.
+        wb = openpyxl.Workbook()
+        ws = wb.create_sheet('명단 form', 0)
+        ws['A1'] = '수험코드(학번)'
+        ws['B1'] = '이름'
+        ws['C1'] = '가입인증코드(없으면 랜덤 6개)'
+        a = 'A'  # 번호쓰는 라인.
+        b = 'B'  # 이름쓰는 라인.
+        c = 'C'  # 코드 쓰는 라인.
+        for i, student in enumerate(students):
+            num = str(i + 2)
+            ws[a + num] = student.code
+            ws[b + num] = student.name
+            if student.obtained:
+                ws[c + num] = '등록함'
+            else:
+                ws[c + num] = student.confirm_code  # 가입인증코드.
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        file_name = f'학생명단({homeroom}).xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{escape_uri_path(file_name)}"'
+        # response = HttpResponse(content_type="application/vnd.ms-excel")  # 25년 6월 넘어가면 없애자.
+        # response["Content-Disposition"] = 'attachment; filename=' + '명단양식' + '.xls'
+        wb.save(response)
+        return response
 
 
 @login_required()
-def school_student_upload_excel_form(request, school_id):
+def student_upload_excel_form(request, type, baseRoom_id):
     '''학생명단 업로드'''
     context = {}
     if request.method == "POST":
-        school = get_object_or_404(models.School, pk=school_id)
-        context['school'] = school
-        if request.user == school.master:
-            pass
+        if type == 'school':
+            school = get_object_or_404(models.School, pk=baseRoom_id)
+            if request.user == school.master:
+                pass
+            else:
+                messages.error(request, '이 기능은 관리자만이 가능합니다.')
+                return check.Teacher(school=school).redirect_to_school()
+            school = get_object_or_404(models.School, pk=baseRoom_id)
+            context['baseRoom'] = school
+
+            uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
+            wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
+            work_sheet = wb.worksheets[0]  # 첫번째 워크시트를 사용한다.
+
+            # 엑셀 데이터를 리스트 처리한다.
+            work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
+            for row in work_sheet.rows:  # 열을 순회한다.
+                row_data = []  # 열 데이터를 담기 위한 리스트
+                for cell in row:
+                    row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
+                work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
+                # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
+            work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
+
+            for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+                student_code = data[0]
+                name = data[1]
+                confirm_code = data[2]
+                grade = data[3]
+                cl_num = data[4]
+
+                profile, created = models.Profile.objects.get_or_create(school=school, name=name, code=student_code, position='student')
+                # if created:
+                #     exam_profiles = student.exam_profile_set.all()
+                #     for profile in exam_profiles:
+                #         profile.master = student.admin
+                #         profile.save()  # 시험등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
+
+                # 학급정보가 있다면 만들어버리기.
+                if not confirm_code:  # 이런 방식으로 받으면 문자열로 들어온다;
+                    # 2개 데이터만 들어온 경우로, 코드정보가 없으면 랜덤으로 배정.
+                    profile.confirm_code = random.randint(100000, 999999)  # 코드 지정.
+                else:
+                    profile.confirm_code = confirm_code
+                if grade and cl_num:  # 학년, 반이 다 들어온 경우.
+                    homeroom, cteated = models.Homeroom.objects.get_or_create(grade=grade, cl_num=cl_num, school=school)
+                    profile.homeroom.add(homeroom)
+                profile.save()
+            messages.info(request, '반영 완료.')
+            return redirect('school_report:student_assignment', type='school', baseRoom_id=baseRoom_id)
+
+        if type == 'homeroom':
+            homeroom = get_object_or_404(models.Homeroom, pk=baseRoom_id)
+            if check.Teacher(user=request.user, homeroom=homeroom).in_homeroom_and_none:
+                pass
+            else:
+                return check.Teacher.redirect_to_homeroom()
+            context['baseRoom'] = homeroom
+            uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
+            wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
+            work_sheet = wb["명단 form"]  # 첫번째 워크시트를 사용한다.
+
+            # 엑셀 데이터를 리스트 처리한다.
+            work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
+            for row in work_sheet.rows:  # 열을 순회한다.
+                row_data = []  # 열 데이터를 담기 위한 리스트
+                for cell in row:
+                    row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
+                work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
+                # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
+            work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
+
+            for data in work_sheet_data:  # 행별로 데이터를 가져온다.
+                student_code = data[0]
+                name = data[1]
+                confirm_code = data[2]
+                student, created = models.Profile.objects.get_or_create(school=homeroom.school, name=name,
+                                                                        # 전학생도 고려해야 하니, 생성도 허용한다.
+                                                                        code=student_code, position='student')
+                student.homeroom.add(homeroom)
+                if not confirm_code:  # 이런 방식으로 받으면 문자열로 들어온다;
+                    # 2개 데이터만 들어온 경우로, 코드정보가 없으면 랜덤으로 배정.
+                    student.confirm_code = random.randint(100000, 999999)  # 코드 지정.
+                else:
+                    student.confirm_code = confirm_code
+                if created:
+                    student.confirm_code = random.randint(100000, 999999)  # 코드 지정.
+                student.save()
+            messages.info(request, '반영 완료.')
+            return redirect('school_report:student_assignment', type='homeroom', baseRoom_id=baseRoom_id)
+
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+
+
+from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+
+
+@login_required()
+def student_password_reset(request, profile_id):
+    '''학생의 계정 비밀번호 초기화.'''
+    if request.method == 'POST':
+        # 학생 프로필 가져오기
+        student = get_object_or_404(models.Profile, id=profile_id)
+        school = student.school
+        # 교사 권한 확인
+        if not check.Teacher(school=school, user=request.user).in_school():
+            messages.error(request, "부정접근.")
+            return JsonResponse({'success': True, 'message': '부정접근.'})
+        try:
+            user = student.admin
+            new_password = str(random.randint(100000, 999999))  # 새로운 비밀번호 생성
+            user.set_password(new_password)  # 비밀번호 설정
+            user.save()  # 사용자 정보 저장
+            # 성공 메시지
+            return JsonResponse({'success': True, 'message': f'비밀번호가 성공적으로 초기화되었습니다. \n새 비밀번호: {new_password}'})
+        except models.Profile.DoesNotExist:
+            return JsonResponse({'success': True, 'message': "사용자를 찾을 수 없습니다."})
+
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+
+
+def validate_teacher_password(request):
+    '''모달 등 요청에서 교사의 패스워드 검증.'''
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        # 현재 로그인한 교사의 사용자 객체를 가져옵니다.
+        user = request.user
+        # 패스워드 검증
+        if user.check_password(password):
+            return JsonResponse({'valid': True})
         else:
+            return JsonResponse({'valid': False})
+    return JsonResponse({'valid': False}, status=400)
+
+@login_required()
+def delete_profile(request, type, profile_id, baseRoom_id):
+    """학생 프로필 삭제 뷰"""
+    if request.method != "POST":
+        return HttpResponseForbidden("잘못된 접근 방식입니다.")
+    if type == 'school':
+        profile = get_object_or_404(models.Profile, id=profile_id)
+        school = get_object_or_404(models.School, pk=baseRoom_id)
+        if request.user != school.master:  # 그래도 다시 검증.
             messages.error(request, '이 기능은 관리자만이 가능합니다.')
             return check.Teacher(school=school).redirect_to_school()
-        uploadedFile = request.FILES["uploadedFile"]  # post요청 안의 name속성으로 찾는다.
-        wb = openpyxl.load_workbook(uploadedFile, data_only=True)  # 파일을 핸들러로 읽는다.
-        work_sheet = wb.worksheets[0]  # 첫번째 워크시트를 사용한다.
+        # 해당 학생, 교사 프로필 가져오기
+        # 학생 삭제 수행
+        profile.delete()
+        return JsonResponse({'success': True, 'message': "학생이 삭제되었습니다."})
+    elif type == 'homeroom':
+        profile = get_object_or_404(models.Profile, id=profile_id)
+        homeroom = get_object_or_404(models.Homeroom, pk=baseRoom_id)
+        if check.Teacher(user=request.user, homeroom=homeroom).in_homeroom_and_none:
+            pass
+        else:
+            return check.Teacher.redirect_to_homeroom()
+        profile.homeroom.remove(homeroom)
+        return JsonResponse({'success': True, 'message': "학생이 해당 학급에서 제거되었습니다.(학교엔 남아 있습니다. 완전 삭제는 관리자에게.)"})
+    return redirect('school_report:student_assignment', type=type, baseRoom_id=baseRoom_id)
+        #redirect(reverse('school_report:student_assignment', kwargs={'type': type, 'baseRoom_id': baseRoom_id}))
 
-        # 엑셀 데이터를 리스트 처리한다.
-        work_sheet_data = []  # 전체 데이터를 담기 위한 리스트.
-        for row in work_sheet.rows:  # 열을 순회한다.
-            row_data = []  # 열 데이터를 담기 위한 리스트
-            for cell in row:
-                row_data.append(cell.value)  # 셀 값을 하나씩 리스트에 담는다.
-            work_sheet_data.append(row_data)  # 워크시트 리스트 안에 열 리스트를 담아...
-            # work_sheet_data[열번호][행번호] 형태로 엑셀의 데이터에 접근할 수 있게 된다.
-        work_sheet_data = work_sheet_data[1:]  # 첫번째 행은 버린다.
-
-        for data in work_sheet_data:  # 행별로 데이터를 가져온다.
-            student_code = data[0]
-            name = data[1]
-            confirm_code = data[2]
-            grade = data[3]
-            cl_num = data[4]
-
-            profile, created = models.Profile.objects.get_or_create(school=school, name=name, code=student_code, position='student')
-            # if created:
-            #     exam_profiles = student.exam_profile_set.all()
-            #     for profile in exam_profiles:
-            #         profile.master = student.admin
-            #         profile.save()  # 시험등록 때 계정이 없던 사람은 시험프로필을 학생에 연결해두었으므로 이를 계정에 직접 연결해준다.
-
-            # 학급정보가 있다면 만들어버리기.
-            if not confirm_code:  # 이런 방식으로 받으면 문자열로 들어온다;
-                # 2개 데이터만 들어온 경우로, 코드정보가 없으면 랜덤으로 배정.
-                profile.confirm_code = random.randint(100000, 999999)  # 코드 지정.
-            else:
-                profile.confirm_code = confirm_code
-            if grade and cl_num:  # 학년, 반이 다 들어온 경우.
-                homeroom, cteated = models.Homeroom.objects.get_or_create(grade=grade, cl_num=cl_num, school=school)
-                profile.homeroom.add(homeroom)
-            profile.save()
-        messages.info(request, '반영 완료.')
-
-    return redirect('school_report:student_assignment', school_id=school_id)  # 필요에 따라 렌더링.
 
 @login_required()
 def student_code_input(request, school_id):
@@ -460,8 +630,9 @@ def meal_info(request, school_id):
     return render(request, 'school_report/school/meal_info.html', context)
 
 def profile_reset(request, profile_id):
+    '''기존 계정을 잊어버린 경우, 연동을 끊게 해주기.'''
     profile = models.Profile.objects.get(pk=profile_id)
     profile.obtained = False
     profile.confirm_code = random.randint(100000, 999999)
     profile.save()
-    return redirect('school_report:student_assignment', school_id=profile.school.id)
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.

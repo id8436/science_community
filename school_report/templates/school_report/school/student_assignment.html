@@ -2,15 +2,22 @@
 
 {% block content %}
 
-{{ school }}의 학생 명단을 등록합니다.
-# 여기다 폼으로 한명한명 등록하게 해볼까?
-<div>주의!</div>
-<li>한 학교에 이름이 같은 학생이 있다면 A, B 등으로 구분하는 게 좋을거에요.</li>
-<div>여러 학생 한번에 등록하기.</div>
-<a href="{% url 'school_report:school_student_download_excel_form' school.id %}">양식 다운 받기</a>
+"{{ baseRoom }}"의 학생 명단을 등록합니다.
+<!-- 여기다 폼으로 한명한명 등록하게 해볼까?-->
+
+{% if baseRoom.get_self_type == "school" %}
+    <h3>주의!</h3>
+    <li>한 학교에 이름이 같은 학생이 있다면 A, B 등으로 구분하는 게 좋을거에요.</li>
+{% else %}
+    <li>담임교사만 등록 가능하고, 이외 열람만 가능합니다.</li>
+    <li>학교에 등록되어 있는 학생만 등록할 수 있습니다.</li>
+{% endif %}
+
+<h4>여러 학생 한번에 등록하기.</h4>
+<a href="{% url 'school_report:student_download_excel_form' baseRoom.get_self_type baseRoom.id %}">양식 다운 받기</a>
 
 <a>서식 올리기.</a>
-<form action="{% url 'school_report:school_student_upload_excel_form' school.id %}" method="POST" enctype="multipart/form-data"
+<form action="{% url 'school_report:student_upload_excel_form' baseRoom.get_self_type baseRoom.id %}" method="POST" enctype="multipart/form-data"
 onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 갱신됩니다. 진행할까요?')">
         <input type="file" name="uploadedFile" value="파일을 선택해주세요.">
         {% csrf_token %}
@@ -29,12 +36,193 @@ onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 �
     {% for student in student_list_resistered %}
     <tr>
         <td>{{student.code}}</td>
-        <td>{{student.name}}({{student.admin.username}}) <a href="{% url 'school_report:profile_reset' student.id %}">계정과 연동 끊기(기존 계정을 분실하여 새 계정에 연결해야 할 경우.)</a></td>
+        <td>{{student.name}}({{student.admin.username}}) <a href="{% url 'school_report:profile_reset' student.id %}">계정과 연동 끊기(기존 계정을 분실하여 새 계정에 연결해야 할 경우.)</a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#passwordResetModal" data-reset-link="{% url 'school_report:student_password_reset' student.id %}">비밀번호 초기화</a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteStudentModal" data-delete-link="{% url 'school_report:delete_profile' baseRoom.get_self_type student.id baseRoom.id %}">학생 삭제</a>
+        </td>
     </tr>
     {% endfor %}
     {% endif %}
     </tbody>
 </table>
+
+<!-- 학생 삭제 모달 -->
+<div class="modal fade" id="deleteStudentModal" tabindex="-1" role="dialog" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteStudentModalLabel">학생 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="deleteStudentForm">
+                    <p>학생을 삭제하려면 교사의 패스워드를 입력하세요.</p>
+                    <div class="form-group">
+                        <label for="teacherPasswordDelete">교사 패스워드</label>
+                        <input type="password" class="form-control" id="teacherPasswordDelete" placeholder="패스워드 입력" autocomplete="new-password">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">삭제</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    $('#deleteStudentModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget);  // 클릭된 버튼
+        var deleteLink = button.data('delete-link');  // 삭제 URL
+        var studentCode = button.closest('tr').find('td:first').text().trim();  // 학생 코드 가져오기
+        var modal = $(this);
+
+        // 버튼에 데이터 저장 (삭제 링크 & 학생 코드)
+        modal.find('#confirmDelete')
+             .data('delete-link', deleteLink)
+             .data('student-code', studentCode);
+    });
+
+    $('#confirmDelete').on('click', function() {
+        var password = $('#teacherPasswordDelete').val();
+        var deleteLink = $(this).data('delete-link');
+        var studentCode = $(this).data('student-code');  // 여기서 studentCode 가져오기
+
+        // AJAX 요청으로 패스워드 검증
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'school_report:validate_teacher_password' %}", // Django의 URL을 직접 사용
+            data: {
+                password: password,
+                student_code: studentCode,  // student_code를 직접 포함
+                csrfmiddlewaretoken: '{{ csrf_token }}'  // CSRF 토큰 추가
+            },
+            success: function(response) {
+                if (response.valid) {
+                    $.ajax({
+                        type: 'POST',   // ✅ POST 방식으로 삭제 요청
+                        url: deleteLink, // ✅ 삭제 URL (delete_profile 뷰)
+                        data: {
+                            csrfmiddlewaretoken: '{{ csrf_token }}'  // CSRF 토큰 추가
+                        },
+                        success: function(response) {
+                            alert(response.message);
+                            location.reload();  // ✅ 페이지 새로고침 (목록 갱신)
+                        },
+                        error: function() {
+                            alert('삭제 중 오류가 발생했습니다.');
+                        }
+                    });
+                } else {
+                    alert('패스워드가 올바르지 않습니다. 다시 시도하세요.');
+                }
+            },
+            error: function() {
+                alert('서버 오류가 발생했습니다. 나중에 다시 시도하세요.');
+            }
+        });
+    });
+
+    // 학생 삭제 모달에서 엔터 키 이벤트
+    $('#teacherPasswordDelete').on('keypress', function(event) {
+        if (event.which === 13) {
+            event.preventDefault();
+            $('#confirmDelete').click();
+        }
+    });
+});
+</script>
+
+
+
+<!-- 비밀번호 초기화 모달(형태는 위와 동일) -->
+<div class="modal fade" id="passwordResetModal" tabindex="-1" role="dialog" aria-labelledby="passwordResetModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordResetModalLabel">비밀번호 초기화</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>비밀번호 초기화를 진행하시려면 교사의 패스워드를 입력하세요.</p>
+                <div class="form-group">
+                    <label for="teacherPassword">교사 패스워드</label>
+                    <input type="password" class="form-control" id="teacherPassword" placeholder="패스워드 입력">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmReset">초기화</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    $('#passwordResetModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget); // 버튼이 클릭된 이벤트
+        var resetLink = button.data('reset-link'); // 초기화 링크 가져오기
+        var modal = $(this);
+        modal.find('#confirmReset').data('reset-link', resetLink); // 모달의 링크 설정
+    });
+
+    $('#confirmReset').on('click', function() {
+    var password = $('#teacherPassword').val();
+    var resetLink = $(this).data('reset-link');
+
+    // 패스워드 검증 로직
+    $.ajax({
+        type: 'POST',
+        url: '{% url 'school_report:validate_teacher_password' %}', // 패스워드 검증을 위한 URL
+        data: {
+            password: password,
+            csrfmiddlewaretoken: '{{ csrf_token }}' // CSRF 토큰 추가
+        },
+        success: function(response) {
+            if (response.valid) {
+                // 패스워드가 유효한 경우 비밀번호 초기화 요청
+                $.ajax({
+                    type: 'POST',
+                    url: resetLink,
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}' // CSRF 토큰 추가
+                    },
+                    success: function(resetResponse) {
+                        if (resetResponse.success) {
+                            alert(resetResponse.message); // 성공 메시지 표시
+                            $('#passwordResetModal').modal('hide'); // 모달 닫기
+                        } else {
+                            alert(resetResponse.message); // 오류 메시지 표시
+                        }
+                    },
+                    error: function() {
+                        alert('비밀번호 초기화 중 오류가 발생했습니다.');
+                    }
+                });
+            } else {
+                alert('패스워드가 올바르지 않습니다. 다시 시도하세요.');
+            }
+        },
+        error: function() {
+            alert('서버 오류가 발생했습니다. 나중에 다시 시도하세요.');
+        }
+    });
+});
+
+
+    // 비밀번호 초기화 모달에서 엔터 키 이벤트
+    $('#teacherPassword').on('keypress', function(event) {
+        if (event.which === 13) {
+            event.preventDefault();
+            $('#confirmReset').click();
+        }
+    });
+});
+</script>
+
+
+
+
 
 미등록 명단
 <table class="table table-hover" id="board_table">
@@ -50,7 +238,9 @@ onsubmit="return confirm('엑셀파일을 올릴 때마다 코드가 새롭게 �
     {% for student in student_list_unresistered %}
     <tr>
         <td>{{student.code}}</td>
-        <th>{{student.name}}</th>
+        <th>{{student.name}}
+            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteStudentModal" data-delete-link="{% url 'school_report:delete_profile' baseRoom.get_self_type student.id baseRoom.id %}">학생 삭제</a>
+        </th>
         <th>{{student.confirm_code}}</th>
     </tr>
     {% endfor %}

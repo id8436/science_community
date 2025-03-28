@@ -73,7 +73,7 @@ $(document).ready(function(){
 });
 </script><!-- 취소를 누르면 아무 일도 하지 않는다.-->
 
-
+<!--관리자가 보는 테이블.-->
 <table class="table table-hover" id="submit_list">
     <thead>
     <tr class="table-info">
@@ -98,8 +98,9 @@ $(document).ready(function(){
         {% endif %}
         <td>
             {% if survey %}
-            설문제출 <a href="{% url 'school_report:homework_below_standard_set' annoIndividual.id%}" class="btn btn-danger">수준미달 지정</a>
+            설문 <a href="{% url 'school_report:homework_below_standard_set' annoIndividual.id%}" class="btn btn-danger">수준미달 지정</a>
             <a href="{% url 'school_report:homework_below_standard_unset' annoIndividual.id%}" class="btn btn-info">수준미달 해제</a>
+<a href="{% url 'school_report:homework_survey_delete' annoIndividual.id %}" class="btn btn-danger" onclick="return confirmDelete();">설문 삭제</a>
             {% else %}
             {{annoIndividual.content}}
             {% endif %}
@@ -112,6 +113,11 @@ $(document).ready(function(){
     {% endif %}
     </tbody>
 </table>
+<script>
+    function confirmDelete() {
+        return confirm("정말로 이 설문을 삭제하시겠습니까? 복구 불가합니다.");
+    }
+</script>
 
 {%endif%}
 

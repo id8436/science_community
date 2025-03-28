@@ -435,7 +435,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 class HomeworkAnswer(models.Model):
     '''질문의 하위로 구성되어 있음.'''
-    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # 응답자. 지워가야 할까? 아니면 임의 설문을 위해 남겨야 하나.
+    respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)  # 응답자. 지워가야 할까? 아니면 임의 설문을 위해 남겨야 하나.
     to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True, related_name='homework_answer_user',
                                    default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯. submit에 엮이니까. 어차피.
                                    )  # 프로필에 과제 부여. 프로필 완성되면 위 지우자.
@@ -445,23 +445,42 @@ class HomeworkAnswer(models.Model):
     question = models.ForeignKey('HomeworkQuestion', on_delete=models.CASCADE)
     contents = models.TextField(default=None, blank=True, null=True)  # 응답, 선택값들 담기.
     file = models.FileField(upload_to=get_upload_to, default=None, blank=True, null=True)  # 각종 파일을 담기 위한 필드.
+    # 자동저장, 임시저장 관련.
+    auto_contents = models.TextField(default=None, blank=True, null=True)  # 응답, 선택값들 담기.
+    auto_file = models.FileField(upload_to=get_upload_to, default=None, blank=True, null=True)  # 각종 파일을 담기 위한 필드.
     memo = models.TextField(default=None, blank=True, null=True)  # 동료평가에선 (평균-자기점수)**2이 담김.
     def __str__(self):
         return str(self.to_profile) + str(self.target_profile) + str(self.id)
     def save(self, *args, **kwargs):
         '''업로드 파일이 기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
         try:
-            this = HomeworkAnswer.objects.get(id=self.id)
-            if this.file != self.file:  # 새로 올려진 것에 대한 명령.
-                this.file.delete(save=False)
+            this = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
+            # print(self.file)  # 새로 들어오는 것.
+            # print(self.auto_file)
+            # print(this.file)
+            # print(this.auto_file)
+            ## this에서 지우고 진행되는 과정.
+            if self.auto_file:  # 임시저장값이 있다면..
+                if this.file == this.auto_file:  # 기존저장에서 두 값이 같다면 굳이 기존 파일을 지울 필요가 없음.
+                    if self.file:
+                        this.auto_file.delete(save=False)  # 기존 this.file == this.auto_file 이라면 안지워지기 때문에 새로운 파일을 올릴 땐 임시저장을 지워야 한다.
+                else:
+                    if this.auto_file != self.auto_file:  # 기존 것 지우고 올리기.
+                        this.auto_file.delete(save=False)
+            if self.file:  # 어차피 최종파일은 임시저장파일을 거쳐오기 때문에.
+                if this.file != self.file:
+                    this.file.delete(save=False)
+
         except:
             pass  # when new photo then we do nothing, normal case
         super(HomeworkAnswer, self).save(*args, **kwargs)
 @receiver(pre_delete, sender=HomeworkAnswer)
 def delete_homework_answer_file(sender, instance, **kwargs):
-    # 모델 인스턴스(답변)가 삭제되기 전에 파일을 삭제합니다.
+    # 모델 인스턴스(답변)가 삭제되기 전에 파일을 삭제합니다. 각 칼럼별로 모두.
     if instance.file:
         instance.file.delete(save=False)
+    if instance.auto_file:
+        instance.auto_file.delete(save=False)
 
 class AnnounceBox(BaseBox):
     pass

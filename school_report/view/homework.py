@@ -13,6 +13,9 @@ import math
 from datetime import datetime
 import openpyxl
 from itertools import chain
+import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
+from django.http import JsonResponse  # 자동저장 등에서 메시지를 반환하기 위함.
+
 
 ## 편의, 공통 기능들.
 # def get_assigned_profile(homework_id):
@@ -208,36 +211,28 @@ def survey_create(request, posting_id):
             question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
     context['Infinity'] = float('inf')
     return render(request, 'school_report/classroom/homework/survey/create.html', context)
-@login_required()
-def survey_submit(request, submit_id):
-    '''submit_id는 개별 아이디니... 설문 자체에 접근하게끔 하는 방략을 생각해야 할듯. 설문 ID를 주고..?
-    설문 자체에 대한 링크는 주지 않는 게 좋을듯.'''
-    '''사용자의 설문 제출.'''
+def survey_submit_base(request, submit_id, final=False):
+    '''임시저장과 최종 저장에서 내용물 제출을 위한 작업을 처리.'''
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
     homework = submit.base_homework
-    # 제출기한이 지났다면 제출되지 않도록.
-    if homework.deadline:
-        import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
-        deadline = homework.deadline.astimezone(pytz.UTC)
-        if deadline < datetime.now(pytz.UTC) or homework.is_end:  # 데드라인이 지났다면... 안되지.
-            messages.error(request, "이미 제출기한이 지난 과제입니다.")
-            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
-
-    context = {'posting': homework, 'submit':submit}
-    # 설문 정보 불러오기.
-    question_list = homework.homeworkquestion_set.all().order_by('ordering')
-    for question in question_list:  # option값을 탬플릿에 전달하기 위함.
-        if question.options:
-            question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
+    return_message = ""  # 처리 후 반환할 메시지.
 
     # 본인의 설문인지 검사.
     if submit.to_profile.admin == request.user:
         pass
     else:
-        messages.error(request, '다른 사람의 응답을 할 수는 없어요~(로그인이 풀린 것일지도.)')
-        return redirect('school_report:homework_detail', posting_id=homework.id)
-
-    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        return_message = '다른 사람의 응답을 할 수는 없어요~(로그인이 풀린 것일지도?)'
+        return return_message
+    ## 제출기한이 지난 경우엔 안되는 처리와 안되는 메시지 반환하도록.
+    # 아래 함수와의 중복된 부분은 잘 정리해보자.
+    if homework.deadline:
+        deadline = homework.deadline.astimezone(pytz.UTC)
+        # if request.method == 'GET' and deadline < datetime.now(pytz.UTC) or homework.is_end:  # 데드라인이 지났다면... 안되지.
+        #     messages.error(request, "이미 제출기한이 지난 과제입니다. 볼 수는 있지만, 제출할 수는 없습니다.")
+        if request.method == 'POST' and deadline < datetime.now(pytz.UTC) or homework.is_end:  # 제출하려고 하면, 거절해야지.
+            return_message = "임시저장은 하지만, 제출기한이 지난 과제입니다."
+    # 임시 저장.
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.(임시저장이든, 최종저장이든.)
         for question_id in request.POST.getlist('question'):
             question = models.HomeworkQuestion.objects.get(pk=question_id)
             if question.homework != homework:  # 부정접근 방지.
@@ -245,47 +240,179 @@ def survey_submit(request, submit_id):
             answer,_ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
             # response 태그가 있는 경우.
             response = request.POST.get('response'+question_id)
-            print(response)
             if response:
-                answer.contents = response
+                answer.auto_contents = response
                 question.respond = response  # 표시를 위해 담기.
+
             # option이 있는 경우. json으로 담는다.(객관식 선택의 경우임.)
             option = request.POST.getlist('option_for'+question_id)
-            if option or (not response and not option):  # 옵션 선택이 없었을 때 None을 담는 로직도 있어야 해.
-                answer.contents = json.dumps(option, ensure_ascii=False)
+            if not response and not option:   # 옵션 선택이 없었을 때 None을 담는 로직도 있어야 해. 그래야 선택지를 지웠을 때 반영됨.
+                answer.auto_contents = None
+            if option:
+                answer.auto_contents = json.dumps(option, ensure_ascii=False)
+
             # file이 있는 경우.
             file = request.FILES.get('response' + question_id)
             if file:
-                answer.file.delete()  # 기존 파일 삭제.
                 # 여기서 파일에 대한 검사를 수행합니다.
                 # 예를 들어, 파일 크기가 10MB를 초과하는지 검사할 수 있습니다.
                 if file.size > 10 * 1024 * 1024:
                     return HttpResponseBadRequest("10MB를 초과합니다.")
                 # 파일을 모델에 저장합니다.
-                answer.file = file  # 업로드.
+                answer.auto_file = file  # 업로드.
             answer.save()
+            return_message = "임시저장 되었습니다."
 
+    # 최종 설문 저장.
+    #### 임시저장되어 있는 것을 단순히 복사하게끔.
+    if request.method == 'POST' and final:
+        question_list = homework.homeworkquestion_set.all().order_by('ordering')
+        for question in question_list:
+            try:  # 연동된 제출의 응답 가져오기.
+                answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
+                answer.contents = answer.auto_contents
+                answer.file = answer.auto_file
+                answer.save()
+            except Exception as e:
+                # 에러가 났다는 건 json을 만들 수 없는 단일데이터라는 것.
+                print(e)
+        return redirect('school_report:homework_detail', posting_id=homework.id)
 
+            ## 과거 코드.(25.02.28 이전)
+    # if request.method == 'POST' and final:  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+    #     for question_id in request.POST.getlist('question'):
+    #         question = models.HomeworkQuestion.objects.get(pk=question_id)
+    #         if question.homework != homework:  # 부정접근 방지.
+    #             return redirect('school_report:homework_detail', posting_id=homework.id)
+    #         answer,_ = models.HomeworkAnswer.objects.get_or_create(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
+    #         # response 태그가 있는 경우.
+    #         response = request.POST.get('response'+question_id)
+    #         print(response)
+    #         if response:
+    #             answer.contents = response
+    #             question.respond = response  # 표시를 위해 담기.
+    #
+    #         # option이 있는 경우. json으로 담는다.(객관식 선택의 경우임.)
+    #         option = request.POST.getlist('option_for'+question_id)
+    #         if not response and not option:   # 옵션 선택이 없었을 때 None을 담는 로직도 있어야 해. 그래야 선택지를 지웠을 때 반영됨.
+    #             answer.contents = None
+    #         if option:
+    #             answer.contents = json.dumps(option, ensure_ascii=False)
+    #
+    #         # file이 있는 경우.
+    #         file = request.FILES.get('response' + question_id)
+    #         if file:
+    #             answer.file.delete()  # 기존 파일 삭제.
+    #             # 여기서 파일에 대한 검사를 수행합니다.
+    #             # 예를 들어, 파일 크기가 10MB를 초과하는지 검사할 수 있습니다.
+    #             if file.size > 10 * 1024 * 1024:
+    #                 return HttpResponseBadRequest("10MB를 초과합니다.")
+    #             # 파일을 모델에 저장합니다.
+    #             answer.file = file  # 업로드.
+    #         answer.save()
+    #         return redirect('school_report:homework_detail', posting_id=homework.id)
+    return return_message
+@login_required()
+def survey_temporary_save(request, submit_id):
+    '''설문 임시저장'''
+    submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
+    homework = submit.base_homework
+    print(request.POST)
+    # 제출하였을 때.
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        return_message = survey_submit_base(request, submit_id)
+        return JsonResponse({'message': return_message})
+
+    return redirect('school_report:homework_detail', posting_id=homework.id)
+def survey_temp_restore(request, submit_id):
+    '''임시저장된 내용을 지우고 기존 제출내용으로 되돌리기.'''
+    submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
+    homework = submit.base_homework
+    question_list = homework.homeworkquestion_set.all().order_by('ordering')
+    for question in question_list:
+        try:  # 연동된 제출의 응답 가져오기.
+            answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile,
+                                                       target_profile=submit.target_profile)
+            answer.auto_contents = answer.contents
+            answer.auto_file = answer.file  # 기존파일 삭제는 모델에 구현해 두었음.
+            answer.save()
+        except Exception as e:
+            # 에러가 났다는 건 json을 만들 수 없는 단일데이터라는 것.
+            print(e)
+    return redirect('school_report:homework_survey_submit', submit_id=submit_id)
+@login_required()
+def survey_submit(request, submit_id):
+    '''사용자의 설문 최종 제출. 및 설문 작성페이지.'''
+    '''submit_id는 개별 아이디니... 설문 자체에 접근하게끔 하는 방략을 생각해야 할듯. 설문 ID를 주고..?
+        설문 자체에 대한 링크는 주지 않는 게 좋을듯.'''
+    submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
+    homework = submit.base_homework
+    ## 제출 및 설문 작성 전 검사.
+    # 본인의 설문인지 검사.
+    if submit.to_profile.admin == request.user:
+        pass
+    else:
+        messages.error(request, '다른 사람의 응답을 할 수는 없어요~(로그인이 풀린 것일지도.)')
+        return redirect('school_report:homework_detail', posting_id=homework.id)
+
+    # 제출기한이 지났다면 제출되지 않도록.
+    if homework.deadline:
+        import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
+        deadline = homework.deadline.astimezone(pytz.UTC)
+        if request.method == 'GET' and deadline < datetime.now(pytz.UTC) or homework.is_end:  # 데드라인이 지났다면... 안되지.
+            messages.error(request, "이미 제출기한이 지난 과제입니다. 볼 수는 있지만, 제출할 수는 없습니다.")
+        if request.method == 'POST':  # 제출하려고 하면, 거절해야지.
+            messages.error(request, "이미 제출기한이 지난 과제입니다. 제출할 수 없습니다.")
+            return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
+
+    # 제출하였을 때.
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        result = survey_submit_base(request, submit_id, final=True)
         submit.check = True
         submit.submit_date =datetime.now()
         submit.save()
-        return redirect('school_report:homework_detail', posting_id=homework.id)
+        messages.success(request, "제출되었습니다.")
+        return result
+
+    # 제출 화면을 나타낼 때. 임시저장된 내용을 보여준다.
+    context = {'posting': homework, 'submit':submit}
+    # 설문 정보 불러오기.
+    question_list = homework.homeworkquestion_set.all().order_by('ordering')
+    for question in question_list:  # option값을 탬플릿에 전달하기 위함.
+        if question.options:
+            question.options = json.loads(question.options)  # 리스트화+저장하지 않고 옵션에 리스트 부여.(이게 되네?!)
 
     for question in question_list:
         try:  # 연동된 제출의 응답 가져오기.
             answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
-            question.response = answer.contents  # 기존 답변을 추가하기 위한 과정.
+            if answer.auto_contents is None:
+                question.response = ''
+            else:
+                question.response = answer.auto_contents  # 기존 답변을 추가하기 위한 과정. response는 탬플릿에서 사용하기 위해 임시적으로 만들어지는 속성.
+
             # 파일이 있다면 반영.
-            if answer.file:
-                question.response = answer.file
+            if answer.auto_file:
+                question.response = answer.auto_file
             if question.options:  # 객관식, 드롭다운의 경우 선택지를 담기 위함.
-                question.answer_list = json.loads(answer.contents)  # 선택지와 비교하기 위해.
+                question.answer_list = json.loads(answer.auto_contents)  # 선택지와 비교하기 위해.
         except Exception as e:
             # 에러가 났다는 건 json을 만들 수 없는 단일데이터라는 것.
             print(e)
     context['question_list'] = question_list
 
     return render(request, 'school_report/classroom/homework/survey/submit.html', context)
+@login_required()
+def survey_delete(request, submit_id):
+    '''과제 주관자가 설문 제거. 대상자가 전출가는 등.'''
+    submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    homework = submit.base_homework
+    if homework.author_profile.admin == request.user:  # 과제의 주인인 경우에만 가능.
+        pass
+    else:
+        messages.error(request, '부정접근. 시도는 훌륭했습니다.')
+    submit.delete()
+    messages.success(request, '삭제 성공')
+    return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.    return None
 def survey_statistics(request, submit_id):
     '''과제 통계 제시.'''
     submit = models.HomeworkSubmit.objects.get(id=submit_id)
@@ -296,6 +423,7 @@ def survey_statistics(request, submit_id):
     teacher = check.Teacher(user=request.user, school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
 
     ### 열람 관련.
+    # question 하위의 submit을 탬플릿에서 호출해 보여준다.(뷰에선 다루지 않음.)
     if homework.is_special == "peerReview" and not homework.is_end: # 동료평가의 경우, 평가 끝날 때까지 못 봄.
         messages.error(request, "동료평가의 경우, 설문이 마감된 후에 열람할 수 있습니다.")
         return redirect(request.META.get('HTTP_REFERER', None))
@@ -309,11 +437,12 @@ def survey_statistics(request, submit_id):
             return redirect(request.META.get('HTTP_REFERER', None))
         question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
-        context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.
+        context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.(없어도 될 것 같은데?)
         return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
     else:
         messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
         return redirect(request.META.get('HTTP_REFERER', None))
+
 def question_list_statistics(question_list, submit):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
@@ -408,12 +537,23 @@ def question_list_statistics(question_list, submit):
 def below_standard_set(request, submit_id):
     '''수준미달 과제 지정.'''
     submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    homework = submit.base_homework
+    if homework.author_profile.admin == request.user:  # 과제의 주인인 경우에만 가능.
+        pass
+    else:
+        messages.error(request, '부정접근. 시도는 훌륭했습니다.')
+        return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
     submit.state = '수준미달'
     submit.save()
     messages.success(request, '지정하였습니다.')
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 def below_standard_unset(request, submit_id):
     submit = models.HomeworkSubmit.objects.get(id=submit_id)
+    homework = submit.base_homework
+    if homework.author_profile.admin == request.user:  # 과제의 주인인 경우에만 가능.
+        pass
+    else:
+        messages.error(request, '부정접근. 시도는 훌륭했습니다.')
     submit.state = None
     submit.save()
     messages.success(request, '해제하였습니다.')

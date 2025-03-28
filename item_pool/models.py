@@ -23,20 +23,19 @@ class SchoolProfile(models.Model):  # 연도, 학교, 학번 조합은 유일하
 
 class Question(models.Model):
     author =models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="question_author")  # 사용자가 지워져도 profile이 대체하도록.
-    profile = models.ForeignKey(SchoolProfile, on_delete=models.PROTECT)
-    major=models.CharField(max_length=10)#대분류
-    division=models.CharField(max_length=10)#중분류
-    subclass=models.CharField(max_length=10)#소분류
+    major=models.CharField(max_length=10)  #대분류
+    division=models.CharField(max_length=10)  #중분류
+    subclass=models.CharField(max_length=10)  #소분류
 
-    subject =models.CharField(max_length=100)#제목
+    subject =models.CharField(max_length=100)  #제목
     content = models.TextField()#내용, 문제내기.
 
-    rightAnswer=models.CharField(max_length=10)#답 쓰기.
-    solution = models.TextField()  # 해답
-    correct=models.IntegerField(null=True, blank=True, default=0)
-    wrong=models.IntegerField(null=True, blank=True, default=0)
+    rightAnswer = models.TextField()  #답 쓰기.(json형식으로 가능한 답을 다 써보도록 하자.)
+    solution = models.TextField()  # 해설.
+    correct=models.IntegerField(null=True, blank=True, default=0)  # 맞은 사람 카운트.
+    wrong=models.IntegerField(null=True, blank=True, default=0)  # 틀린 사람 카운트.
 
-    create_date = models.DateTimeField(auto_now_add='True')
+    create_date = models.DateTimeField(auto_now_add=True)
     modify_date = models.DateTimeField(null=True, blank=True)
     
     favorite = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="question_favorite") # 즐겨찾는 문제 지정하기 위함
@@ -51,7 +50,7 @@ class Question(models.Model):
     def __str__(self):
         return self.subject
 
-class Answer(models.Model):#세부내용은 필요에 따라..
+class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="question_answer_author")
     content = models.CharField(max_length=300)

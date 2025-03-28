@@ -12,7 +12,7 @@
 <h3 class="my-3 border-bottom pb-2">기관 마스터 메뉴</h3>
 <a href="{% url 'school_report:school_modify' school.id %}">학교정보 수정하기</a><br>
 <a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
-<a href="{% url 'school_report:student_assignment' school.id %}">전체 학생명단 관리</a>
+<a href="{% url 'school_report:student_assignment' 'school' school.id %}">전체 학생명단 관리</a>
 {% endif %}
 <div class="my-3 border-bottom pb-2"></div>
 
