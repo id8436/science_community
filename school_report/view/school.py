@@ -12,6 +12,7 @@ from .for_api import SchoolMealsApi
 from django.utils.encoding import escape_uri_path
 from django.http import JsonResponse, HttpResponseForbidden
 from django.contrib.auth.models import User
+import datetime
 
 def main(request, school_id):
     context = {}
@@ -611,11 +612,14 @@ def meal_info(request, school_id):
     context = {}
     # 급식정보
     if school.school_code:  # 학교코드가 있어야 진행.
-        school_meal = SchoolMealsApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=school.school_code)
+        school_meal = SchoolMealsApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=str(school.school_code))
+        school_meal_data = school_meal.get_data()
+        sorted_data = sorted(school_meal_data, key=lambda x: datetime.datetime.strptime(x['MLSV_YMD'], "%Y%m%d"))
+
         # 표에 넣기 위해 항목별로 차례대로 넣는다.
         meal_data = {'일자': [], '식사': [], '메뉴': [], '칼로리': [], '영양정보': [], '재료정보': []}
         try:  # 개학 전엔 식사정보가 없어 None을 반환한다. 그럼 에러뜸.
-            for i in school_meal.get_data():
+            for i in sorted_data:
                 date = i['MLSV_YMD']
                 date = date[4:6] + '월' + date[6:] + '일'
                 meal_data['일자'].append(date)  # 급식일자.
