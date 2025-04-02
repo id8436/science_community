@@ -107,7 +107,8 @@ def detail(request, posting_id):
     #student = check.Check_student(request, school).in_school_and_none()
     #teacher = check.Check_teacher(request, school).in_school_and_none()
     # 교사라면 모든 설문관련 정보를 볼 수 있다.
-    if homework.author_profile.admin == request.user:
+    #if homework.author_profile.admin == request.user:
+    if profile.position == 'teacher':
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=homework)
         context['submit_list'] = submit_list
     context['survey'] = homework.homeworkquestion_set.exists()  # 설문객체 여부.

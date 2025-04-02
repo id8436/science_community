@@ -56,6 +56,13 @@
 <a href="{% url 'school_report:homework_modify' posting.id%}" class="btn btn-primary">과제 수정</a>
 <a href="{% url 'school_report:homework_copy' posting.id%}" class="btn btn-info">과제 복사</a>
 <a href="#" data-uri="{% url 'school_report:homework_delete' posting.id  %}" class="posting_delete btn btn-danger">과제 삭제</a>
+
+{% if teacher %}
+    <div>
+        <a href="{% url 'school_report:homework_survey_statistics' private_submit.id%}" class="btn btn-info">설문 통계</a>
+    </div>
+{%end if %}
+
 {% if posting.is_end %}
     <a href="{% url 'school_report:homework_end_cancel' posting.id %}">마감 취소</a>
 {%else%}
