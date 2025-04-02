@@ -61,7 +61,7 @@ INSTALLED_APPS = [
 'allauth.socialaccount.providers.apple',
 ]
 SITE_ID = 1
-# ACCOUNT_DEFAULT_HTTP_PROTOCOL='https' 페이스북 로그인 시도하면서 이것저것 해본 건데, 없어도 될듯?(채팅기능 http로 작동하는지 확인해보자.)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'  # 페이스북 로그인 시도하면서 이것저것 해본 건데, 필요함!(채팅기능 http로 작동하는지 확인해보자.)
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
@@ -195,5 +195,5 @@ CELERY_RESULT_BACKEND = 'django-db'  # 장고 DB를 사용하는 경우. DB백�
 CELERY_CAHCE_BACKEND = 'django-cache'
 
 # https 통신을 위한 설정.# Proxy 사용 시 HTTPS 인식 설정 ####이거 해도 안됨;;; 서버에서도 지우자;;
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
