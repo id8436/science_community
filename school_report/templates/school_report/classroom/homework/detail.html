@@ -79,7 +79,7 @@ $(document).ready(function(){
 {% if teacher %}
     <h4>일반 교사 메뉴</h4>
     {% if private_submits %}
-        {% if not posting.is_special == "None" %}
+        {% if posting.is_special != "None" and posting.is_special is not None %}
             <a href="{% url 'school_report:homework_survey_statistics' private_submits.0.id %}" class="btn btn-info">설문 통계</a>
             <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
         {%endif%}
