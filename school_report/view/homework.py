@@ -111,6 +111,7 @@ def detail(request, posting_id):
     if profile.position == 'teacher':
         submit_list = models.HomeworkSubmit.objects.filter(base_homework=homework)
         context['submit_list'] = submit_list
+        context['teacher'] = True
     context['survey'] = homework.homeworkquestion_set.exists()  # 설문객체 여부.
 
     # 개인 과제에 대해
