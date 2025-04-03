@@ -79,7 +79,9 @@ $(document).ready(function(){
 {% if teacher %}
     <h4>일반 교사 메뉴</h4>
     {% if private_submits %}
-        {% if posting.is_special == "None" and posting.is_special is None %}
+        {% if posting.is_special == "peerReview"%}
+            <a href="{% url 'school_report:peerreview_statistics' posting.id %}">최종 통계 보기</a>
+        {%else%}
             <a href="{% url 'school_report:homework_survey_statistics' private_submits.0.id %}" class="btn btn-info">설문 통계</a>
             <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
         {%endif%}
@@ -134,7 +136,7 @@ $(document).ready(function(){
 
 
 
-{% if posting.is_special == 'peerReview' %}<!--  동료평가에 대하여.  -->
+{% if posting.is_special == 'peerReview' %}<!--  동료평가에 대하여. 학생들이 보는 것. -->
     {% if score_mean %}
     동료평가 평균 부여 점수 : {{score_mean}}점.  부여 분산 : {{variance}}
     {% endif %}

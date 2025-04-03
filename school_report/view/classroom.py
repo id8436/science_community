@@ -126,16 +126,15 @@ def homework_survey_list(request, posting_id):
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         surveyType = request.POST.get('surveyType')
         posting.is_special = surveyType
-        if surveyType == "None":  # 일반설문은 None.
+        posting.save()  # 특수설문 타입 저장.
+        if surveyType == "None":  # 일반설문은 None. 특수로 지정.
             posting.is_special = None
             return posting.to_homework()
-        posting.save()  # 특수설문 타입 저장.
         if posting.is_special == 'peerReview':  # 새로 폼을 지정하여 만들어야 하는 경우.
             context['surveyType'] = surveyType  # 폼의 hidden에 담기 위해 전달.
             address = 'school_report/classroom/homework/survey/special/' + str(surveyType) + '.html'
             return render(request, address, context)
         else:  # 이외, 특수설문 타입만 바꾸면 되는 경우.
-            box = posting.homework_box
             return redirect('school_report:homework_detail', posting_id=posting_id)
     return render(request, 'school_report/classroom/homework/survey/special/list.html', context)
 
