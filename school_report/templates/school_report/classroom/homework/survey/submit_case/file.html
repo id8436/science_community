@@ -18,19 +18,49 @@
 
 
 <script>
-window.onload = function() {
-    var checkboxes = document.getElementsByClassName("delete-file-checkbox");
+  window.onload = function() {
+      // 1. 체크박스 변경 시 파일 입력 보이기/숨기기 처리
+      var checkboxes = document.getElementsByClassName("delete-file-checkbox");
+      for (var i = 0; i < checkboxes.length; i++) {
+          checkboxes[i].addEventListener('change', function() {
+              var uploadInput = this.parentNode.getElementsByClassName("file-input")[0];
+              if(this.checked) {
+                  uploadInput.style.display = "block";
+              } else {
+                  uploadInput.style.display = "none";
+              }
+          });
+      }
 
-    for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].addEventListener('change', function() {
-            var uploadInput = this.parentNode.getElementsByClassName("file-input")[0];
+      // 2. 파일 업로드 크기 체크: 10MB 초과 시 붉게 강조하고 경고 메시지 표시
+      var fileInputs = document.getElementsByClassName("file-input");
+      const MAX_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
-            if(this.checked) {
-                uploadInput.style.display = "block";
-            } else {
-                uploadInput.style.display = "none";
-            }
-        });
-    }
-}
+      for (var i = 0; i < fileInputs.length; i++) {
+          fileInputs[i].addEventListener('change', function() {
+              // 기존에 표시된 경고 메시지가 있다면 제거
+              var existingWarnings = this.parentNode.getElementsByClassName("file-size-warning");
+              while(existingWarnings.length > 0) {
+                  existingWarnings[0].remove();
+              }
+
+              if(this.files && this.files.length > 0) {
+                  var file = this.files[0];
+                  if(file.size > MAX_SIZE) {
+                      // 파일 크기가 10MB를 초과하면 파일 입력 필드 테두리를 붉게 표시
+                      this.style.border = "2px solid red";
+                      // 경고 메시지 생성 및 삽입
+                      var warning = document.createElement("div");
+                      warning.className = "file-size-warning";
+                      warning.style.color = "red";
+                      warning.innerText = "경고: 파일 크기가 10MB를 초과합니다!";
+                      this.parentNode.insertBefore(warning, this.nextSibling);
+                  } else {
+                      // 정상 파일이면 테두리 원래대로 복원
+                      this.style.border = "";
+                  }
+              }
+          });
+      }
+  };
 </script>
