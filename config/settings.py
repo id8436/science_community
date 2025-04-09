@@ -193,7 +193,3 @@ CELERY_BROKER_URL = 'redis://localhost:6379'  # 브로커 주소값. 여기선 r
 CELERY_RESULT_BACKEND = 'django-db'  # 장고 DB를 사용하는 경우. DB백엔드로 redis를 사용한다면 위와 동일하게.
 # django-celery-result 백엔드 설정.
 CELERY_CAHCE_BACKEND = 'django-cache'
-
-# https 통신을 위한 설정.# Proxy 사용 시 HTTPS 인식 설정 ####이거 해도 안됨;;; 서버에서도 지우자;;
-# USE_X_FORWARDED_HOST = True
-# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
+import os  # 파일 수정시간 파악을 위해..
 
 '''의견. 훗날 앱 자체를 재구성해보자.
 1. 학교, 교실, 교과교실, 교과 등 객체는 하나의 모델로 type 처리해서 활용할 수 있지 않을까? board 모델로 활용해도 괜찮을듯.
@@ -453,26 +454,35 @@ class HomeworkAnswer(models.Model):
         return str(self.to_profile) + str(self.target_profile) + str(self.id)
     def save(self, *args, **kwargs):
         '''업로드 파일이 기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
-        try:
-            this = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
-            # print(self.file)  # 새로 들어오는 것.
-            # print(self.auto_file)
-            # print(this.file)
-            # print(this.auto_file)
-            ## this에서 지우고 진행되는 과정.
-            if self.auto_file:  # 임시저장값이 있다면..
-                if this.file == this.auto_file:  # 기존저장에서 두 값이 같다면 굳이 기존 파일을 지울 필요가 없음.
-                    if self.file:
-                        this.auto_file.delete(save=False)  # 기존 this.file == this.auto_file 이라면 안지워지기 때문에 새로운 파일을 올릴 땐 임시저장을 지워야 한다.
+        # 새 임시저장파일을 올릴 때. 그냥 저장하면 됨.(과거의 것 지우고.)
+        if self.auto_file and self.pk:  # 새로 저장하는 객체에선 pk가 주어져 있지 않다.
+            previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
+            # 만약 기존에 제출한 파일이 있다면...? 기존 파일은 지켜줘야지...!
+            if previous.auto_file:  # 기존 자동저장 파일이 있는 경우에만 진행.
+                previous_file_path = previous.file.path
+                previous_auto_file_path = previous.auto_file.path
+                previous_file_time = os.path.getmtime(previous_file_path)
+                previous_auto_file_time = os.path.getmtime(previous_auto_file_path)
+                if previous_file_time == previous_auto_file_time:  # 기존 임시저장과 기존 제출내용이 같다면..
+                    pass  # 파일 삭제 없이 저장하게끔 건너기.
                 else:
-                    if this.auto_file != self.auto_file:  # 기존 것 지우고 올리기.
-                        this.auto_file.delete(save=False)
-            if self.file:  # 어차피 최종파일은 임시저장파일을 거쳐오기 때문에.
-                if this.file != self.file:
-                    this.file.delete(save=False)
+                    # 다르다면 기존 임시저장 파일 지우고 진행.
+                    previous.auto_file.delete(save=False)
 
-        except:
-            pass  # when new photo then we do nothing, normal case
+        # 새 파일을 제출할 때.(임시저장을 먼저 진행하게끔 되어 있음.)
+        if self.file:  # 임시저장을 먼저 하기에, 기존 객체가 있음. 그냥 새 파일의 경로를 임시저장의 것으로 지정하면 될듯.
+            previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
+            if previous.file:  # 기존 자동저장 파일이 있는 경우에만 진행.
+                previous_file_path = previous.file.path
+                new_file_path = self.file.path
+                previous_file_time = os.path.getmtime(previous_file_path)
+                new_file_time = os.path.getmtime(new_file_path)
+                if previous_file_time == new_file_time:  # 임시저장에서 정리가 1차례 되었으니, file값만 보면 됨.
+                    pass
+                else:
+                    # 다르다면 기존 임시저장 파일 지우고 진행.
+                    previous.file.delete(save=False)
+
         super(HomeworkAnswer, self).save(*args, **kwargs)
 @receiver(pre_delete, sender=HomeworkAnswer)
 def delete_homework_answer_file(sender, instance, **kwargs):
