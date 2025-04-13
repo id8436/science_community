@@ -359,11 +359,18 @@ def survey_submit(request, submit_id):
 
     # 제출기한이 지났다면 제출되지 않도록.
     if homework.deadline:
-        import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
-        deadline = homework.deadline.astimezone(pytz.UTC)
-        if request.method == 'GET' and deadline < datetime.now(pytz.UTC) or homework.is_end:  # 데드라인이 지났다면... 안되지.
+        from django.utils import timezone
+        now = timezone.localtime()
+        deadline = homework.deadline
+        # import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
+        # deadline = homework.deadline.astimezone(pytz.timezone('Asia/Seoul'))
+        # print('데드라인 진입.')
+        # print(request.method)
+        # print(deadline)
+        # print(datetime.now(pytz.UTC))
+        if request.method == 'GET' and deadline < now or homework.is_end:  # 데드라인이 지났다면... 안되지.
             messages.error(request, "이미 제출기한이 지난 과제입니다. 볼 수는 있지만, 제출할 수는 없습니다.")
-        if request.method == 'POST':  # 제출하려고 하면, 거절해야지.
+        if request.method == 'POST' and deadline < now or homework.is_end:  # 제출하려고 하면, 거절해야지.
             messages.error(request, "이미 제출기한이 지난 과제입니다. 제출할 수 없습니다.")
             return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
