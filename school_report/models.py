@@ -457,22 +457,26 @@ class HomeworkAnswer(models.Model):
         # 새 임시저장파일을 올릴 때. 그냥 저장하면 됨.(과거의 것 지우고.)
         if self.auto_file and self.pk:  # 새로 저장하는 객체에선 pk가 주어져 있지 않다.
             previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
-            # 만약 기존에 제출한 파일이 있다면...? 기존 파일은 지켜줘야지...!
-            if previous.auto_file:  # 기존 자동저장 파일이 있는 경우에만 진행.
-                previous_file_path = previous.file.path
-                previous_auto_file_path = previous.auto_file.path
-                previous_file_time = os.path.getmtime(previous_file_path)
-                previous_auto_file_time = os.path.getmtime(previous_auto_file_path)
-                if previous_file_time == previous_auto_file_time:  # 기존 임시저장과 기존 제출내용이 같다면..
-                    pass  # 파일 삭제 없이 저장하게끔 건너기.
-                else:
-                    # 다르다면 기존 임시저장 파일 지우고 진행.
-                    previous.auto_file.delete(save=False)
+            # 새파일과 기존파일이 같으면 작업하지 않고 넘어간다.
+            previous_delete = False  # 판단을 이걸로 해주자.
+
+            print(previous.auto_file.size)
+            print(self.auto_file.size)
+            if previous.auto_file.size != self.auto_file.size or previous.auto_file != self.auto_file:  # 같은 파일이라면 패스.
+                previous_delete = True
+            print(previous_delete)
+            if previous.file.name:  # 기존제출파일이 있는 경우.
+                if previous.file.size == previous.auto_file.size:  # 제출한 파일이 있고, 임시파일과 같다면 지우지 않고.
+                    previous_delete = False
+            print(previous_delete)
+            # 최종결정.
+            if previous_delete:
+                previous.auto_file.delete(save=False)
 
         # 새 파일을 제출할 때.(임시저장을 먼저 진행하게끔 되어 있음.)
         if self.file:  # 임시저장을 먼저 하기에, 기존 객체가 있음. 그냥 새 파일의 경로를 임시저장의 것으로 지정하면 될듯.
             previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
-            if previous.file:  # 기존 자동저장 파일이 있는 경우에만 진행.
+            if previous.file.name:  # 기존 자동저장 파일이 있는 경우에만 진행.
                 previous_file_path = previous.file.path
                 new_file_path = self.file.path
                 previous_file_time = os.path.getmtime(previous_file_path)

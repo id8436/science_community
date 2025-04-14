@@ -319,7 +319,6 @@ def survey_temporary_save(request, submit_id):
     '''설문 임시저장'''
     submit = get_object_or_404(models.HomeworkSubmit, pk=submit_id)  # 과제 찾아오기.
     homework = submit.base_homework
-    print(request.POST)
     # 제출하였을 때.
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         return_message = survey_submit_base(request, submit_id)
@@ -362,19 +361,13 @@ def survey_submit(request, submit_id):
         from django.utils import timezone
         now = timezone.localtime()
         deadline = homework.deadline
-        # import pytz  # 타임존이 안맞아 if에서 대소비교가 안되어 처리.
-        # deadline = homework.deadline.astimezone(pytz.timezone('Asia/Seoul'))
-        # print('데드라인 진입.')
-        # print(request.method)
-        # print(deadline)
-        # print(datetime.now(pytz.UTC))
         if request.method == 'GET' and deadline < now or homework.is_end:  # 데드라인이 지났다면... 안되지.
             messages.error(request, "이미 제출기한이 지난 과제입니다. 볼 수는 있지만, 제출할 수는 없습니다.")
         if request.method == 'POST' and deadline < now or homework.is_end:  # 제출하려고 하면, 거절해야지.
             messages.error(request, "이미 제출기한이 지난 과제입니다. 제출할 수 없습니다.")
             return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.
 
-    # 제출하였을 때.
+    # 제출하였을 때.(최종 제출도 base 함수 안에서 처리됨.)
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         result = survey_submit_base(request, submit_id, final=True)
         submit.check = True
@@ -857,40 +850,63 @@ class FileToTextConverter:
 import os
 from zipfile import ZipFile
 from django.http import FileResponse
+import tempfile
+import re
+class AutoDeleteFile:
+    """파일이 닫힐 때 자동으로 삭제되는 래퍼"""
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.file = open(file_path, 'rb')
+
+    def close(self):
+        try:
+            self.file.close()
+        finally:
+            os.remove(self.file_path)
+
+    def __getattr__(self, attr):
+        return getattr(self.file, attr)
 @login_required()
 def submit_file_download(request, private_submit_id, question_id):
     '''설문으로 제출한 파일 다운로드.'''
     submit = models.HomeworkSubmit.objects.get(id=private_submit_id)
     question = models.HomeworkQuestion.objects.get(id=question_id)
     homework = submit.base_homework
-    context = {}
     school = homework.homework_box.get_school_model()
     teacher = check.Teacher(user=request.user,
                             school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
     try:
-        tartgetprofile = submit.target_profile.admin  # target이 None일 때 에러가 뜸;
-    except:
-        tartgetprofile = None
-    if tartgetprofile == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+        targetprofile = submit.target_profile.admin  # target이 None일 때 에러가 뜸;
+    except AttributeError:
+        targetprofile = None
+    if targetprofile == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
         if not teacher and homework.is_secret_student:
             messages.error(request, '학생들에겐 비공개 되어 있습니다.')
             return redirect(request.META.get('HTTP_REFERER', None))
 
     answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
 
-    with ZipFile('answers.zip', 'w') as zipfile:
-        base_name = f"{question.question_title}"  # 기본 파일명.
-        for answer in answers:
-            if answer.file:
-                submit_info = f"{answer.to_profile.code}{answer.to_profile.name}"
-                extension = f"{os.path.splitext(answer.file.name)[-1]}"  # 확장자를 뽑아낸다.
-                if request.GET.get('name_first') == 'true':
-                    file_name = f"{submit_info}_{base_name}.{extension}"
-                else:
-                    file_name = f"{base_name}_{submit_info}.{extension}"
-                zipfile.write(answer.file.path, file_name)
+    with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as temp_zip:
+        with ZipFile(temp_zip, 'w') as zipfile:
+    # with ZipFile('answers.zip', 'w') as zipfile:
+            base_name = f"{question.question_title}"  # 기본 파일명.
+            for answer in answers:
+                print('answer')
+                print(answer.file)
+                if answer.file:
+                    print('file')
+                    submit_info = f"{answer.to_profile.code}{answer.to_profile.name}"
+                    extension = os.path.splitext(answer.file.name)[-1].lstrip('.')
+                    # extension = f"{os.path.splitext(answer.file.name)[-1]}"  # 확장자를 뽑아낸다.
+                    if request.GET.get('name_first') == 'true':
+                        file_name = f"{submit_info}_{base_name}.{extension}"
+                    else:
+                        file_name = f"{base_name}_{submit_info}.{extension}"
+                    file_name = re.sub(r'[\\/*?:"<>|]', "_", file_name)
+                    zipfile.write(answer.file.path, file_name)
 
-    return FileResponse(open('answers.zip', 'rb'), as_attachment=True, filename='answers.zip')
+    return FileResponse(AutoDeleteFile(temp_zip.name), as_attachment=True, filename='answers.zip')
+
 
 @login_required()
 def collect_answer(request, homework_box_id):
