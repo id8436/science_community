@@ -458,17 +458,16 @@ class HomeworkAnswer(models.Model):
         if self.auto_file and self.pk:  # 새로 저장하는 객체에선 pk가 주어져 있지 않다.
             previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
             # 새파일과 기존파일이 같으면 작업하지 않고 넘어간다.
-            previous_delete = False  # 판단을 이걸로 해주자.
+            previous_delete = True  # 판단을 이걸로 해주자.
 
-            print(previous.auto_file.size)
-            print(self.auto_file.size)
-            if previous.auto_file.size != self.auto_file.size or previous.auto_file != self.auto_file:  # 같은 파일이라면 패스.
-                previous_delete = True
-            print(previous_delete)
+            # 어차피 지우고 다시 올리는 거라... 아래 내용은 없어도 될듯.
+            # if previous.auto_file.size != self.auto_file.size or previous.auto_file != self.auto_file:  # 같은 파일이라면 패스.
+            #     previous_delete = True
+            print(previous.auto_file)
+            print(self.auto_file)
             if previous.file.name:  # 기존제출파일이 있는 경우.
-                if previous.file.size == previous.auto_file.size:  # 제출한 파일이 있고, 임시파일과 같다면 지우지 않고.
+                if previous.file.size == previous.auto_file.size and previous.auto_file == self.auto_file:  # 제출한 파일이 있고, 임시파일과 같다면 지우지 않고.
                     previous_delete = False
-            print(previous_delete)
             # 최종결정.
             if previous_delete:
                 previous.auto_file.delete(save=False)
