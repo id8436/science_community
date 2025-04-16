@@ -262,6 +262,7 @@ def survey_submit_base(request, submit_id, final=False):
                     return HttpResponseBadRequest("10MB를 초과합니다.")
                 # 파일을 모델에 저장합니다.
                 answer.auto_file = file  # 업로드.
+                answer.file = None  # 없다고 명시해주지 않으면 self에서 이전 값을 가져와버림;;
             answer.save()
             return_message = "임시저장 되었습니다."
 
@@ -271,6 +272,7 @@ def survey_submit_base(request, submit_id, final=False):
         question_list = homework.homeworkquestion_set.all().order_by('ordering')
         for question in question_list:
             try:  # 연동된 제출의 응답 가져오기.
+                print('final 들어감.')
                 answer = models.HomeworkAnswer.objects.get(question=question, to_profile=submit.to_profile, target_profile=submit.target_profile)
                 answer.contents = answer.auto_contents
                 answer.file = answer.auto_file
@@ -891,8 +893,6 @@ def submit_file_download(request, private_submit_id, question_id):
     # with ZipFile('answers.zip', 'w') as zipfile:
             base_name = f"{question.question_title}"  # 기본 파일명.
             for answer in answers:
-                print('answer')
-                print(answer.file)
                 if answer.file:
                     print('file')
                     submit_info = f"{answer.to_profile.code}{answer.to_profile.name}"
@@ -900,8 +900,10 @@ def submit_file_download(request, private_submit_id, question_id):
                     # extension = f"{os.path.splitext(answer.file.name)[-1]}"  # 확장자를 뽑아낸다.
                     if request.GET.get('name_first') == 'true':
                         file_name = f"{submit_info}_{base_name}.{extension}"
-                    else:
+                    elif request.GET.get('name_first') == 'false':
                         file_name = f"{base_name}_{submit_info}.{extension}"
+                    else:  # origin이 들어온 경우. 파일명만 반환.
+                        file_name = os.path.basename(answer.file.name)
                     file_name = re.sub(r'[\\/*?:"<>|]', "_", file_name)
                     zipfile.write(answer.file.path, file_name)
 

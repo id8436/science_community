@@ -78,14 +78,12 @@ $(document).ready(function(){
 
 {% if teacher %}
     <h4>일반 교사 메뉴</h4>
-    {% if private_submits %}
         {% if posting.is_special == "peerReview"%}
             <a href="{% url 'school_report:peerreview_statistics' posting.id %}">최종 통계 보기</a>
         {%else%}
             <a href="{% url 'school_report:homework_survey_statistics' private_submits.0.id %}" class="btn btn-info">설문 통계</a>
             <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
         {%endif%}
-    {%endif%}
 <h4>제출 현황</h4>
 <!--관리자가 보는 테이블.-->
 <table class="table table-hover" id="submit_list">

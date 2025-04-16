@@ -434,6 +434,51 @@ def get_upload_to(instance, filename):
                                                 filename)
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+def is_same_file(file_1, file_2):
+    '''파일이 같은 것인지 간단하게 비교. model의 file 속성을 담는다.'''
+    is_same = True
+    if not file_1 or not file_2:
+        return False  # 하나라도 없으면 다르다고 판단
+    try:  # 에러가 나면 둘 중 하나가 없다는 것이니, False로.
+        # 경로 접근
+        path_1 = file_1.path
+        path_2 = file_2.path
+
+        # 사이즈 비교
+        if file_1.size != file_2.size:
+            return False
+        # 수정 시간 비교
+        mtime_1 = os.path.getmtime(path_1)
+        mtime_2 = os.path.getmtime(path_2)
+        if mtime_1 != mtime_2:
+            return False
+
+        return True
+
+    except (AttributeError, FileNotFoundError):
+        # path 속성이 없는 경우 (ex: 임시파일) → 파일 내용 일부 비교
+        # 이 경우는 메모리 비교 (간단하게 앞쪽만)
+        file_1.seek(0)
+        file_2.seek(0)
+        chunk1 = file_1.read(1024)
+        chunk2 = file_2.read(1024)
+        file_1.seek(0)
+        file_2.seek(0)
+        return chunk1 == chunk2
+
+    except Exception as e:  # 파일 둘 중 하나가 없다는 것이니, False를 주면 될듯.
+        print(f'파일 비교 중 오류: {e}')
+        return False
+def safe_delete(file_field):
+    '''계속 PermissionError: [WinError 32] 다른 프로세스가 파일을 사용 중이기 때문에 프로세스가 액세스 할 수 없습니다:  에러가 떠서...'''
+    try:
+        if file_field and file_field.name:
+            # 열려 있다면 닫기
+            if hasattr(file_field, 'file') and not file_field.closed:
+                file_field.file.close()
+            file_field.delete(save=False)
+    except Exception as e:
+        print(f'파일 삭제 실패: {e}')
 class HomeworkAnswer(models.Model):
     '''질문의 하위로 구성되어 있음.'''
     respondent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)  # 응답자. 지워가야 할까? 아니면 임의 설문을 위해 남겨야 하나.
@@ -454,38 +499,61 @@ class HomeworkAnswer(models.Model):
         return str(self.to_profile) + str(self.target_profile) + str(self.id)
     def save(self, *args, **kwargs):
         '''업로드 파일이 기존 파일과 다를 경우에 기존파일을 삭제하기 위한 save 오버라이드.'''
+        ## 가능하면 print 지우지 말자. 점검이 너무 힘들어;;;
         # 새 임시저장파일을 올릴 때. 그냥 저장하면 됨.(과거의 것 지우고.)
+        dont_save = False  # 저장하지 않을 상황을 대비.
+        print('현재파일.')
+        print(self.auto_file)
+        print(self.file)  # 업로드 할 때 값이 None이면 이전 값을 가져와서 문제가 생김... view에서 None으로 명시해 주는 게 좋을듯.
         if self.auto_file and self.pk:  # 새로 저장하는 객체에선 pk가 주어져 있지 않다.
             previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
             # 새파일과 기존파일이 같으면 작업하지 않고 넘어간다.
             previous_delete = True  # 판단을 이걸로 해주자.
 
-            # 어차피 지우고 다시 올리는 거라... 아래 내용은 없어도 될듯.
-            # if previous.auto_file.size != self.auto_file.size or previous.auto_file != self.auto_file:  # 같은 파일이라면 패스.
-            #     previous_delete = True
+            print('previous')
             print(previous.auto_file)
-            print(self.auto_file)
-            if previous.file.name:  # 기존제출파일이 있는 경우.
-                if previous.file.size == previous.auto_file.size and previous.auto_file == self.auto_file:  # 제출한 파일이 있고, 임시파일과 같다면 지우지 않고.
-                    previous_delete = False
+            print(previous.file)
+            if is_same_file(previous.auto_file, self.auto_file):
+                print('이전, 현재 auto_file이 같음.')
+                previous_delete = False
+                dont_save = True  # 새 파일도 저장을 안하게끔.
+            if is_same_file(previous.file, previous.auto_file):  # 제출한 파일이 있고, 임시파일과 같다면 지우지 않고.
+                previous_delete = False
+                print('동일성점검.')
+                print(is_same_file(previous.file, previous.auto_file))
+                print(is_same_file(previous.auto_file, self.auto_file))
+
             # 최종결정.
             if previous_delete:
-                previous.auto_file.delete(save=False)
+                print('auto_file 삭제')
+                safe_delete(previous.auto_file)
 
         # 새 파일을 제출할 때.(임시저장을 먼저 진행하게끔 되어 있음.)
         if self.file:  # 임시저장을 먼저 하기에, 기존 객체가 있음. 그냥 새 파일의 경로를 임시저장의 것으로 지정하면 될듯.
             previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
-            if previous.file.name:  # 기존 자동저장 파일이 있는 경우에만 진행.
-                previous_file_path = previous.file.path
-                new_file_path = self.file.path
-                previous_file_time = os.path.getmtime(previous_file_path)
-                new_file_time = os.path.getmtime(new_file_path)
-                if previous_file_time == new_file_time:  # 임시저장에서 정리가 1차례 되었으니, file값만 보면 됨.
-                    pass
-                else:
-                    # 다르다면 기존 임시저장 파일 지우고 진행.
-                    previous.file.delete(save=False)
+            print('file점검.')
+            print('previous')
+            print(previous.auto_file)
+            print(previous.file)
 
+            if is_same_file(previous.file, self.file) :  # 임시저장에서 정리가 1차례 되었으니, file값만 보면 됨.
+                dont_save = True
+            else:
+                # 다르다면 기존 임시저장 파일 지우고 진행.
+                print('file 삭제')
+                print(self.file)
+                print(previous.file)
+                safe_delete(previous.file)
+                dont_save = False
+        else:  # 자동저장에선 self.file에 None을 지정해서 이전 파일의 내용을 다시 덮어주어야 한다.
+            try:  # 처음 저장 때엔 previous.file이 없으니.
+                previous = HomeworkAnswer.objects.get(id=self.id)  # 기존 저장되어 있는 객체.
+                self.file = previous.file
+            except:
+                pass
+        if dont_save:  # 저장하지 않게 하면 그냥 반환.
+            return
+        print('저장 발생!')
         super(HomeworkAnswer, self).save(*args, **kwargs)
 @receiver(pre_delete, sender=HomeworkAnswer)
 def delete_homework_answer_file(sender, instance, **kwargs):
