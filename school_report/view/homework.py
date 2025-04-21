@@ -417,6 +417,36 @@ def survey_delete(request, submit_id):
     submit.delete()
     messages.success(request, '삭제 성공')
     return redirect(request.META.get('HTTP_REFERER', None))  # 이전 화면으로 되돌아가기.    return None
+
+from types import SimpleNamespace
+def survey_statistics_for_teacher(request, homework_id):
+    '''통계는 개인의 통계밖에 없어서, 교사들도 볼 수 있게 재구성.'''
+    homework = models.Homework.objects.get(id=homework_id)
+    question_list = homework.homeworkquestion_set.order_by('ordering')
+    context = {}
+    school = homework.homework_box.get_school_model()
+    teacher = check.Teacher(user=request.user,
+                            school=school).in_school_and_none()  # 교사라면 교사객체가 반환됨. 교과 뿐 아니라 학교, 학급 등에서도 일관적으로 작동할 수 있게 해야 할텐데...
+    ### 열람 관련.
+    # question 하위의 submit을 탬플릿에서 호출해 보여준다.(뷰에선 다루지 않음.)
+    if homework.is_special == "peerReview" and not homework.is_end:  # 동료평가의 경우, 평가 끝날 때까지 못 봄.
+        messages.error(request, "동료평가의 경우, 설문이 마감된 후에 열람할 수 있습니다.")
+        return redirect(request.META.get('HTTP_REFERER', None))
+    tartgetprofile = None  # 교사용은 None에 대한 것만 볼 수 있음.
+    if tartgetprofile == request.user or teacher:  # 설문대상학생이거나 교사. 자기만 볼 수 있게.
+        if not teacher and homework.is_secret_student:
+            messages.error(request, '학생들에겐 비공개 되어 있습니다.')
+            return redirect(request.META.get('HTTP_REFERER', None))
+        # 통계를 수행하는 함수가 submit을 받아서 진행되기 때문에... 정의.
+        submit = SimpleNamespace()
+        submit.target_profile = None
+        question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
+        context['question_list'] = question_list
+        context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.(없어도 될 것 같은데?)
+        return render(request, 'school_report/classroom/homework/survey/statistics.html', context)
+    else:
+        messages.error(request, "설문대상자 혹은 교사만 열람이 가능합니다.")
+        return redirect(request.META.get('HTTP_REFERER', None))
 def survey_statistics(request, submit_id):
     '''과제 통계 제시.'''
     submit = models.HomeworkSubmit.objects.get(id=submit_id)
@@ -450,6 +480,10 @@ def survey_statistics(request, submit_id):
 def question_list_statistics(question_list, submit):
     '''question_list를 받아 실질적인 통계를 내고 다시 반환.'''
     for question in question_list:
+        if models.HomeworkAnswer.objects.filter(question=question,target_profile=submit.target_profile).exists():
+            pass
+        else:
+            continue
         answers = models.HomeworkAnswer.objects.filter(question=question, target_profile=submit.target_profile)
         question.answer_count = answers.count()  # 갯수 따로 저장.
         origin_type = question.question_type  # 탬플릿 불러오기를 위해 원 타입으로 되돌려야 함.

@@ -89,6 +89,7 @@ urlpatterns = [
     path('homework/survey_temp_restore/<int:submit_id>/', homework.survey_temp_restore, name='survey_temp_restore'),
     path('homework/survey_delete/<int:submit_id>/', homework.survey_delete, name='homework_survey_delete'),
     path('homework/survey_statistics/<int:submit_id>/', homework.survey_statistics, name='homework_survey_statistics'),
+    path('homework/survey_statistics_for_teacher/<int:homework_id>/', homework.survey_statistics_for_teacher, name='homework_survey_statistics_for_teacher'),
     path('classroom/homework/survey_statistics_spreadsheet/<int:posting_id>/', classroom.homework_survey_statistics_spreadsheet,
          name='homework_survey_statistics_spreadsheet'),
     path('classroom/homework/spreadsheet_to_excel_download/<int:posting_id>/', classroom.spreadsheet_to_excel_download,

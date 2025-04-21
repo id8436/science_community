@@ -33,7 +33,7 @@
         <input type="hidden" name="year" value="{{form.year.value}}">
         <input type="hidden" name="level" value="{{form.level.value}}">
 
-    <h4 class="my-3 border-bottom pb-2">다음은 선택사항.</h4>
+    <h4 class="my-3 border-bottom pb-2">다음은 선택사항</h4>
         <label>학교코드</label>
     <input type="text" class="form-control" name="school_code" id="school_code"
                        value="{{ form.school_code.value|default_if_none:'' }}" placeholder="나이스 서비스 이용을 위한 학교코드">
@@ -43,6 +43,36 @@
 
     <input type="submit" class="btn btn-primary" value='등록'>
     </div>
+
+    <h4 class="my-3 border-bottom pb-2">학교 게시판</h4>
+        선택하면 게시판을 개설, 체크를 해제하면 게시판 이용을 중지합니다.
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    <div class="col">
+      <div class="card h-100 shadow-sm border {% if school.is_lost_item_board_active %}border-primary{% endif %}">
+        <div class="card-body d-flex align-items-start">
+          <input class="form-check-input me-2 mt-1" type="checkbox" name="boards_checks"
+                 value="lost_item_board" id="lost_item_board"
+                 {% if school.is_lost_item_board_active %}checked{% endif %}>
+          <label class="form-check-label stretched-link" for="lost_item_board">
+            분실물 신고
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card h-100 shadow-sm border {% if school.is_suggestion_board_active %}border-primary{% endif %}">
+        <div class="card-body d-flex align-items-start">
+          <input class="form-check-input me-2 mt-1" type="checkbox" name="boards_checks"
+                 value="suggestion_board" id="suggestion_board"
+                 {% if school.is_suggestion_board_active %}checked{% endif %}>
+          <label class="form-check-label stretched-link" for="suggestion_board">
+            건의 사항
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
 </form>
 
 

@@ -81,8 +81,10 @@ $(document).ready(function(){
         {% if posting.is_special == "peerReview"%}
             <a href="{% url 'school_report:peerreview_statistics' posting.id %}">최종 통계 보기</a>
         {%else%}
-            <a href="{% url 'school_report:homework_survey_statistics' private_submits.0.id %}" class="btn btn-info">설문 통계</a>
-            <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id%}" class="btn btn-info">설문 스프레드시트형 통계</a>
+            {% if survey %}
+                <a href="{% url 'school_report:homework_survey_statistics_for_teacher' posting.id %}" class="btn btn-info">설문 통계</a>
+                <a href="{% url 'school_report:homework_survey_statistics_spreadsheet' posting.id %}" class="btn btn-info">설문 스프레드시트형 통계</a>
+            {% endif %}
         {%endif%}
 <h4>제출 현황</h4>
 <!--관리자가 보는 테이블.-->
