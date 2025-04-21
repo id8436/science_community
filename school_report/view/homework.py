@@ -438,8 +438,7 @@ def survey_statistics_for_teacher(request, homework_id):
             messages.error(request, '학생들에겐 비공개 되어 있습니다.')
             return redirect(request.META.get('HTTP_REFERER', None))
         # 통계를 수행하는 함수가 submit을 받아서 진행되기 때문에... 정의.
-        submit = SimpleNamespace()
-        submit.target_profile = None
+        submit = models.HomeworkSubmit.objects.filter(base_homework=homework, target_profile=None).first()
         question_list = question_list_statistics(question_list, submit)  # question_list 의 info에 정보를 담아 반환한다.
         context['question_list'] = question_list
         context['submit'] = submit  # 동료평가에서 특별한 댓글 선택하기에서.(없어도 될 것 같은데?)

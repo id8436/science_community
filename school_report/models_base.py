@@ -377,9 +377,7 @@ class HomeworkSubmit(models.Model):
     base_homework = models.ForeignKey('Homework', on_delete=models.CASCADE)
     # to_user에서 학생이 아직 등록하지 않은 상태라면? 경고를 주기라도 해야 할듯.
     to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 생각해 보니, 학생이 아니라, 유저로 해야 해. 교사들 설문 등 필요할 때가 있잖아? 아래 프로파일로 대체.
-    to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True,
-                                    default=None  # 이부분은 성공적으로 작동하게 되면 없어도 될듯.
-                                   )  # 프로필에 과제 부여. 프로필 완성되면 위 지우자.
+    to_profile = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True, blank=True, default=None)
 
     to_student = models.ForeignKey('Student', default=None, on_delete=models.CASCADE, null=True, blank=True)  # 동료평가용. # 프로필 완성되면 지울 것.
     target_profile = models.ForeignKey('Profile', default=None, on_delete=models.CASCADE, null=True, blank=True, related_name='target_homeworks')  # 동료평가용.
