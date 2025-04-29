@@ -4,7 +4,7 @@
   {% csrf_token %}
 
   <!-- 섬머노트 에디터 켜지는 부분. -->
-  <div class="{{ editor|default:'click2edit' }}">{{ content|default_if_none:'' }}</div>
+  <div class="{{ editor|default:'click2edit' }}">{{ content|default_if_none:''|safe }}</div>
     {% if is_authorized %}
       <button id="edit" type="button" class="btn btn-sm btn-outline-primary">수정</button>
       <button id="save" type="button" style="display:none;" class="btn btn-sm btn-outline-primary">저장</button>
