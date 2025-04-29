@@ -1,6 +1,6 @@
-from django.shortcuts import render, get_object_or_404, redirect, resolve_url, HttpResponse
+from django.shortcuts import render, redirect
 from .. import models  # 모델 호출.
-from ..forms import HomeroomForm, SchoolForm, SubjectForm
+from ..forms import HomeroomForm, SchoolForm, SubjectForm, SchoolLostItemForm
 from django.contrib import messages
 from custom_account.decorator import custom_login_required as login_required
 import openpyxl
@@ -97,6 +97,7 @@ def school_create(request):
     return render(request, 'school_report/school/school_create.html', context)
 @login_required()
 def school_modify(request, school_id):
+    '''학교 관련 정보 수정.(게시판 사용여부 포함)'''
     school = get_object_or_404(models.School, pk=school_id)
     if request.user != school.master:
         messages.error(request, '수정권한이 없습니다')
@@ -107,12 +108,23 @@ def school_modify(request, school_id):
             school = form.save(commit=False)
             name = name_trimming(school.name)  # 이름에서 공백 제거해 적용.
             school.name = name
+            # 기본적으로 게시판 사용 중단 후, 체크된 것 보고 진행.
+            school.is_suggestion_board_active = False
+            school.is_lost_item_board_active = False
+            print(request.POST.getlist('boards_checks'))
+            for board in request.POST.getlist('boards_checks'):
+                if board == 'lost_item_board':
+                    lost_item_board, _ = models.LostItemBoard.objects.get_or_create(school=school)
+                    school.is_lost_item_board_active = True
+                if board == 'suggestion_board':
+                    sugg_board, _ = models.SuggestionBoard.objects.get_or_create(school=school)
+                    school.is_suggestion_board_active = True
             school.save()
             return redirect('school_report:school_main', school_id=school.id)
     else:  # GET으로 요청된 경우.
         form = SchoolForm(instance=school)  # 해당 모델의 내용을 가져온다!
         # 태그를 문자열화 하여 form과 함께 담는다.
-    context = {'form': form}
+    context = {'form': form, 'school': school}
     return render(request, 'school_report/school/school_modify.html', context)
 
 def create_performance_score(request, subject_id):
@@ -632,6 +644,104 @@ def meal_info(request, school_id):
         except:
             pass
     return render(request, 'school_report/school/meal_info.html', context)
+
+def lost_item_board(request, school_id):
+    '''분실물게시판으로 가는 링크.'''
+    school = get_object_or_404(models.School, pk=school_id)
+    context = {}
+    if school.is_lost_item_board_active:
+        board = models.LostItemBoard.objects.get(school=school)
+        teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
+        context['teacher_message'] = board.teacher_message
+        context['teacher'] = teacher
+        context['board'] = board
+        context['school'] = school
+        context['items_teacher_report'] = models.LostItem.objects.filter(board=board, is_report=True)  # 제보.
+        context['items'] = models.LostItem.objects.filter(board=board, is_report=False)
+    return render(request, 'school_report/school/boards/lost_item_board.html', context)
+
+def lost_item_board_teachers_message(request, school_id):
+    '''분실물 게시판에 남기는 교사의 말. 을 ajax로 받아 저장.'''
+    school = models.School.objects.get(id=school_id)
+    teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
+    if request.method == 'POST' and teacher:
+        # Ajax로 전송된 'content' 값 받기
+        content = request.POST.get('content')
+        if content:
+            # 받은 콘텐츠를 DB에 저장하거나 처리하는 코드 (예: 모델 저장)
+            board = models.LostItemBoard.objects.get(school=school)
+            board.teacher_message = content
+            board.teacher = teacher
+            board.save()
+            # 성공 응답
+            return JsonResponse({'status': 'success', 'message': '저장되었습니다!'})
+
+        return JsonResponse({'status': 'error', 'message': '내용이 비어있습니다.'})
+
+    return JsonResponse({'status': 'error', 'message': '잘못된 요청입니다.'})
+
+@login_required
+def lost_item_board_report_item(request, board_id, is_report=False):
+    '''들어온 분실물 안내.'''
+    board = models.LostItemBoard.objects.get(pk=board_id)
+    context = {}
+    if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
+        form = SchoolLostItemForm(request.POST, request.FILES)  # 폼을 불러와 내용입력을 받는다.
+        school = board.school
+        profile = check.Teacher(user=request.user, school=school).in_school()
+        if not profile:
+            return redirect('school_report:lost_item_board', school_id=school.id)
+        if form.is_valid():  # 문제가 없으면 다음으로 진행.
+            item = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
+            item.board = board
+            item.author = profile
+            if is_report:
+                item.is_report = True
+            item.save()
+            return redirect('school_report:lost_item_board', school_id=school.id)
+    else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
+        form = SchoolLostItemForm()
+    context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
+    return render(request, 'school_report/school/boards/lost_item_report_item.html', context)
+@login_required
+def lost_item_modify(request, item_id):
+    '''분실물 글 수정.'''
+    item = get_object_or_404(models.LostItem, pk=item_id)
+    if request.user != item.author.admin:
+        messages.error(request, '수정권한이 없습니다')
+        return redirect('school_report:lost_item_board', school_id=item.board.school.id)
+    if request.method == "POST":
+        form = SchoolLostItemForm(request.POST, request.FILES, instance=item)  # 받은 내용을 객체에 담는다. instance에 제대로 된 걸 넣지 않으면 새로운 인스턴스를 만든다.
+        if request.POST.get('delete_photo_item'):  # 이상하게 valid 안에 넣으면 안되더라..
+            if item.photo_item:
+                item.photo_item.delete(save=False)  # 기존 사진 실제 파일 시스템에서 삭제
+                item.photo_item = None
+        if form.is_valid():
+            item = form.save(commit=False)  # 잠시 보류.
+            item.save(update_fields=['where', 'when', 'description', 'photo_item', 'status'])  # 최종 저장.
+            #item.save(update_fields=['where', 'when', 'description', 'photo_item', 'status'])  # 업데이트하면 다른 파일을 새로이 저장해버리는 문제 발생;;
+            return redirect('school_report:lost_item_board', school_id=item.board.school.id)
+    else:  # GET으로 요청된 경우.
+        form = SchoolLostItemForm(instance=item)  # 해당 모델의 내용을 가져온다!
+        # 태그를 문자열화 하여 form과 함께 담는다.
+    context = {'form': form}
+    return render(request, 'school_report/school/boards/lost_item_report_item.html', context)
+
+
+@login_required
+def lost_item_board_upload_claim_photo(request, item_id):
+    '''분실물 찾아간 사람의 사진 올리기.'''
+    lost_item = get_object_or_404(models.LostItem, pk=item_id)
+    board = lost_item.board
+    if request.user != lost_item.author.admin:
+        return HttpResponseForbidden()
+    if request.method == 'POST' and request.FILES.get('photo_claimed'):
+        lost_item.photo_claimed.delete(save=False)  # 기존 사진 삭제.
+        lost_item.photo_claimed = request.FILES['photo_claimed']
+        lost_item.status = 'found'
+        lost_item.save(update_fields=['photo_claimed', 'status'])
+        return redirect('school_report:lost_item_board', school_id=board.school.id)
+    return redirect('school_report:lost_item_board', school_id=board.school.id)
 
 def profile_reset(request, profile_id):
     '''기존 계정을 잊어버린 경우, 연동을 끊게 해주기.'''

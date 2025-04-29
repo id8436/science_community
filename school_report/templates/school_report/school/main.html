@@ -1,27 +1,31 @@
 {% extends "school_report/section.html" %}
 
-{% block content %}
+{% block inner_content %}
 
 학교 메인
 {{ school }}
-<div>
-    기관 마스터 : {{school.master}}({% if teacher %}{{teacher}}{% else %}관리자 본인도 교사 등록이 필요합니다.{%endif%})
-
-</div>
+</br>기관 마스터 : {{school.master}}
 {% if user == school.master %}
-<h3 class="my-3 border-bottom pb-2">기관 마스터 메뉴</h3>
-<a href="{% url 'school_report:school_modify' school.id %}">학교정보 수정하기</a><br>
-<a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
-<a href="{% url 'school_report:student_assignment' 'school' school.id %}">전체 학생명단 관리</a>
+    <h3 class="my-3 border-bottom pb-2">기관 마스터 메뉴</h3>
+    <a href="{% url 'school_report:school_modify' school.id %}">학교정보 수정하기</a><br>
+    <a href="{% url 'school_report:teacher_assignment' school.id %}">교사명단 관리</a>
+    <a href="{% url 'school_report:student_assignment' 'school' school.id %}">전체 학생명단 관리</a>
 {% endif %}
 <div class="my-3 border-bottom pb-2"></div>
 
 
-
+<h4 class="my-3 border-bottom pb-2">학교 공용 정보</h4>
+    <div class="d-flex flex-wrap">
 {% if school.school_code %}
-<a href="{% url 'school_report:meal_info' school.id %}">급식정보 보러 가기</a><br>
+    <a href="{% url 'school_report:meal_info' school.id %}" class="btn btn-outline-success btn-sm m-1">급식정보 보러 가기</a>
 {% endif %}
-
+{% if school.is_lost_item_board_active %}
+    <a href="{% url 'school_report:lost_item_board' school.id %}" class="btn btn-outline-success btn-sm m-1">분실물 게시판</a>
+{% endif %}
+{% if school.is_suggestion_board_active %}
+    <a href="" class="btn btn-outline-success btn-sm m-1">건의 게시판</a>
+{% endif %}
+    </div>
 
 {% if teacher %}
 <h4 class="my-3 border-bottom pb-2">교직원 메뉴</h4>
@@ -40,7 +44,7 @@
     {% include "school_report/classroom/list.html" %}
 
 {% elif student %}
-<h6>학생메뉴</h6>
+<h3 class="my-3 border-bottom pb-2">학생메뉴</h3>
     어서오세요, {{ student.name }}님~!
 <h4 class="my-3 border-bottom pb-2">하위시험 목록</h4>
 
@@ -93,4 +97,4 @@
 {% endwith %}
 
 
-{% endblock content%}
+{% endblock inner_content %}

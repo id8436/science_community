@@ -12,7 +12,18 @@ urlpatterns = [
     path('school_create/', school.school_create, name='school_create'),
     path('school_modify/<int:school_id>/', school.school_modify, name='school_modify'),
     path('school/school_list/', school.list, name='school_list'),
-    path('meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
+    path('school/meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
+    #분실물
+    path('school/lost_item_board/<int:school_id>/', school.lost_item_board, name='lost_item_board'),
+    path('school/lost_item_board_teacher_message/<int:school_id>/', school.lost_item_board_teachers_message, name='lost_item_board_teachers_message'),
+    path('school/lost_item_board_report_item/<int:board_id>/', school.lost_item_board_report_item,
+         name='lost_item_board_report_item'),
+    path('school/lost_item_board_report_item/<int:board_id>/<str:is_report>/', school.lost_item_board_report_item,
+         name='lost_item_board_report_item'),
+    path('school/lost_item_board_upload_claim_photo/<int:item_id>/', school.lost_item_board_upload_claim_photo,
+         name='lost_item_board_upload_claim_photo'),
+    path('school/lost_item_modify/<int:item_id>/', school.lost_item_modify, name='lost_item_modify'),
+
     # 과목, 교과 관련
     path('subject_create/<int:school_id>/', subject.create, name='subject_create'),
     path('subject_main/<int:room_id>/', subject.main, name='subject_main'),

@@ -3,6 +3,7 @@ from .models import *
 
 
 admin.site.register(School) #모델을 등록한다.
+admin.site.register(LostItem)
 admin.site.register(Homeroom)
 admin.site.register(Subject)
 admin.site.register(Classroom)

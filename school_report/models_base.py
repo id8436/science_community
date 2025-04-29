@@ -42,6 +42,9 @@ class School(BaseRoom):
 
     # 각종 정보
     teacher_board_id = models.IntegerField(default=6)  # 학교게시판으로 연결.
+    # 분실, 건의 게시판
+    is_suggestion_board_active = models.BooleanField(default=False)
+    is_lost_item_board_active = models.BooleanField(default=False)
 
     #site_account = models.ManyToManyField('Memo') 버린 모델.
     def __str__(self):

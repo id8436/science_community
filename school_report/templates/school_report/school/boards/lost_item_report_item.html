@@ -1,0 +1,88 @@
+{% extends "school_report/section.html" %}
+{% block inner_content %}
+
+<div class="container">
+<!-- 에러처리 -->
+{% include "form_errors.html" %}
+<h5 class="my-3 border-bottom pb-2">분실물 등록</h5>
+
+<!-- 폼 처리-->
+<form method="post" enctype="multipart/form-data" class="post-form my-3" >
+    {% csrf_token %}
+    <div class="form-group">
+    <label class="d-block mb-2 font-weight-semibold">상태</label>
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-outline-primary {% if form.status.value == 'found' %}active{% endif %}">
+                    <input type="radio" name="status" value="found" autocomplete="off" {% if form.status.value == 'found' %}checked{% endif %}> 찾음
+                </label>
+                <label class="btn btn-outline-warning {% if form.status.value == 'lost' %}active{% endif %}">
+                    <input type="radio" name="status" value="lost" autocomplete="off" {% if form.status.value == 'lost' %}checked{% endif %}> 분실
+                </label>
+            </div>
+
+        <!-- 발견 장소 입력 필드 -->
+            <label for="where" class="d-block mt-4 mb-2">발견 장소</label>
+            <input type="text" class="form-control" name="where" id="where"
+                   value="{{ form.where.value|default_if_none:'' }}" placeholder="어디서 발견하였나요?">
+
+            <!-- 발견 시간 입력 필드 -->
+            <label for="when" class="d-block mt-4 mb-2">발견 시간</label>
+            <input type="datetime-local" name="when" id="when" class="form-control"
+                   value="{{ form.when.value|date:'Y-m-d\TH:i' }}">
+
+            <!-- 물건 설명 입력 필드 -->
+            <label for="description" class="d-block mt-4 mb-2">물건에 대하여</label>
+            <textarea class="form-control" name="description" id="description" placeholder="물건에 대한 설명">{{ form.description.value|default_if_none:''|safe }}</textarea>
+
+
+        {% load file_filters %}
+<label class="d-block mt-4 mb-2">물건 사진</label>
+{% if form.photo_item.value %}
+    <!-- 업로드된 사진 미리보기 -->
+    <div class="mb-3">
+        <img src="{{ form.photo_item.value.url }}" alt="업로드된 물건 사진" class="img-thumbnail" style="max-width: 300px;">
+    </div>
+
+    <!-- 기존 파일명 + 다운로드 링크 -->
+    <div class="mb-2">
+        <a href="{{ form.photo_item.value.url }}" download class="btn btn-link p-0">기존 사진 다운로드 ({{ form.photo_item.value.name|basename }})</a>
+    </div>
+
+    <!-- 기존 사진 삭제 옵션 -->
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="delete_photo_item" name="delete_photo_item">
+        <label class="form-check-label" for="delete_photo_item">기존 사진 삭제 후 새 파일 업로드</label>
+    </div>
+{% endif %}
+
+<!-- 파일 업로드 필드 (기존 사진이 있으면 숨김, 없으면 바로 보이기) -->
+<div class="file-upload-container">
+    <input type="file" class="form-control-file" id="photo_item_upload" name="photo_item" {% if form.photo_item.value %}style="display: none;"{% endif %}>
+</div>
+
+        <div class="form-group mt-4">
+            <input type="submit" class="btn btn-primary" value="등록">
+        </div>
+</form>
+
+
+
+<script>
+  window.onload = function() {
+      const deleteCheckbox = document.getElementById('delete_photo_item');
+      const uploadInput = document.getElementById('photo_item_upload');
+
+      if (deleteCheckbox && uploadInput) {
+          deleteCheckbox.addEventListener('change', function() {
+              if (this.checked) {
+                  uploadInput.style.display = "block";
+              } else {
+                  uploadInput.style.display = "none";
+                  uploadInput.value = ""; // 체크 해제하면 파일 초기화
+              }
+          });
+      }
+  };
+</script>
+
+{% endblock inner_content%}

@@ -5,6 +5,12 @@ class SchoolForm(forms.ModelForm):
     class Meta:
         model = School
         fields = ['name', 'year', 'level', 'school_code', 'education_office']
+
+class SchoolLostItemForm(forms.ModelForm):
+    class Meta:
+        model = LostItem
+        fields = ['where', 'when', 'description', 'photo_item', 'status']
+
 class HomeroomForm(forms.ModelForm):
     class Meta:
         model = Homeroom

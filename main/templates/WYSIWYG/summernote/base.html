@@ -1,0 +1,47 @@
+<textarea class="{{ editor|default:'form-control' }}" name="{{ name|default:'content' }}" id="{{ editor|default:'summernote' }}">
+        {{ form.content.value|default_if_none:'' |safe }}</textarea>
+
+<script>
+  $('#{{ editor|default:'summernote' }}').summernote({
+    placeholder: '여기에 내용 입력하세요~ 그림파일 용량은 2MB까지입니다~',
+    tabsize: 2,
+    height: 300, // 에디터 높이
+    toolbar: [
+      ['style', ['style']],
+      ['fontname', ['fontname']],
+      ['fontsize', ['fontsize']],
+      ['font style', ['bold', 'italic', 'underline','strikethrough', 'clear','superscript', 'subscript',]],
+      ['color', ['forecolor','color']],
+      ['para', ['ul', 'ol', 'paragraph']],
+      ['table', ['table']],
+      ['insert', ['link', 'picture', 'video']],
+      ['view', ['fullscreen', 'codeview', 'help']],
+    ],
+    defaultFontName:'바탕',
+    fontNames: ['Arial', 'Comic Sans MS','맑은 고딕','궁서','굴림','돋음체','바탕'],
+    fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
+    maximumImageFileSize:2097152,
+
+  popover: {
+                  image: [
+                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                    ['remove', ['removeMedia']]
+                  ],
+                  link: [
+                    ['link', ['linkDialogShow', 'unlink']]
+                  ],
+                  table: [
+                    ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+                    ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+                  ],
+                  air: [
+                    ['color', ['color']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['para', ['ul', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']]
+                  ]
+                }
+      });
+</script>

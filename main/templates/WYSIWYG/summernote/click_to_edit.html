@@ -1,0 +1,127 @@
+
+
+<form id="editor_form" method="post">
+  {% csrf_token %}
+
+  <!-- 섬머노트 에디터 켜지는 부분. -->
+  <div class="{{ editor|default:'click2edit' }}">{{ content|default_if_none:'' }}</div>
+    {% if is_authorized %}
+      <button id="edit" type="button" class="btn btn-sm btn-outline-primary">수정</button>
+      <button id="save" type="button" style="display:none;" class="btn btn-sm btn-outline-primary">저장</button>
+      <button id="cancel" type="button" style="display:none;" class="btn btn-sm btn-outline-danger">취소</button>
+
+    {% endif %}
+</form>
+
+<!-- Summernote -->
+<!-- CSS: Summernote -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.css"
+    rel="stylesheet"
+  />
+<!-- Summernote BS5 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+
+<script>
+// 문서 로드 시점에 원본 HTML 저장
+var originalContent = $(".{{ editor|default:'click2edit' }}").html();
+var modifyContent;
+// JS (스크립트 아래쪽에 위치)
+$(document).ready(function () {
+  var $edHolder = $(".{{ editor|default:'click2edit' }}");
+
+  $('#edit').on('click', function () {
+  if (typeof modifyContent !== 'undefined' && modifyContent !== null) {
+    $edHolder.summernote('code', modifyContent);
+  }
+  else{
+      $edHolder.summernote({
+    placeholder: '여기에 내용 입력하세요~ 그림파일 용량은 2MB까지입니다~',
+    tabsize: 2,
+    toolbar: [
+      ['style', ['style']],
+      ['fontname', ['fontname']],
+      ['fontsize', ['fontsize']],
+      ['font style', ['bold', 'italic', 'underline','strikethrough', 'clear','superscript', 'subscript',]],
+      ['color', ['forecolor','color']],
+      ['para', ['ul', 'ol', 'paragraph']],
+      ['table', ['table']],
+      ['insert', ['link', 'picture', 'video']],
+      ['view', ['fullscreen', 'codeview', 'help']],
+    ],
+    defaultFontName:'맑은 고딕',
+    fontNames: ['Arial', 'Comic Sans MS','맑은 고딕','궁서','굴림','돋음체','바탕'],
+    fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
+    maximumImageFileSize:2097152,
+
+  popover: {
+                  image: [
+                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                    ['remove', ['removeMedia']]
+                  ],
+                  link: [
+                    ['link', ['linkDialogShow', 'unlink']]
+                  ],
+                  table: [
+                    ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+                    ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+                  ],
+                  air: [
+                    ['color', ['color']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['para', ['ul', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']]
+                  ]
+                }
+      });
+  }
+    $('#save').show();
+    $('#cancel').show();
+    $('#edit').hide();
+  });
+
+  $('#save').on('click', function () {
+    var markup = $(".{{ editor|default:'click2edit' }}").summernote('code');
+    $.ajax({
+      url: "/school_report/school/lost_item_board_teacher_message/17/",
+      type: 'POST',
+      data: {
+        csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val(),
+        content: markup,
+      },
+      success: function (response) {
+        alert('저장되었습니다!');
+        $(".{{ editor|default:'click2edit' }}").summernote('destroy');
+        $('#save').hide();
+        $('#cancel').hide();
+        $('#edit').show();
+      },
+      error: function (xhr, status, error) {
+        alert('저장에 실패했습니다.');
+      }
+    });
+  });
+
+//취소 핸들러.// cancel 핸들러
+$('#cancel').on('click', function () {
+  modifyContent = $edHolder.summernote('code');  // 수정하던 컨텐츠 담기.
+  // 1) 에디터 인스턴스 destroy
+  $edHolder.summernote('destroy');
+  $edHolder.html(originalContent);      // 롤백: 원본 콘텐츠 복원
+
+
+  // 2) 편집 불가능한 원래 div 보이기
+  //    └ destroy 하면 자동으로 $edHolder 자체가 콘텐츠 div 상태로 돌아옵니다.
+
+  // 3) 버튼 토글
+  $('#save, #cancel').hide();
+  $('#edit').show();
+});
+
+});
+</script>

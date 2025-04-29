@@ -1,0 +1,175 @@
+{% extends "school_report/section.html" %}
+{% block inner_content %}
+
+<a href="{% url 'school_report:school_main' school.id %}">학교로 돌아가기</a>
+
+<div class="card mb-4">
+  <!-- 헤더: 학교명·수정 일시 -->
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <strong>선생님의 말씀.</strong>
+      <small class="text-muted">— {{ board.message_updated_at }}({{board.teacher}})</small>
+    </div>
+      </div>
+
+<div class="card-body">
+{% url 'school_report:lost_item_board_teacher_message' school.id as message_url %}
+    {% include "WYSIWYG/click_to_edit.html" with content=board.teacher_message url=message_url is_authorized=teacher %}
+</div>
+
+</div>
+
+<div class="d-flex align-items-center mt-4 mb-3 border-bottom">
+  <h3 class="mb-0 me-3">분실물 있어요!</h3>
+  {% if teacher %}
+    <a href="{% url 'school_report:lost_item_board_report_item' board.id 'report' %}" class="btn btn-outline-primary btn-sm">
+      + 분실물 등록
+    </a>
+  {% endif %}
+</div>
+
+{% if items_teacher_report %}
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th class="small text-center">작성자</th>
+        <th class="small text-center">수정일</th>
+        <th class="small text-center">상태</th>
+        <th class="small text-center">발견 장소</th>
+        <th class="small text-center">발견 시간</th>
+        <th class="small text-center">물건 서술</th>
+        <th class="small text-center">관련 사진</th>
+        <th class="small text-center">회수 사진</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items_teacher_report %}
+      <tr>
+        <td class="text-truncate small text-center" style="max-width: 150px;">{{ item.author }}
+              {% if item.author.admin == user %}
+                <br><a href="{% url 'school_report:lost_item_modify' item.id %}" class="btn btn-sm btn-outline-primary mt-2">수정</a>
+                {% endif %}
+        </td>
+        <td class="small text-center">{{ item.modified_at|date:"m-d H:i" }}</td>
+        <td class="text-center">
+              {% if item.status == 'lost' %}
+                <span class="badge bg-warning text-dark">분실</span>
+              {% else %}
+                <span class="badge bg-success">찾음</span>
+              {% endif %}
+        </td>
+        <td>{{ item.where }}</td>
+        <td class="small text-center">{{ item.when|date:"m-d H:i" }}</td>
+        <td class="small">{{ item.description|truncatechars:30 }}</td>
+        <td class="small text-center" style="max-width: 200px;">
+          {% if item.photo_item %}
+            <a href="{{ item.photo_item.url }}" target="_blank">
+            <img src="{{ item.photo_item.url }}" alt="분실물 사진" class="img-fluid"></a>
+          {% else %}
+              사진 없음.
+          {% endif %}
+        </td>
+        <td style="max-width: 200px;">
+          {% if item.photo_claimed %}
+            <a href="{{ item.photo_claimed.url }}" target="_blank">
+            <img src="{{ item.photo_claimed.url }}" alt="회수자 사진" class="img-fluid">
+          {% else %}
+              사진 없음.
+          {% endif %}
+            {% if item.author.admin == user %}
+              <form method="post" enctype="multipart/form-data" action="{% url 'school_report:lost_item_board_upload_claim_photo' item.id %}" class="mt-2">
+              {% csrf_token %}
+              <div class="input-group input-group-sm mb-2">
+              <input type="file" name="photo_claimed" class="form-control" accept="image/*">
+              </div>
+              <input type="submit" class="btn btn-sm btn-outline-primary w-100" value="회수 사진 등록">
+              </form>
+            {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>등록된 분실물이 없습니다.</p>
+{% endif %}
+
+
+
+
+<div class="d-flex align-items-center mt-4 mb-3 border-bottom">
+  <h3 class="mb-0 me-3">분실물 있어요?</h3>
+    <a href="{% url 'school_report:lost_item_board_report_item' board.id %}" class="btn btn-outline-primary btn-sm">
+      + 분실물 등록
+    </a>
+</div>
+{% if items %}
+<div class="table-responsive">
+  <table class="table table-striped table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th class="small text-center">작성자</th>
+        <th class="small text-center">수정일</th>
+        <th class="small text-center">상태</th>
+        <th class="small text-center">발견 장소</th>
+        <th class="small text-center">발견 시간</th>
+        <th class="small text-center">물건 서술</th>
+        <th class="small text-center">관련 사진</th>
+        <th class="small text-center">회수 사진</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td class="text-truncate small text-center" style="max-width: 150px;">{{ item.author }}
+              {% if item.author.admin == user %}
+                <br><a href="{% url 'school_report:lost_item_modify' item.id %}" class="btn btn-sm btn-outline-primary mt-2">수정</a>
+                {% endif %}
+        </td>
+        <td class="small text-center">{{ item.modified_at|date:"m-d H:i" }}</td>
+        <td class="text-center">
+              {% if item.status == 'lost' %}
+                <span class="badge bg-warning text-dark">분실</span>
+              {% else %}
+                <span class="badge bg-success">찾음</span>
+              {% endif %}
+        </td>
+        <td>{{ item.where }}</td>
+        <td class="small text-center">{{ item.when|date:"m-d H:i" }}</td>
+        <td class="small">{{ item.description|truncatechars:30 }}</td>
+        <td class="small text-center" style="max-width: 200px;">
+          {% if item.photo_item %}
+            <a href="{{ item.photo_item.url }}" target="_blank">
+            <img src="{{ item.photo_item.url }}" alt="분실물 사진" class="img-fluid"></a>
+          {% else %}
+              사진 없음.
+          {% endif %}
+        </td>
+        <td style="max-width: 200px;">
+          {% if item.photo_claimed %}
+            <a href="{{ item.photo_claimed.url }}" target="_blank">
+            <img src="{{ item.photo_claimed.url }}" alt="회수자 사진" class="img-fluid">
+          {% else %}
+              사진 없음.
+          {% endif %}
+            {% if item.author.admin == user %}
+              <form method="post" enctype="multipart/form-data" action="{% url 'school_report:lost_item_board_upload_claim_photo' item.id %}" class="mt-2">
+              {% csrf_token %}
+              <div class="input-group input-group-sm mb-2">
+              <input type="file" name="photo_claimed" class="form-control" accept="image/*">
+              </div>
+              <input type="submit" class="btn btn-sm btn-outline-primary w-100" value="회수 사진 등록">
+              </form>
+            {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>등록된 분실물이 없습니다.</p>
+{% endif %}
+{% endblock inner_content%}
