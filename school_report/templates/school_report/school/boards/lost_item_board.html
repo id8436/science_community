@@ -13,7 +13,7 @@
       </div>
 
 <div class="card-body">
-{% url 'school_report:lost_item_board_teacher_message' school.id as message_url %}
+    {% url 'school_report:lost_item_board_teachers_message' school.id as message_url %}
     {% include "WYSIWYG/click_to_edit.html" with content=board.teacher_message url=message_url is_authorized=teacher %}
 </div>
 
