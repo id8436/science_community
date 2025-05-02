@@ -61,7 +61,7 @@
         </td>
         <td>{{ item.where }}</td>
         <td class="small text-center">{{ item.when|date:"m-d H:i" }}</td>
-        <td class="small">{{ item.description|truncatechars:30 }}</td>
+        <td class="small">{{ item.description }}</td>
         <td class="small text-center" style="max-width: 200px;">
           {% if item.photo_item %}
             <a href="{{ item.photo_item.url }}" target="_blank">
