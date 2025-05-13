@@ -71,8 +71,6 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_URL = 'custom_account:login_social'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 from django.contrib import messages
@@ -204,3 +202,5 @@ OAUTH2_PROVIDER = {
     # 토큰 만료 시간(초)
     "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
 }
+SESSION_COOKIE_SAMESITE = 'None'
+# SESSION_COOKIE_SECURE = True  # 이거 해두면 무조건 서버 내에서도 https 통신이 되어야 함.
