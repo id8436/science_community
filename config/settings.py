@@ -204,3 +204,4 @@ OAUTH2_PROVIDER = {
 }
 SESSION_COOKIE_SAMESITE = 'None'
 # SESSION_COOKIE_SECURE = True  # 이거 해두면 무조건 서버 내에서도 https 통신이 되어야 함.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 프록시 서버에서 https라는 것을 알려주는 것.
