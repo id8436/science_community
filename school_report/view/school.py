@@ -640,8 +640,8 @@ def meal_info(request, school_id):
                 meal_data['영양정보'].append(i['NTR_INFO'])  # 영양정보
                 meal_data['재료정보'].append(i['ORPLC_INFO'])  # 재료정보
             context['meal_data'] = meal_data
-        except:
-            pass
+        except Exception as e:
+            print(f"[급식 데이터 처리 오류] {e}")
     return render(request, 'school_report/school/meal_info.html', context)
 
 def lost_item_board(request, school_id):

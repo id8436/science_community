@@ -11,13 +11,14 @@ class SchoolMealsApi:
         "pindex":1,
 
     }
-    def __init__(self, show_days=5, ATPT_OFCDC_SC_CODE='K10', SD_SCHUL_CODE='7801101'):
+    def __init__(self, show_days=6, ATPT_OFCDC_SC_CODE='K10', SD_SCHUL_CODE='7801101'):
         # 테스트 주소 https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=K10&SD_SCHUL_CODE=7801101&MLSV_FROM_YMD=202505&pSize=15  # 강원과학고 급식.
         self.params = SchoolMealsApi.params.copy()  # 위의 클래스 변수 복사
-        today = datetime.datetime.now()
-        from_date = today.strftime('%Y%m%d')
-        target_day = today + datetime.timedelta(days=show_days)
+        from_day = datetime.datetime.now() - datetime.timedelta(days=1)
+        from_date = from_day.strftime('%Y%m%d')
+        target_day = from_day + datetime.timedelta(days=show_days)
         to_date = target_day.strftime('%Y%m%d')
+        print(to_date)
 
         self.schoolinfo = {
             "ATPT_OFCDC_SC_CODE": ATPT_OFCDC_SC_CODE,  # 시도교육청 코드
@@ -33,16 +34,17 @@ class SchoolMealsApi:
         self.params.update(self.schoolinfo)
         try:
             response = requests.get(URL, params=self.params, verify=False)
-            print(response)
+            # print("요청 URL:", response.url)  # 요청 URL 확인
+            # print("응답 상태 코드:", response.status_code)  # 상태 코드
+            # print("응답 내용:", response.text[:1000])  # 너무 길 수 있으니 앞부분만 출력
             response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
             data = response.json()
             meal_info = data.get("mealServiceDietInfo", [])
 
-            if not meal_info:
+            if len(meal_info) > 1 and "row" in meal_info[1]:
+                return meal_info[1]["row"]
+            else:
                 return None  # 데이터 없음
-
-            total_count = meal_info[0]["head"][0].get("list_total_count", 0)
-            return meal_info[1]["row"] if total_count > 1 else meal_info[1]["row"][0]
         except (requests.RequestException, KeyError, json.JSONDecodeError) as e:
             print(f"오류 발생: {e}")
             return None
