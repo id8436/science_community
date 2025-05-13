@@ -12,6 +12,7 @@ class SchoolMealsApi:
 
     }
     def __init__(self, show_days=5, ATPT_OFCDC_SC_CODE='K10', SD_SCHUL_CODE='7801101'):
+        # 테스트 주소 https://open.neis.go.kr/hub/mealServiceDietInfo?ATPT_OFCDC_SC_CODE=K10&SD_SCHUL_CODE=7801101&MLSV_FROM_YMD=202505&pSize=15  # 강원과학고 급식.
         self.params = SchoolMealsApi.params.copy()  # 위의 클래스 변수 복사
         today = datetime.datetime.now()
         from_date = today.strftime('%Y%m%d')
@@ -24,6 +25,7 @@ class SchoolMealsApi:
             "MLSV_FROM_YMD": from_date,  # 급식 시작일
             "MLSV_TO_YMD": to_date,  # 급식 끝일
             "pSize":show_days*3,  # 100까지 가능.(5일치를 불러온다면 조식, 중식, 석식 15이 되어야 함.)
+            # 이 변수가 조식,중식,석식을 결정하는듯. MMEAL_SC_CODE
         }
 
     def get_data(self):
@@ -31,6 +33,7 @@ class SchoolMealsApi:
         self.params.update(self.schoolinfo)
         try:
             response = requests.get(URL, params=self.params, verify=False)
+            print(response)
             response.raise_for_status()  # HTTP 오류 발생 시 예외 처리
             data = response.json()
             meal_info = data.get("mealServiceDietInfo", [])

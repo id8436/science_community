@@ -13,7 +13,7 @@ urlpatterns = [
     path('school_modify/<int:school_id>/', school.school_modify, name='school_modify'),
     path('school/school_list/', school.list, name='school_list'),
     path('school/meal_info/<int:school_id>/', school.meal_info, name='meal_info'),
-    #분실물
+    # 분실물
     path('school/lost_item_board/<int:school_id>/', school.lost_item_board, name='lost_item_board'),
     path('school/lost_item_board_teacher_message/<int:school_id>/', school.lost_item_board_teachers_message, name='lost_item_board_teachers_message'),
     path('school/lost_item_board_report_item/<int:board_id>/', school.lost_item_board_report_item,
@@ -23,6 +23,12 @@ urlpatterns = [
     path('school/lost_item_board_upload_claim_photo/<int:item_id>/', school.lost_item_board_upload_claim_photo,
          name='lost_item_board_upload_claim_photo'),
     path('school/lost_item_modify/<int:item_id>/', school.lost_item_modify, name='lost_item_modify'),
+    path('school/lost_item_board_found_item/<int:board_id>/', school.lost_item_board_found_item,
+         name='lost_item_board_found_item'),
+    # 건의사항
+    path('school/suggestion_board/<int:school_id>/', school.suggestion_board, name='suggestion_board'),
+    path('school/suggestion_board_teacher_message/<int:school_id>/', school.suggestion_board_teachers_message,
+         name='suggestion_board_teachers_message'),
 
     # 과목, 교과 관련
     path('subject_create/<int:school_id>/', subject.create, name='subject_create'),

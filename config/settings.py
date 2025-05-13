@@ -71,6 +71,8 @@ AUTHENTICATION_BACKENDS = [
 LOGIN_URL = 'custom_account:login_social'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 from django.contrib import messages
@@ -193,3 +195,12 @@ CELERY_BROKER_URL = 'redis://localhost:6379'  # 브로커 주소값. 여기선 r
 CELERY_RESULT_BACKEND = 'django-db'  # 장고 DB를 사용하는 경우. DB백엔드로 redis를 사용한다면 위와 동일하게.
 # django-celery-result 백엔드 설정.
 CELERY_CAHCE_BACKEND = 'django-cache'
+
+# OAuth용 설정.(django-oauth-toolkit)
+INSTALLED_APPS += [
+    "oauth2_provider",
+]
+OAUTH2_PROVIDER = {
+    # 토큰 만료 시간(초)
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
+}

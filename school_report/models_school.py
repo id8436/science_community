@@ -88,6 +88,7 @@ class LostItem(models.Model):
     is_report = models.BooleanField(default=False)
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='lost')
+    created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     where = models.CharField(max_length=255)  # 관련 장소.
     when = models.DateTimeField(null=True, blank=True)  # 관련 시간.

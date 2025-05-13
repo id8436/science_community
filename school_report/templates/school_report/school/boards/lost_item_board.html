@@ -2,6 +2,7 @@
 {% block inner_content %}
 
 <a href="{% url 'school_report:school_main' school.id %}">학교로 돌아가기</a>
+    <a href="{% url 'school_report:lost_item_board_found_item' board.id %}" class="btn btn-outline-success btn-sm">해결된 분실물 보기</a>
 
 <div class="card mb-4">
   <!-- 헤더: 학교명·수정 일시 -->
@@ -21,11 +22,9 @@
 
 <div class="d-flex align-items-center mt-4 mb-3 border-bottom">
   <h3 class="mb-0 me-3">분실물 있어요!</h3>
-  {% if teacher %}
     <a href="{% url 'school_report:lost_item_board_report_item' board.id 'report' %}" class="btn btn-outline-primary btn-sm">
       + 분실물 등록
     </a>
-  {% endif %}
 </div>
 
 {% if items_teacher_report %}

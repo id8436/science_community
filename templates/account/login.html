@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+소셜 로그인 중 인증 오류가 발생했을 때 렌더링되는 템플릿입니다. 로그인으로 리다이렉트 된 경우.
+  <h2>다시 로그인을 시도해주세요.<br>(자동으로 리다이렉트가 반복됩니다.(왜지;;?))</h2>
+  <p>{% trans "There was an error while trying to authenticate. Please try again." %}</p>
+  <meta http-equiv="refresh" content="2;url={% url 'account_login' %}" />
+  <p>templates\account\login 탬플릿. 주소는 /accounts/login/ 경로에서 발생.</p>
+
+
+
+{% include "custom_account/login_social_body.html" %}
+
+
+
+
+{% endblock %}

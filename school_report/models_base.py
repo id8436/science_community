@@ -389,7 +389,7 @@ class HomeworkSubmit(models.Model):
     content = models.TextField(default=None, null=True, blank=True)  # 제출한 과제의 내용. # 동료평가 후 최악의 리뷰자 선정. # ai세특에서 df 저장하는 용도.
     ## check, read 등이 아니라 하나의 status로 바꾸면 어때? 하나로 표현하게.
     state = models.CharField(max_length=20, default=None, null=True, blank=True)  # 다양한 상태를 표현하기 위해.
-    check = models.BooleanField(default=False)  # 과제 했는지 여부. 지정하는 것과 별개.
+    is_checked = models.BooleanField(default=False)  # 과제 했는지 여부. 지정하는 것과 별개.
     read = models.BooleanField(default=False)  # 과제 열람했는지 여부.
     submit_date = models.DateTimeField(null=True, blank=True)  # 과제 제출시간.
     ## 지워질 대상.
@@ -588,7 +588,7 @@ class AnnoIndividual(models.Model):
                                    )  # 학교 프로필에 전달하게끔.
     content = models.TextField(default=None, null=True, blank=True)  # 공지 내용.
     read = models.BooleanField(default=False)  # 열람했는지 여부.
-    check = models.BooleanField(default=False)  # 확인 했는지 여부.
+    is_checked = models.BooleanField(default=False)  # 확인 했는지 여부.
     check_date = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return self.to_profile.name

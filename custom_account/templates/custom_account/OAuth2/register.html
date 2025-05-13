@@ -1,0 +1,14 @@
+{% extends 'custom_account/section.html' %}
+
+{% block content %}
+
+<h2>{{ is_edit|yesno:"클라이언트 수정,클라이언트 등록" }}</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary">
+    {{ is_edit|yesno:"수정,등록" }}
+  </button>
+</form>
+
+{% endblock %}

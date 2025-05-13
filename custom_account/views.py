@@ -286,3 +286,50 @@ def email_verification(request):
 # def signup_by_email(request):
 #     user_id = request.GET.get('user_id')
 #     if email_verify(request):
+
+## OAuth2.0 제공 관련.
+from oauth2_provider.models import get_application_model
+from .forms import ClientRegisterForm
+Application = get_application_model()
+@login_required
+def OAuth_client_list(request):
+    '''사용자가 가진 어플리케이션의 설정 보기.(어플리케이션을 여러 개 만들 수 있게 해야 할듯)'''
+    apps = Application.objects.filter(user=request.user)
+    return render(request, 'custom_account/OAuth2/client_list.html', {'apps': apps})
+@login_required
+def OAuth_client_edit(request, pk):
+    '''어플리케이션 수정 페이지.'''
+    app = get_object_or_404(Application, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        form = ClientRegisterForm(request.POST, instance=app)
+        if form.is_valid():
+            form.save()
+            return redirect('custom_account:OAuth_client_list')  # 수정 후 목록 페이지로 리다이렉트
+    else:
+        form = ClientRegisterForm(instance=app)
+
+    return render(request, 'custom_account/OAuth2/register.html', {'form': form, 'is_edit':True})
+@login_required
+def OAuth_register_client(request):
+    '''어플리케이션 등록.'''
+    if request.method == 'POST':
+        form = ClientRegisterForm(request.POST)
+        if form.is_valid():
+            app = form.save(commit=False)
+            app.user = request.user
+            app.client_type = Application.CLIENT_CONFIDENTIAL
+            app.authorization_grant_type = Application.GRANT_AUTHORIZATION_CODE
+            app.save()
+            return redirect('custom_account:OAuth_client_list')
+    else:
+        form = ClientRegisterForm()
+    return render(request, 'custom_account/OAuth2/register.html', {'form': form})
+@login_required
+def OAuth_delete_client(request, pk):
+    '''어플리케이션 등록.'''
+    app = get_object_or_404(Application, pk=pk, user=request.user)
+    if app.user == request.user:
+        app.delete()
+        return redirect('custom_account:OAuth_client_list')
+    return render(request, 'custom_account/OAuth2/register.html', {'form': form})

@@ -22,4 +22,10 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('send_email_verify_code/', views.send_email_verify_code, name='send_email_verify_code'),
     path('email_verification/', views.email_verification, name='email_verification'),
+
+    # OAuth2.0 관련.
+    path('OAuth2.0/client_list', views.OAuth_client_list, name='OAuth_client_list'),
+    path('OAuth2.0/detail/<int:pk>', views.OAuth_client_edit, name='OAuth_client_edit'),
+    path('OAuth2.0/register', views.OAuth_register_client, name='OAuth_register_client'),
+    path('OAuth2.0/delete/<int:pk>', views.OAuth_delete_client, name='OAuth_delete_client'),
 ]

@@ -22,3 +22,7 @@ def check_social(context):  # 접속한 사람이 소셜계정을 연동하지 �
     except:
         pass
     return dict
+
+@register.filter
+def split(value, delimiter=" "):
+    return value.split(delimiter)

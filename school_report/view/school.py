@@ -621,16 +621,15 @@ def student_code_confirm(request, student_id):
 
 def meal_info(request, school_id):
     school = get_object_or_404(models.School, pk=school_id)
-    context = {}
+    context = {'school': school, 'today_int': int(datetime.datetime.today().strftime('%Y%m'))}
     # 급식정보
     if school.school_code:  # 학교코드가 있어야 진행.
         school_meal = SchoolMealsApi(ATPT_OFCDC_SC_CODE=school.education_office, SD_SCHUL_CODE=str(school.school_code))
         school_meal_data = school_meal.get_data()
-        sorted_data = sorted(school_meal_data, key=lambda x: datetime.datetime.strptime(x['MLSV_YMD'], "%Y%m%d"))
-
-        # 표에 넣기 위해 항목별로 차례대로 넣는다.
-        meal_data = {'일자': [], '식사': [], '메뉴': [], '칼로리': [], '영양정보': [], '재료정보': []}
-        try:  # 개학 전엔 식사정보가 없어 None을 반환한다. 그럼 에러뜸.
+        try:  # 개학 전엔 식사정보가 없어 None을 반환한다. 그럼 에러뜸.=
+            sorted_data = sorted(school_meal_data, key=lambda x: datetime.datetime.strptime(x['MLSV_YMD'], "%Y%m%d"))
+            # 표에 넣기 위해 항목별로 차례대로 넣는다.
+            meal_data = {'일자': [], '식사': [], '메뉴': [], '칼로리': [], '영양정보': [], '재료정보': []}
             for i in sorted_data:
                 date = i['MLSV_YMD']
                 date = date[4:6] + '월' + date[6:] + '일'
@@ -656,8 +655,8 @@ def lost_item_board(request, school_id):
         context['teacher'] = teacher
         context['board'] = board
         context['school'] = school
-        context['items_teacher_report'] = models.LostItem.objects.filter(board=board, is_report=True)  # 제보.
-        context['items'] = models.LostItem.objects.filter(board=board, is_report=False)
+        context['items_teacher_report'] = models.LostItem.objects.filter(board=board, is_report=True, status='lost').order_by('-created_at')  # 제보.
+        context['items'] = models.LostItem.objects.filter(board=board, is_report=False, status='lost').order_by('-created_at')
     return render(request, 'school_report/school/boards/lost_item_board.html', context)
 
 def lost_item_board_teachers_message(request, school_id):
@@ -711,6 +710,7 @@ def lost_item_modify(request, item_id):
         messages.error(request, '수정권한이 없습니다')
         return redirect('school_report:lost_item_board', school_id=item.board.school.id)
     if request.method == "POST":
+        original_photo = item.photo_item  # 기존 사진 백업
         form = SchoolLostItemForm(request.POST, request.FILES, instance=item)  # 받은 내용을 객체에 담는다. instance에 제대로 된 걸 넣지 않으면 새로운 인스턴스를 만든다.
         if request.POST.get('delete_photo_item'):  # 이상하게 valid 안에 넣으면 안되더라..
             if item.photo_item:
@@ -718,6 +718,9 @@ def lost_item_modify(request, item_id):
                 item.photo_item = None
         if form.is_valid():
             item = form.save(commit=False)  # 잠시 보류.
+            # 사진을 새로 업로드하지 않았고, 삭제 요청도 없으면 기존 사진 유지
+            if not request.FILES.get('photo_item') and not request.POST.get('delete_photo_item'):
+                item.photo_item = original_photo
             item.save(update_fields=['where', 'when', 'description', 'photo_item', 'status'])  # 최종 저장.
             #item.save(update_fields=['where', 'when', 'description', 'photo_item', 'status'])  # 업데이트하면 다른 파일을 새로이 저장해버리는 문제 발생;;
             return redirect('school_report:lost_item_board', school_id=item.board.school.id)
@@ -742,7 +745,50 @@ def lost_item_board_upload_claim_photo(request, item_id):
         lost_item.save(update_fields=['photo_claimed', 'status'])
         return redirect('school_report:lost_item_board', school_id=board.school.id)
     return redirect('school_report:lost_item_board', school_id=board.school.id)
+@login_required
+def lost_item_board_found_item(request, board_id):
+    '''찾은 물건들 두는 곳.'''
+    board = get_object_or_404(models.LostItemBoard, pk=board_id)
+    school = board.school
+    context = {}
+    context['board'] = board
+    context['school'] = school
+    context['items'] = models.LostItem.objects.filter(board=board, is_report=False, status='found').order_by('-created_at')
+    return render(request, 'school_report/school/boards/lost_item_found.html', context)
 
+def suggestion_board(request, school_id):
+    '''건의 게시판으로 가는 링크.'''
+    school = get_object_or_404(models.School, pk=school_id)
+    context = {}
+    if school.is_suggestion_board_active:
+        board = models.SuggestionBoard.objects.get(school=school)
+        teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
+        context['teacher_message'] = board.teacher_message
+        context['teacher'] = teacher
+        context['board'] = board
+        context['school'] = school
+        #context['items_teacher_report'] = models.LostItem.objects.filter(board=board, is_report=True)  # 제보.
+        #context['items'] = models.LostItem.objects.filter(board=board, is_report=False)
+    return render(request, 'school_report/school/boards/suggestion_board.html', context)
+def suggestion_board_teachers_message(request, school_id):
+    '''게시판에 남기는 교사의 말. 을 ajax로 받아 저장.'''
+    school = models.School.objects.get(id=school_id)
+    teacher = check.Teacher(user=request.user, school=school).in_school_and_none()
+    if request.method == 'POST' and teacher:
+        # Ajax로 전송된 'content' 값 받기
+        content = request.POST.get('content')
+        if content:
+            # 받은 콘텐츠를 DB에 저장하거나 처리하는 코드 (예: 모델 저장)
+            board = models.SuggestionBoard.objects.get(school=school)
+            board.teacher_message = content
+            board.teacher = teacher
+            board.save()
+            # 성공 응답
+            return JsonResponse({'status': 'success', 'message': '저장되었습니다!'})
+
+        return JsonResponse({'status': 'error', 'message': '내용이 비어있습니다.'})
+
+    return JsonResponse({'status': 'error', 'message': '잘못된 요청입니다.'})
 def profile_reset(request, profile_id):
     '''기존 계정을 잊어버린 경우, 연동을 끊게 해주기.'''
     profile = models.Profile.objects.get(pk=profile_id)

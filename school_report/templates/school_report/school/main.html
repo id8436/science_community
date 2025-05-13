@@ -23,7 +23,7 @@
     <a href="{% url 'school_report:lost_item_board' school.id %}" class="btn btn-outline-success btn-sm m-1">분실물 게시판</a>
 {% endif %}
 {% if school.is_suggestion_board_active %}
-    <a href="" class="btn btn-outline-success btn-sm m-1">건의 게시판</a>
+    <a href="{% url 'school_report:suggestion_board' school.id %}" class="btn btn-outline-success btn-sm m-1">건의 게시판</a>
 {% endif %}
     </div>
 
