@@ -202,6 +202,7 @@ OAUTH2_PROVIDER = {
     # 토큰 만료 시간(초)
     "ACCESS_TOKEN_EXPIRE_SECONDS": 36000,
 }
-SESSION_COOKIE_SAMESITE = 'None'
-# SESSION_COOKIE_SECURE = True  # 이거 해두면 무조건 서버 내에서도 https 통신이 되어야 함.
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False  # 이거 True로 해두면 무조건 서버 내에서도 https 통신이 되어야 함.
+CSRF_COOKIE_SECURE = False
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 프록시 서버에서 https라는 것을 알려주는 것.
