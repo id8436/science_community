@@ -14,6 +14,7 @@ urlpatterns = [
     path('do_DB3/', views.do_DB3, name='do_DB3'),  # 변동사항이 생겨 데이터베이스에 반영이 필요할 때.
 
     path('compound_interest/', views.compound_interest, name='compound_interest'),
+    path('request_is_secure/', views.test_secure, name='request_is_secure'),
 
     # 심리상담봇
     path('mental_health_chatbot/', mental_health_chatbot.chatroom, name='mental_health_chatroom'),

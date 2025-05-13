@@ -32,6 +32,10 @@ def compound_interest(request):
                }
     return render(request, 'utility/compound_interest.html', context)
 
+from django.http import HttpResponse
+def test_secure(request):
+    '''csrf 토큰이 잘 되는지 확인.'''
+    return HttpResponse(f"request.is_secure(): {request.is_secure()}")
 
 def do_DB(request):
 
