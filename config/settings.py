@@ -206,3 +206,5 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False  # 이거 True로 해두면 무조건 서버 내에서도 https 통신이 되어야 함.
 CSRF_COOKIE_SECURE = False
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # 프록시 서버에서 https라는 것을 알려주는 것.
+USE_X_FORWARDED_HOST = True  # 프록시 뒤에서 요청을 받을 때 필요
+
