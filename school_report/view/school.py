@@ -753,7 +753,7 @@ def lost_item_board_found_item(request, board_id):
     context = {}
     context['board'] = board
     context['school'] = school
-    context['items'] = models.LostItem.objects.filter(board=board, is_report=False, status='found').order_by('-created_at')
+    context['items'] = models.LostItem.objects.filter(board=board, status='found').order_by('-created_at')
     return render(request, 'school_report/school/boards/lost_item_found.html', context)
 
 def suggestion_board(request, school_id):
