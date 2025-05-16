@@ -22,6 +22,8 @@
                        value="{{ form.subject.value|default_if_none:'' }}" placeholder="제목을 입력해주세요~">
 
         <label>내용</label>
+{% include "WYSIWYG/base_editor.html" with content=form.content.value|default_if_none:''|safe %}
+
     <textarea class="form-control" name="content" id="summernote">
         {{ form.content.value|default_if_none:'' |safe }}</textarea>
     </div>

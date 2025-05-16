@@ -1,5 +1,6 @@
-<textarea class="{{ editor|default:'form-control' }}" name="{{ name|default:'content' }}" id="{{ editor|default:'summernote' }}">
-        {{ form.content.value|default_if_none:'' |safe }}</textarea>
+<textarea class="{{ editor|default:'form-control' }}"
+  name="{{ name|default:'content' }}"
+  id="{{ editor|default:'summernote' }}">{{ form.content.value|default_if_none:'' |safe }}</textarea>
 
 <script>
   $('#{{ editor|default:'summernote' }}').summernote({

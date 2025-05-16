@@ -115,7 +115,7 @@ def solve(request, question_id):
     feedback = '112s'  # 정답여부에 따라 달라지는 피드백.
     if request.method == 'POST':  # 정답정보는 포스트로 보내자.
         answer = request.POST.get('answer')
-        if answer == question.rightAnswer:  # 대답이 정답과 일치한다면..
+        if answer == question.solution:  # 대답이 정답과 일치한다면..
             question.correct = question.correct+1
             question.save()
             feedback = '정답입니다~'

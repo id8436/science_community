@@ -17,10 +17,12 @@ admin.site.register(HomeworkQuestion)
 #admin.site.register(HomeworkSubmit)
 class HomeworkSubmitAdmin(admin.ModelAdmin):
     search_fields = ['target_profile__name']  # 제목과 저자 이름으로 검색 가능
+    ordering = ['id']
 admin.site.register(HomeworkSubmit, HomeworkSubmitAdmin)
 #admin.site.register(HomeworkAnswer)
 class HomeworkAnswerAdmin(admin.ModelAdmin):
     search_fields = ['target_profile__name']  # 제목과 저자 이름으로 검색 가능
+    ordering = ['id']
 admin.site.register(HomeworkAnswer, HomeworkAnswerAdmin)
 admin.site.register(HomeworkBox)
 class ProfileAdmin(admin.ModelAdmin):

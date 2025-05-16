@@ -1,0 +1,135 @@
+<!-- CSS, JS (부트스트랩, 폰트어썸, MathJax) -->
+<!-- CSS 먼저 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<!-- JS는 body 끝부분에 한 번만 넣기 -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+<script>
+let currentLatexInput = null;  // 현재 포커스된 textarea 저장 변수
+
+// 페이지 로드 시 또는 textarea 클릭 시 currentLatexInput 설정
+document.querySelectorAll('.latex-input').forEach(textarea => {
+  textarea.addEventListener('focus', () => {
+    currentLatexInput = textarea;
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1) 에디터 초기화
+  document.querySelectorAll('.latex-input').forEach(textarea => {
+    // 페이지 열릴 때 한 번 초기 렌더
+    renderPreview(textarea);
+
+    // 이후 값이 바뀔 때마다
+    textarea.addEventListener('input', () => renderPreview(textarea));
+
+    // 포커스 시 active 표기
+    textarea.addEventListener('focus', () => {
+      document.querySelectorAll('.latex-input')
+        .forEach(el => el.dataset.active = 'false');
+      textarea.dataset.active = 'true';
+    });
+  });
+
+  // 2) 모든 툴바에 이벤트 위임
+  document.querySelectorAll('.btn-toolbar').forEach(toolbar => {
+    toolbar.addEventListener('click', e => {
+      /* …insertAtCursor / wrapWithMathDelimiters 호출… */
+    });
+  });
+});
+
+////미리보기 관련.
+function renderPreview(textarea) {
+  const preview = document.getElementById(textarea.id + '_preview');
+  preview.innerHTML = textarea.value;   // innerHTML로 실제 HTML 렌더링
+  if (window.MathJax) {
+    MathJax.typesetPromise([preview]);
+  }
+}
+
+
+// 수식 입력란(텍스트에어리어) 클릭 시 호출하는 함수 (또는 미리보기 클릭 시)
+function editFormula(previewId) {
+    const textareaId = previewId.replace('_preview', '');
+    const textarea = document.getElementById(textareaId);
+    if (textarea) {
+        textarea.focus();
+        currentLatexInput = textarea;  // 포커스된 요소 저장
+    }
+}
+
+function insertSymbol(symbol) {
+    const input = document.getElementById('latex-input');
+    input.focus();  // 자동 포커스
+    insertAtCursor(input, symbol);
+    updatePreview();  // 필요시 실시간 렌더링
+}
+
+// 드롭다운 메뉴에서 호출하는 함수
+function insertAtCursor(text) {
+    const textarea = currentLatexInput;
+    if (!textarea) {
+        alert("수식 입력란을 먼저 클릭하세요.");
+        return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const value = textarea.value;
+
+    // 텍스트 삽입
+    textarea.value = value.substring(0, start) + text + value.substring(end);
+
+    // 커서 위치 조정
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+
+    textarea.focus();
+
+    // 미리보기 업데이트 함수 호출 (textarea.id 기반)
+    updatePreview(textarea.id);
+}
+
+function wrapWithMathDelimiters(opening, closing = '') {
+  // 1) currentLatexInput 유무 체크
+  if (!currentLatexInput) {
+    alert("수식 입력란을 먼저 클릭하세요.");
+    return;
+  }
+
+  const textarea = currentLatexInput;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const value = textarea.value;
+  const selected = value.substring(start, end);
+
+  // 2) 감싸기용 텍스트 조합
+  const newText = opening + selected + closing;
+
+  // 3) 값 교체
+  textarea.value =
+    value.substring(0, start) +
+    newText +
+    value.substring(end);
+
+  // 4) 커서 위치 재설정 (선택 영역 끝으로)
+  const cursorPos = start + opening.length + selected.length;
+  textarea.selectionStart = textarea.selectionEnd = cursorPos;
+
+  textarea.focus();
+
+  // 5) 미리보기 업데이트
+  updatePreview(textarea.id);
+}
+
+function updatePreview(textareaId) {
+  const preview = document.getElementById(textareaId + '_preview');
+  const ta = document.getElementById(textareaId);
+  preview.innerHTML = ta.value;   // innerHTML
+  if (window.MathJax) MathJax.typesetPromise([preview]);
+}
+
+</script>

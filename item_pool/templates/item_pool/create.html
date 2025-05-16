@@ -1,16 +1,6 @@
 {% extends 'item_pool/section.html' %}
 
 {% block content %}
-    <meta charset="UTF-8">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-
 {% if user.schoolprofile %}
 {% else %}
 <div class="alert alert-danger">
@@ -19,7 +9,7 @@
 {% endif %}
 
 <div class="container">
-    <h5 class="my-3 border-bottom pb-2">질문등록</h5>
+    <h5 class="my-3 border-bottom pb-2">문제</h5>
 
 <form method="post" enctype="multipart/form-data" class="post-form my-3" >
         {% csrf_token %}
@@ -36,121 +26,82 @@
 </div>
 {% endif %}
 
+
 <!--폼 처리-->
 <form method="post">
     <div class="form-group">
         <label for="subject">제목</label>
-    <input type="text" class="form-control" name="subject" id="subject"
+    <input type="text" class="form-control" name="subject" id="subject" placeholder="문제의 제목은?"
                        value="{{ form.subject.value|default_if_none:'' }}">
 
-        <label>문제</label>
-    <textarea class="form-control" name="content" id="summernote">
-        {{ form.content.value|default_if_none:'여기에 문제 세부내용을 써주세요. 이미지 업로드 제한용량은 2MB입니다~' }}</textarea>
-
-            <label for="rightAnswer">정답</label>
-    <input type="text" class="form-control" name="rightAnswer" id="rightAnswer" placeholder="10글자 이하로 간결하게. 대소문자 구분합니다."
-                       value="{{ form.rightAnswer.value|default_if_none:'' }}">
-
-        <label>해답</label>
-    <textarea class="form-control" name="solution" id="summernote_solution">
-        {{ form.solution.value|default_if_none:'여기엔 해설을 써주세요' }}</textarea>
+        <textarea class="form-control" name="content" id="summernote"
+    placeholder="여기에 문제 세부내용을 써주세요. 이미지 업로드 제한용량은 2MB입니다~">{% if form.content.value %}{{ form.content.value }}{% endif %}</textarea>
 
     </div>
+
+    <h2>해설</h2>
+        <p>해설은 GUESS. 주목방풀해 형태로 작성합니다.</p>
+{% include "WYSIWYG/equation_editor_common_script.html" %}
+
+{% include "WYSIWYG/equation_editor.html" with content=form.givens.value|default_if_none:'' title="Given. 주어진 것." name="givens" %}
+{% include "WYSIWYG/equation_editor.html" with title="Unknowns. 목표." content=form.unknowns.value|default_if_none:'' name="unknowns" %}
+
+
+
+
+<!--            <label for="givens">Given. 주어진 것.</label>-->
+<!--              <textarea class="form-control" name="givens" id="givens" rows="3"-->
+<!--              placeholder="예: \frac{1}{2}mv^2 = mgh">{{ form.givens.value|default_if_none:'' }}</textarea>-->
+<!--          </div>-->
+<!--          </div>-->
+<!--          <div class="col-md-6 col-12">-->
+<!--            <div class="col-md-6 col-12">-->
+<!--                <label for="givens-preview">시각적 수식 편집기</label>-->
+<!--                <math-field id="givens-preview" class="border rounded p-2" style="width: 100%; min-height: 50px;"></math-field>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+
+<!--        <label for="unknowns">Unknowns. 목표.</label>-->
+<!--            <input type="text" class="form-control" name="unknowns" id="unknowns" placeholder="문제의 목표"-->
+<!--                               value="{{ form.unknowns.value|default_if_none:'' }}">-->
+<!--        <label for="equations">Equations. 방정식.</label>-->
+<!--            <input type="text" class="form-control" name="equations" id="equations" placeholder="문제에서 사용할 수 있는 방정식"-->
+<!--                               value="{{ form.equations.value|default_if_none:'' }}">-->
+<!--        <label for="substitution">Substitution. 풀이.</label>-->
+<!--            <input type="text" class="form-control" name="substitution" id="substitution" placeholder="방정식에 적절한 값 대입"-->
+<!--                               value="{{ form.substitution.value|default_if_none:'' }}">-->
+<!--        <label for="solution">Solution. 해답.</label>-->
+<!--            <input type="text" class="form-control" name="solution" id="solution" placeholder="정답으로 인정할 것들"-->
+<!--                               value="{{ form.solution.value|default_if_none:'' }}">-->
+
+<!--    아래는.. 곧 없앨 것.    -->
+<!--        <label>해답</label>-->
+<!--    <textarea class="form-control" name="solution" id="summernote_solution">-->
+<!--        {{ form.solution.value|default_if_none:'여기엔 해설을 써주세요' }}</textarea>-->
+
+
     <input type="submit" value='등록'>
 </form>
 
-    <script>
-      $('#summernote').summernote({
-        placeholder: '여기에 내용 입력하세요~ 그림파일 용량은 2MB까지입니다~',
-        tabsize: 2,
-        height: 300, // 에디터 높이
-        defaultFontName: '바탕',
-        toolbar: [
-  ['style', ['style']],
-  ['fontname', ['fontname']],
-  ['fontsize', ['fontsize']],
-  ['font style', ['bold', 'italic', 'underline','strikethrough', 'clear','superscript', 'subscript',]],
-  ['color', ['forecolor','color']],
-  ['para', ['ul', 'ol', 'paragraph']],
-  ['table', ['table']],
-  ['insert', ['link', 'picture', 'video']],
-  ['view', ['fullscreen', 'codeview', 'help']],
-],
-    defaultFontName:'바탕',
-    fontNames: ['Arial', 'Comic Sans MS','맑은 고딕','궁서','굴림','돋음체','바탕'],
-    fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
-    maximumImageFileSize:2097152,
 
-  popover: {
-                  image: [
-                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
-                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
-                    ['remove', ['removeMedia']]
-                  ],
-                  link: [
-                    ['link', ['linkDialogShow', 'unlink']]
-                  ],
-                  table: [
-                    ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-                    ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-                  ],
-                  air: [
-                    ['color', ['color']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['para', ['ul', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture']]
-                  ]
-                }
-      });
-$('.dropdown-toggle').dropdown()
-    </script>
-        <script>
-      $('#summernote_solution').summernote({
-        placeholder: '여기에 내용 입력하세요~ 그림파일 용량은 2MB까지입니다~',
-        tabsize: 2,
-        height: 300, // 에디터 높이
-        defaultFontName: '바탕',
-        toolbar: [
-  ['style', ['style']],
-  ['fontname', ['fontname']],
-  ['fontsize', ['fontsize']],
-  ['font style', ['bold', 'italic', 'underline','strikethrough', 'clear','superscript', 'subscript',]],
-  ['color', ['forecolor','color']],
-  ['para', ['ul', 'ol', 'paragraph']],
-  ['table', ['table']],
-  ['insert', ['link', 'picture', 'video']],
-  ['view', ['fullscreen', 'codeview', 'help']],
-],
-    defaultFontName:'바탕',
-    fontNames: ['Arial', 'Comic Sans MS','맑은 고딕','궁서','굴림','돋음체','바탕'],
-    fontSizes: ['8','9','10','11','12','14','16','18','20','22','24','28','30','36','50','72'],
-    maximumImageFileSize:2097152,
 
-  popover: {
-                  image: [
-                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
-                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
-                    ['remove', ['removeMedia']]
-                  ],
-                  link: [
-                    ['link', ['linkDialogShow', 'unlink']]
-                  ],
-                  table: [
-                    ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
-                    ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
-                  ],
-                  air: [
-                    ['color', ['color']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['para', ['ul', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture']]
-                  ]
-                }
-      });
-$('.dropdown-toggle').dropdown()
-    </script><!--이상하게 2중 입력기가 안되서 따로 똑같이 만들었다. -->
+{% include "item_pool/test_math.html" %}
+
+
+
+
+
+
+
+
+
+
 
 
 {% endblock %}
+
+
+
+
+

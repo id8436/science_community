@@ -33,13 +33,13 @@ class Question(models.Model):
     subject =models.CharField(max_length=100)  #제목
     content = models.TextField()  #내용, 문제내기.
 
-    rightAnswer = models.TextField(null=True, blank=True)  #답 쓰기.(json형식으로 가능한 답을 다 써보도록 하자.)
+    # rightAnswer = models.TextField(null=True, blank=True)  #답 쓰기.
     # 해설 란 자체는 없애도 좋을듯.
     givens = models.TextField(null=True, blank=True)
     unknowns = models.TextField(null=True, blank=True)
     equations = models.TextField(null=True, blank=True)
     substitution = models.TextField(null=True, blank=True)
-    solution = models.TextField(null=True, blank=True)  # 해답.
+    solution = models.TextField(null=True, blank=True)  # 해답.(json형식으로 가능한 답을 다 써보도록 하자.)
 
     correct = models.IntegerField(null=True, blank=True, default=0)  # 맞은 사람 카운트.
     wrong = models.IntegerField(null=True, blank=True, default=0)  # 틀린 사람 카운트.

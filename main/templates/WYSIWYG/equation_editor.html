@@ -1,0 +1,205 @@
+<!-- 변수로 {{ name }}, {{placeholder|default:'LaTex 수식을 입력하세요'}}, {{ content }}, {{ title }}
+
+여러 개일 경우엔 editor|default:'summernote' 에 변화를 주면 됨.
+form 안에 text로 쓸 부분에 넣으면 됨.
+-->
+
+
+<div class="container py-3">
+
+  <!-- LaTeX 버튼 툴바 -->
+  <div class="btn-toolbar mb-3" role="toolbar" aria-label="LaTeX toolbar">
+
+    <!-- 리스트 드롭다운 -->
+    <div class="btn-group me-2" role="group" aria-label="목록">
+      <button id="listDropdown" type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-list"></i> 리스트
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="listDropdown">
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('<ul>\n'+
+'  <li>항목 1</li>\n'+
+'  <li>항목 2</li>\n'+
+'</ul>'); return false;">
+          <i class="fa-solid fa-list-ul me-2"></i> 글머리표 목록
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('<ol>\n'+
+'  <li>항목 1</li>\n'+
+'  <li>항목 2</li>\n'+
+'</ol>'); return false;">
+          <i class="fa-solid fa-list-ol me-2"></i> 번호 목록
+        </a></li>
+            <li><a class="dropdown-item" href="#" onclick="insertAtCursor('<ol type=&quot;a&quot;>\n'+
+            '  <li>항목 A</li>\n'+
+            '  <li>항목 B</li>\n'+
+            '</ol>'); return false;">
+            <i class="fa-solid fa-font me-2"></i> 알파벳 목록
+            </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('<ul><li>상위 항목<ul><li>하위 항목</li></ul></li></ul>'); return false;">
+          <i class="fa-solid fa-indent me-2"></i> 하위 글머리표
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('<ol><li>상위 항목<ol><li>하위 항목</li></ol></li></ol>'); return false;">
+          <i class="fa-solid fa-indent me-2"></i> 하위 번호 목록
+        </a></li>
+      </ul>
+    </div>
+
+    <!-- 수식 모드 드롭다운 -->
+    <div class="btn-group me-2" role="group" aria-label="수식 모드">
+      <button id="mathmodeDropdown" type="button" class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid"></i> 수식 모드
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="mathmodeDropdown">
+        <li><a class="dropdown-item" href="#" onclick="wrapWithMathDelimiters('\\(', '\\)'); return false;">
+          인라인 수식
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="wrapWithMathDelimiters('\\[', '\\]'); return false;">
+          디스플레이 수식(한줄)
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="wrapWithMathDelimiters('\\[\n\\begin{align*}\n  a + b &= c \\\\\n  d + e &= f\n\\end{align*}\n\\]'); return false;">
+          정렬 수식
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="wrapWithMathDelimiters('\\(\\begin{cases}\n'+
+'  x^2 & x \\ge 1 \\\\\n'+
+'  -x & x < 0','\n'+
+'\\end{cases}\\)'); return false;">
+          케이스
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="wrapWithMathDelimiters('\\[\n\\begin{bmatrix}\n  a & b \\\\\n  c & d','\n\\end{bmatrix}\n\\]'); return false;">
+          행렬
+        </a></li>
+      </ul>
+    </div>
+
+    <!-- 수학 함수 드롭다운 -->
+    <div class="btn-group me-2" role="group" aria-label="수학 함수">
+      <button id="funcDropdown" type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-function"></i> 함수
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="funcDropdown">
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\sin'); return false;">sin</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\cos'); return false;">cos</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\tan'); return false;">tan</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\cot'); return false;">cot</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\sec'); return false;">sec</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\csc'); return false;">csc</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\log'); return false;">log</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\ln'); return false;">ln</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\exp'); return false;">exp</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\max'); return false;">max</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\min'); return false;">min</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\arg'); return false;">arg</a></li>
+      </ul>
+    </div>
+
+    <!-- 연산자 드롭다운 -->
+    <div class="btn-group me-2" role="group" aria-label="연산자">
+      <button id="opDropdown" type="button" class="btn btn-outline-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-calculator"></i> 연산자
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="opDropdown">
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\int_{a}^{b}'); return false;">적분 ∫</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\iint'); return false;">이중적분 ∬</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\iiint'); return false;">삼중적분 ∭</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\partial'); return false;">부분미분 ∂</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\nabla'); return false;">그라디언트 ∇</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\sum_{n=1}^{\\infty}'); return false;">합 ∑</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\prod_{n=1}^{\\infty}'); return false;">곱 ∏</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\lim_{x \\to \\infty}'); return false;">극한 lim</a></li>
+      </ul>
+    </div>
+
+    <!-- 그리스 문자 드롭다운 -->
+    <div class="btn-group me-2" role="group" aria-label="그리스 문자">
+      <button id="greekDropdown" type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-omega"></i> 그리스문자
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="greekDropdown">
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\alpha'); return false;">α (alpha)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\beta'); return false;">β (beta)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\gamma'); return false;">γ (gamma)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\delta'); return false;">δ (delta)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\epsilon'); return false;">ε (epsilon)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\zeta'); return false;">ζ (zeta)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\eta'); return false;">η (eta)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\theta'); return false;">θ (theta)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\iota'); return false;">ι (iota)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\kappa'); return false;">κ (kappa)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\lambda'); return false;">λ (lambda)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\mu'); return false;">μ (mu)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\nu'); return false;">ν (nu)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\xi'); return false;">ξ (xi)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\omicron'); return false;">ο (omicron)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\pi'); return false;">π (pi)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\rho'); return false;">ρ (rho)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\sigma'); return false;">σ (sigma)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\tau'); return false;">τ (tau)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\upsilon'); return false;">υ (upsilon)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\phi'); return false;">φ (phi)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\chi'); return false;">χ (chi)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\psi'); return false;">ψ (psi)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\omega'); return false;">ω (omega)</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Gamma'); return false;">Γ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Delta'); return false;">Δ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Theta'); return false;">Θ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Lambda'); return false;">Λ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Xi'); return false;">Ξ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Pi'); return false;">Π (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Sigma'); return false;">Σ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Upsilon'); return false;">Υ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Phi'); return false;">Φ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Chi'); return false;">Χ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Psi'); return false;">Ψ (대문자)</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\Omega'); return false;">Ω (대문자)</a></li>
+      </ul>
+    </div>
+
+    <!-- 기호 드롭다운 -->
+    <div class="btn-group me-2" role="group" aria-label="기호">
+      <button id="symbolDropdown" type="button" class="btn btn-outline-warning dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-star"></i> 기호
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="symbolDropdown">
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\pm'); return false;">±</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\times'); return false;">×</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\div'); return false;">÷</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\neq'); return false;">≠</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\approx'); return false;">≈</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\equiv'); return false;">≡</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\infty'); return false;">∞</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\partial'); return false;">∂</a></li>
+        <li><a class="dropdown-item" href="#" onclick="insertAtCursor('\\nabla'); return false;">∇</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- 여러 입력 칸 예시 -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="{{ name }}" class="form-label">{{ title }}</label>
+          <textarea
+            id="{{ name }}"
+            name="{{ name }}"
+            class="form-control latex-input"
+            rows="6"
+            placeholder="{{ placeholder|default:'LaTeX 수식을 입력하세요' }}"
+            onclick="currentLatexInput = this"
+          >{{ content|default:'' }}</textarea>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">미리보기</label><p class="small">언젠가 미리보기 화면에서 수정한 게 원 식에 반영하는 방식으로도.. 양방향 수정이 되게끔.</p>
+<div
+  id="{{ name }}_preview"
+  class="border rounded p-2 bg-light"
+  style="min-height:150px"
+  onclick="editFormula(this.id)"
+></div>
+      </div>
+
+</div>
+
+
+
