@@ -59,6 +59,13 @@ class Question(models.Model):
     def __str__(self):
         return self.subject
 
+class UploadedImage(models.Model):
+    image = models.ImageField(upload_to='uploaded_images/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image {self.id} - {self.image.name}"
+
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="question_answer_author")

@@ -79,22 +79,19 @@ function insertAtCursor(text) {
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const value = textarea.value;
-
-    // 텍스트 삽입
-    textarea.value = value.substring(0, start) + text + value.substring(end);
-
-    // 커서 위치 조정
-    textarea.selectionStart = textarea.selectionEnd = start + text.length;
-
     textarea.focus();
+
+    // 텍스트 삽입 사용자가 직접 입력한 것처럼 처리(아래 둘이 있어야 ctrl+z 먹힘)
+    textarea.setSelectionRange(start, end);  // 커서/선택 설정
+    document.execCommand('insertText', false, text);  // (execCommand는 종료 예정인데.. 이것 말곤 딱히 제대로 된 대안이 없음.)
+
+
 
     // 미리보기 업데이트 함수 호출 (textarea.id 기반)
     updatePreview(textarea.id);
 }
 
 function wrapWithMathDelimiters(opening, closing = '') {
-  // 1) currentLatexInput 유무 체크
   if (!currentLatexInput) {
     alert("수식 입력란을 먼저 클릭하세요.");
     return;
@@ -106,22 +103,15 @@ function wrapWithMathDelimiters(opening, closing = '') {
   const value = textarea.value;
   const selected = value.substring(start, end);
 
-  // 2) 감싸기용 텍스트 조합
   const newText = opening + selected + closing;
-
-  // 3) 값 교체
-  textarea.value =
-    value.substring(0, start) +
-    newText +
-    value.substring(end);
-
-  // 4) 커서 위치 재설정 (선택 영역 끝으로)
-  const cursorPos = start + opening.length + selected.length;
-  textarea.selectionStart = textarea.selectionEnd = cursorPos;
 
   textarea.focus();
 
-  // 5) 미리보기 업데이트
+  textarea.setSelectionRange(start, end);
+  document.execCommand('insertText', false, newText);
+
+  // input 이벤트 강제 발생은 안 해도 execCommand가 알아서 처리합니다.
+
   updatePreview(textarea.id);
 }
 
@@ -131,5 +121,186 @@ function updatePreview(textareaId) {
   preview.innerHTML = ta.value;   // innerHTML
   if (window.MathJax) MathJax.typesetPromise([preview]);
 }
+
+</script>
+
+
+
+
+<!-- 코드미러용 -->
+<!-- CodeMirror CSS -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/theme/eclipse.min.css"
+/>
+
+<style>
+  /* 에디터 높이나 기본 폰트 등 필요시 조정 */
+  .CodeMirror {
+  height: auto;
+  min-height: 50px;
+  max-height: 600px;
+}
+.CodeMirror-scroll {
+  overflow-y: auto;
+  max-height: 600px;
+}:contentReference[oaicite:12]{index=12}
+  .preview-box {
+    min-height: 50px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    background: #fafafa;
+  }
+  textarea.latex-input + .CodeMirror {
+  resize: vertical;       /* 수직 방향으로만 리사이즈 허용 */
+  /* resize: both; */     /* 가로·세로 모두 허용하려면 */
+  overflow: hidden;         /* 스크롤바가 방해됨.. 이상하게 생김; */
+  /* 최소 높이 지정(Optional) */
+  min-height: 50px;
+  /* 최대 높이 지정(Optional) */
+  max-height: 600px;
+  border: 1px solid #ccc; /* 원하는 색상과 두께로 조정 가능 */
+  border-radius: 4px;     /* 선택 사항: 모서리를 둥글게 */
+}
+
+/* 구분자(delimiter) 클래스가 강력하게 적용되도록 우선순위 올리기 */
+.CodeMirror span.cm-latex-delimiter {
+  color: #e74c3c !important;
+  font-weight: bold !important;
+}
+
+/* LaTeX 구간 내용 */
+.CodeMirror span.cm-latex-content {
+  color: #b33939 !important;
+  font-style: italic !important;
+}
+
+/* HTML 기본 텍스트 */
+.CodeMirror span.cm-htmlmixed {
+  color: #000000 !important;
+}
+
+</style>
+
+<!-- Core CodeMirror + 모드들 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codemirror/CodeMirror@5.65.5/mode/stex/stex.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/mode/multiplex.min.js"></script>
+
+<script>
+  // stex 모드를 확장해서 명령어 강조 추가
+CodeMirror.defineMode("html_with_stex", function(config) {
+  // HTML 영역 기본 모드
+  const htmlMode = CodeMirror.getMode(config, "htmlmixed");
+  // LaTeX 영역 커스텀 모드 (stex or stex-custom 중 선택)
+  const latexMode = CodeMirror.getMode(config, "stex-custom");
+
+  return CodeMirror.multiplexingMode(
+    htmlMode,
+    {
+      open: "$$",
+      close: "$$",
+      mode: latexMode,
+      parseDelimiters: true,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    },
+    {
+      open: "\\(",
+      close: "\\)",
+      mode: latexMode,
+      parseDelimiters: true,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    },
+    {
+      open: "\\[",
+      close: "\\]",
+      mode: latexMode,
+      parseDelimiters: true,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    },
+    {
+      open: "\\begin{equation}",
+      close: "\\end{equation}",
+      mode: latexMode,
+      parseDelimiters: false,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    },
+    {
+      open: "\\begin{align}",
+      close: "\\end{align}",
+      mode: latexMode,
+      parseDelimiters: false,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    }
+  );
+});
+
+  // 에디터 인스턴스 저장용
+  window.latexEditors = {};
+  let currentEditor = null;
+
+  // 툴바에서 사용할 삽입 함수
+  function insertAtCursor(text) {
+    if (!currentEditor) {
+      alert("먼저 수식 입력란을 클릭하세요.");
+      return;
+    }
+    currentEditor.replaceSelection(text);
+    currentEditor.focus();
+  }
+  function wrapWithMathDelimiters(opening, closing = "") {
+    if (!currentEditor) {
+      alert("먼저 수식 입력란을 클릭하세요.");
+      return;
+    }
+    const sel = currentEditor.getSelection();
+    currentEditor.replaceSelection(opening + sel + closing);
+    currentEditor.focus();
+  }
+
+  // 페이지 로드 후 각 textarea 초기화
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("textarea.latex-input").forEach(textarea => {
+      const name = textarea.id;
+      // CodeMirror 에디터 생성
+      const editor = CodeMirror.fromTextArea(textarea, {
+          mode: "html_with_stex",
+          theme: "eclipse",
+          lineNumbers: true,
+          lineWrapping: true,
+          viewportMargin: Infinity
+        });
+      window.latexEditors[name] = editor;
+
+      // 포커스 시 currentEditor 갱신
+      editor.on("focus", () => currentEditor = editor);
+
+      // 미리보기 연결 (MathJax)
+      const preview = document.getElementById(name + "_preview");
+      const updatePreview = () => {
+        preview.innerHTML = editor.getValue();
+        if (window.MathJax) {
+          MathJax.typesetPromise([preview]);
+        }
+      };
+      editor.on("change", updatePreview);
+      updatePreview();
+    });
+  });
+
 
 </script>

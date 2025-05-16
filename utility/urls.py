@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views  # 해당 앱의 뷰를 불러온다.
-from .view import mental_health_chatbot
+from .view import mental_health_chatbot, latex_render
 from .language.translate_ko_en import  translate_ko_en
 from .language.korean_spell import korean_spell
 from utility.data_analysis import data_analysis
@@ -33,5 +33,7 @@ urlpatterns = [
     # 워드클라우드
     path('wordcloud/', wordcloud.main, name='wordcloud_main'),
     path('wordcloud/create', wordcloud.create, name='wordcloud_create'),
-
+    # 레이텍 렌더링
+    path('latex/render/', latex_render.input, name='latex_render'),
+    path("render-latex/", latex_render.render_latex, name="render_latex"),
 ]

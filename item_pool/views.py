@@ -106,7 +106,7 @@ def detail(request,question_id):
 ########list함수와 같은 부분####
     context = list_hidden(request)
     context['question'] = question  # context = { 'question': question}를 추가하기 위함.
-    return render(request, 'detail.html', context)
+    return render(request, 'item_pool/detail.html', context)
 
 @login_required(login_url='membership:login')
 def solve(request, question_id):
@@ -140,7 +140,6 @@ def create(request):
             question = form.save(commit=False)  #commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
             question.author = request.user  # 추가한 속성 author 적용
             question.create_date = timezone.now()  #현재 작성일시 자동저장
-            question.profile = request.user.schoolprofile  # 유저가 현재 사용하는 프로필
             question.save()
             return redirect('item_pool:list')  #작성이 끝나면 목록화면으로 보낸다.
     else:  #포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
@@ -167,7 +166,7 @@ def modify(request, question_id):#이름을 update로 해도 괜찮았을 듯하
     else:#GET으로 요청된 경우.
         form = QuestionForm(instance=question)#해당 모델의 내용을 가져온다!
     context = {'form': form}
-    return render(request, 'create.html', context)
+    return render(request, 'item_pool/create.html', context)
 
 @login_required()
 def delete(request, question_id):
@@ -216,7 +215,7 @@ def answer_update(request, answer_id):
     else:
         form = AnswerForm(instance=answer)
     context = {'answer': answer, 'form': form}
-    return render(request, 'answer_form.html', context)
+    return render(request, 'item_pool/answer_form.html', context)
 
 @login_required(login_url='membership:login')
 def answer_delete(request, answer_id):
@@ -243,7 +242,7 @@ def comment_create(request, answer_id):
     else:
         form = CommentForm()
     context = {'form': form}
-    return render(request, 'comment_form.html', context)
+    return render(request, 'item_pool/comment_form.html', context)
 
 @login_required(login_url='membership:login')
 def comment_update(request, comment_id):
@@ -263,7 +262,7 @@ def comment_update(request, comment_id):
     else:
         form = CommentForm(instance=comment)
     context = {'form': form}
-    return render(request, 'comment_form.html', context)
+    return render(request, 'item_pool/comment_form.html', context)
 
 @login_required(login_url='membership:login')
 def comment_delete(request, comment_id):
@@ -287,7 +286,7 @@ def favorite_question(request, question_id):
 def vote(request, type, object_id):
     object = get_object_or_404(type, pk=object_id)
     object.voter.add(request.user)
-    return redirect('item_pool:detail', question_id= question.id)
+    return redirect('item_pool:detail', question_id= object.id)
 
 
 

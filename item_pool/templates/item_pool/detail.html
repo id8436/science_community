@@ -1,10 +1,62 @@
-{% extends 'common.html' %}
+{% extends 'item_pool/section.html' %}
 
 
 {% block content %}
-{% if question %}
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+
+
 <div class="container my-3">
-    <h2 class="border-bottom py-2">{{ question.subject }}</h2>
+  <div class="row">
+    <!-- 왼쪽: 문제 이미지 -->
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title text-primary">{{ question.subject }}</h5>
+          <p class="card-text">{{ question.content| safe  }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 해설 텍스트 -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title text-success">해설</h5>
+  <p><span class="fw-bold fs-2">G</span><strong>ivens</strong><br>
+    {{ question.givens|safe }}
+  </p>
+
+  <p><span class="fw-bold fs-2">U</span><strong>nknown</strong><br>
+    {{ question.unknowns|safe }}
+  </p>
+
+  <p><span class="fw-bold fs-2">E</span><strong>quations</strong><br>
+    {{ question.equations|safe }}
+  </p>
+
+  <p><span class="fw-bold fs-2">S</span><strong>ubstitution</strong><br>
+    {{ question.substitution|safe }}
+  </p>
+
+  <p><span class="fw-bold fs-2">S</span><strong>olution</strong><br>
+    {{ question.solution|safe }}
+  </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container my-3">
+
 
     {% if answer %}
     당신의 답은 {{answer}}....
@@ -17,9 +69,8 @@
 
     <div class="card my-3">
         <div class="card-body">
-            <div class="card-text" style="white-space: pre-line;">{{ question.content| safe  }}</div>
 
-                <form method="post" action="{% url 'pool:solve' question.id %}">
+                <form method="post" action="{% url 'item_pool:solve' question.id %}">
                     {% csrf_token %}
                     <input type="text" size="20" name="answer" placeholder="대소문자 구분합니다.">
                 <button type="submit" class="btn btn-primary">정답제출</button>
@@ -42,8 +93,8 @@
     </div>
 
 {% if request.user == question.author %}<!--해당 작성자 일때만 수정, 삭제 버튼이 보이게끔!-->
-<a href="{% url 'pool:modify' question.id%}" class="btn btn-primary">수정</a>
-<a href="#" data-uri="{% url 'pool:delete' question.id  %}" class="delete btn btn-primary">삭제</a>
+<a href="{% url 'item_pool:modify' question.id%}" class="btn btn-primary">수정</a>
+<a href="#" data-uri="{% url 'item_pool:delete' question.id  %}" class="delete btn btn-primary">삭제</a>
 
 <!-- delete를 포함하는 클래스가 있으면 작동한다. data-uri 속성은 jQuery에서 $(this).data('uri') 형태로 받아가기 위해서 작성.-->
 <script type='text/javascript'>
@@ -56,9 +107,9 @@ $(document).ready(function(){
 });
 </script>
 <!-- 취소를 누르면 아무 일도 하지 않는다.-->
-{% endif %}
 
-    <a href="{% url 'pool:favorite' question.id%}" class="btn btn-primary">즐겨찾기 추가</a>
+
+    <a href="{% url 'item_pool:favorite' question.id%}" class="btn btn-primary">즐겨찾기 추가</a>
 
 
 <!------------------------------------------------------------답변을 보기 위한 것----------------->
@@ -82,10 +133,10 @@ $(document).ready(function(){
         <!--답변수정, 삭제-->
             {% if request.user == answer.author %}<!--답변 작성자에게만 보이게끔.-->
             <div class="my-3">
-                <a href="{% url 'pool:answer_update' answer.id  %}"
+                <a href="{% url 'item_pool:answer_update' answer.id  %}"
                    class="btn btn-sm btn-outline-secondary">수정</a>
                         <a href="#" class="delete btn btn-sm btn-outline-secondary "
-                   data-uri="{% url 'pool:answer_delete' answer.id  %}">삭제</a>
+                   data-uri="{% url 'item_pool:answer_delete' answer.id  %}">삭제</a>
             </div>
 
             {% endif %}
@@ -102,23 +153,23 @@ $(document).ready(function(){
                     {% endif %}
                 </span>
                 {% if request.user == comment.author %}
-                <a href="{% url 'pool:comment_update' comment.id  %}" class="small">수정</a>,
+                <a href="{% url 'item_pool:comment_update' comment.id  %}" class="small">수정</a>,
                 <a href="#" class="small delete"
-                   data-uri="{% url 'pool:comment_delete' comment.id  %}">삭제</a>
+                   data-uri="{% url 'item_pool:comment_delete' comment.id  %}">삭제</a>
                     {% endif %}
 
         </div>
         {% endfor %}
         {% endif %}
             <div>
-            <a href="{% url 'pool:comment_create' answer.id  %}"
+            <a href="{% url 'item_pool:comment_create' answer.id  %}"
             class="small">대댓글 추가하기</a>
             </div>
     {% endfor %}
 
 
 <!--답변등록을 위한 것---------------------------------------------------------------->
-<form action="{% url 'pool:answer_create' question.id %}" method="post">
+<form action="{% url 'item_pool:answer_create' question.id %}" method="post">
 {% csrf_token %}
 <!--폼에러를 나타내기 위한 것-->
     {% if form.errors %}
@@ -141,6 +192,5 @@ $(document).ready(function(){
 </div>
 {% endif %}
 
-{% include "list.html" %}
 {% endblock content %}
 

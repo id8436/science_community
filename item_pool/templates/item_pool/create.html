@@ -1,15 +1,8 @@
 {% extends 'item_pool/section.html' %}
 
 {% block content %}
-{% if user.schoolprofile %}
-{% else %}
-<div class="alert alert-danger">
-    <h1><strong>프로필을 등록해야 글을 쓸 수 있습니다.</strong></h1>
-</div>
-{% endif %}
 
-<div class="container">
-    <h5 class="my-3 border-bottom pb-2">문제</h5>
+
 
 <form method="post" enctype="multipart/form-data" class="post-form my-3" >
         {% csrf_token %}
@@ -26,71 +19,43 @@
 </div>
 {% endif %}
 
+<h3 class="mt-4 pb-2 border-bottom">문제 기초자료</h3>
+    <h5 class="mt-4 pb-2 border-bottom">이미지</h5>
+    <form method="post">
+{% with input_id="post_image" input_id="image_file" upload_url="/upload-image/" csrf_token=csrf_token %}
+  {% include "WYSIWYG/image_upload_by_ajax.html" %}
+{% endwith %}
+    </form>
+
+
+
+    <h3 class="mt-4 pb-2 border-bottom">문제</h3>
 
 <!--폼 처리-->
 <form method="post">
-    <div class="form-group">
-        <label for="subject">제목</label>
-    <input type="text" class="form-control" name="subject" id="subject" placeholder="문제의 제목은?"
-                       value="{{ form.subject.value|default_if_none:'' }}">
-
-        <textarea class="form-control" name="content" id="summernote"
-    placeholder="여기에 문제 세부내용을 써주세요. 이미지 업로드 제한용량은 2MB입니다~">{% if form.content.value %}{{ form.content.value }}{% endif %}</textarea>
-
+    <div class="d-flex align-items-center mb-3">
+    <label for="subject" class="me-2 mb-0 fw-bold">제목</label>
+  <input type="text" class="form-control" name="subject" id="subject" placeholder="문제의 제목은?"
+         value="{{ form.subject.value|default_if_none:'' }}" style="max-width: 400px;">
     </div>
+{% include "WYSIWYG/equation_editor.html" with title="문제 내용." content=form.content.value|default_if_none:'' name="content" placeholder="여기에 문제 세부내용을 써주세요." %}
 
-    <h2>해설</h2>
+
+
+
+<h3 class="mt-4 pb-2 border-bottom">해설</h3>
         <p>해설은 GUESS. 주목방풀해 형태로 작성합니다.</p>
 {% include "WYSIWYG/equation_editor_common_script.html" %}
 
-{% include "WYSIWYG/equation_editor.html" with content=form.givens.value|default_if_none:'' title="Given. 주어진 것." name="givens" %}
-{% include "WYSIWYG/equation_editor.html" with title="Unknowns. 목표." content=form.unknowns.value|default_if_none:'' name="unknowns" %}
+{% include "WYSIWYG/equation_editor.html" with content=form.givens.value|default_if_none:'' title="Given. 주어진 것." name="givens" placeholder="문제의 조건." %}
+{% include "WYSIWYG/equation_editor.html" with title="Unknowns. 목표." content=form.unknowns.value|default_if_none:'' name="unknowns" placeholder="문제의 목표." %}
+{% include "WYSIWYG/equation_editor.html" with title="Equations. 방정식." content=form.equations.value|default_if_none:'' name="equations" placeholder="문제에서 사용할 수 있는 방정식." %}
+{% include "WYSIWYG/equation_editor.html" with title="Substitution. 풀이." content=form.substitution.value|default_if_none:'' name="substitution" placeholder="방정식에 적절한 값 대입." %}
+{% include "WYSIWYG/equation_editor.html" with title="Solution. 해답. 풀이.(공백 없이 , # @ 로 구분)" content=form.solution.value|default_if_none:'' name="solution" placeholder="정답으로 인정할 것들." %}
 
 
-
-
-<!--            <label for="givens">Given. 주어진 것.</label>-->
-<!--              <textarea class="form-control" name="givens" id="givens" rows="3"-->
-<!--              placeholder="예: \frac{1}{2}mv^2 = mgh">{{ form.givens.value|default_if_none:'' }}</textarea>-->
-<!--          </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-6 col-12">-->
-<!--            <div class="col-md-6 col-12">-->
-<!--                <label for="givens-preview">시각적 수식 편집기</label>-->
-<!--                <math-field id="givens-preview" class="border rounded p-2" style="width: 100%; min-height: 50px;"></math-field>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-
-<!--        <label for="unknowns">Unknowns. 목표.</label>-->
-<!--            <input type="text" class="form-control" name="unknowns" id="unknowns" placeholder="문제의 목표"-->
-<!--                               value="{{ form.unknowns.value|default_if_none:'' }}">-->
-<!--        <label for="equations">Equations. 방정식.</label>-->
-<!--            <input type="text" class="form-control" name="equations" id="equations" placeholder="문제에서 사용할 수 있는 방정식"-->
-<!--                               value="{{ form.equations.value|default_if_none:'' }}">-->
-<!--        <label for="substitution">Substitution. 풀이.</label>-->
-<!--            <input type="text" class="form-control" name="substitution" id="substitution" placeholder="방정식에 적절한 값 대입"-->
-<!--                               value="{{ form.substitution.value|default_if_none:'' }}">-->
-<!--        <label for="solution">Solution. 해답.</label>-->
-<!--            <input type="text" class="form-control" name="solution" id="solution" placeholder="정답으로 인정할 것들"-->
-<!--                               value="{{ form.solution.value|default_if_none:'' }}">-->
-
-<!--    아래는.. 곧 없앨 것.    -->
-<!--        <label>해답</label>-->
-<!--    <textarea class="form-control" name="solution" id="summernote_solution">-->
-<!--        {{ form.solution.value|default_if_none:'여기엔 해설을 써주세요' }}</textarea>-->
-
-
-    <input type="submit" value='등록'>
+<input type="submit" value="등록" class="btn btn-outline-primary me-2" />
 </form>
-
-
-
-{% include "item_pool/test_math.html" %}
-
-
-
-
 
 
 
@@ -100,8 +65,3 @@
 
 
 {% endblock %}
-
-
-
-
-
