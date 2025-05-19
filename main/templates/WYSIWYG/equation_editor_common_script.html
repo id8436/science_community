@@ -126,8 +126,9 @@ function updatePreview(textareaId) {
 
 
 
-
-<!-- 코드미러용 -->
+<!-- 코드미러용.
+  뭔가 이것저것 하다가 꼬인 듯한데... 처음부터 코드미러를 메인으로 두고, 이를 기반으로 미리보기를 구성하게 하는 편이 좋았을 듯?
+ -->
 <!-- CodeMirror CSS -->
 <link
   rel="stylesheet"
@@ -181,9 +182,9 @@ function updatePreview(textareaId) {
 }
 
 /* HTML 기본 텍스트 */
-.CodeMirror span.cm-htmlmixed {
-  color: #000000 !important;
-}
+.CodeMirror span.cm-tag       { color:#1565c0 !important; }  /* 또는 원하는 색 */
+.CodeMirror span.cm-attribute { color:#00796b !important; }
+.CodeMirror span.cm-string    { color:#455a64 !important; }
 
 </style>
 
@@ -207,6 +208,22 @@ CodeMirror.defineMode("html_with_stex", function(config) {
   return CodeMirror.multiplexingMode(
     htmlMode,
     {
+      open: "\\begin{equation}",
+      close: "\\end{equation}",
+      mode: latexMode,
+      parseDelimiters: false,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    },
+    {
+      open: "\\begin{align}",
+      close: "\\end{align}",
+      mode: latexMode,
+      parseDelimiters: false,
+      delimStyle: "latex-delimiter",
+      innerStyle: "latex-content"
+    },
+    {
       open: "$$",
       close: "$$",
       mode: latexMode,
@@ -227,22 +244,6 @@ CodeMirror.defineMode("html_with_stex", function(config) {
       close: "\\]",
       mode: latexMode,
       parseDelimiters: true,
-      delimStyle: "latex-delimiter",
-      innerStyle: "latex-content"
-    },
-    {
-      open: "\\begin{equation}",
-      close: "\\end{equation}",
-      mode: latexMode,
-      parseDelimiters: false,
-      delimStyle: "latex-delimiter",
-      innerStyle: "latex-content"
-    },
-    {
-      open: "\\begin{align}",
-      close: "\\end{align}",
-      mode: latexMode,
-      parseDelimiters: false,
       delimStyle: "latex-delimiter",
       innerStyle: "latex-content"
     }
@@ -272,35 +273,99 @@ CodeMirror.defineMode("html_with_stex", function(config) {
     currentEditor.focus();
   }
 
-  // 페이지 로드 후 각 textarea 초기화
+
+
+
+</script>
+
+
+<!-- 미리보기 작성용. -->
+<!-- 1) show-hint CSS/JS 불러오기 -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/show-hint.min.css"
+/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/addon/hint/anyword-hint.min.js"></script>
+
+<script>
+  // 2) LaTeX 커맨드 배열 (필요에 따라 늘리세요)
+  const latexCommands = [
+    "\\alpha","\\beta","\\gamma","\\delta",
+    "\\epsilon","\\theta","\\lambda","\\mu",
+    "\\frac","\\sqrt","\\sum","\\int",
+    "\\begin","\\end","\\item","\\textbf","\\mathrm",
+    // …추가
+  ];
+
+  // 2) ‘stex’ 힌트 제공자 등록 (여기까지 스크립트 최상단에)
+  CodeMirror.registerHelper("hint", "stex", editor => {
+    const cur   = editor.getCursor();
+    const tok   = editor.getTokenAt(cur);
+    if (!tok.string.startsWith("\\")) return;
+    const start  = tok.start;
+    const end    = cur.ch;
+    const prefix = tok.string.slice(1);
+    const list   = latexCommands.filter(cmd =>
+      cmd.slice(1).startsWith(prefix)
+    );
+    return {
+      list: list.length ? list : latexCommands,
+      from: CodeMirror.Pos(cur.line, start),
+      to:   CodeMirror.Pos(cur.line, end),
+      replace: sel => {
+        editor.replaceRange(
+          sel + " ",
+          { line: cur.line, ch: start },
+          { line: cur.line, ch: end }
+        );
+        editor.setCursor({ line: cur.line, ch: start + sel.length + 1 });
+      }
+    };
+  });
+
+  // 페이지 로드 후 각 textarea 초기화(에디터 초기화) 에디터는 항상 가장 나중에 초기화 하는 편이 좋다.
   document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("textarea.latex-input").forEach(textarea => {
       const name = textarea.id;
-      // CodeMirror 에디터 생성
       const editor = CodeMirror.fromTextArea(textarea, {
-          mode: "html_with_stex",
-          theme: "eclipse",
-          lineNumbers: true,
-          lineWrapping: true,
-          viewportMargin: Infinity
-        });
-      window.latexEditors[name] = editor;
+        mode: "html_with_stex",
+        theme: "eclipse",
+        lineNumbers: true,
+        lineWrapping: true,
+        viewportMargin: Infinity,
+        extraKeys: {
+          // 백슬래시 입력 → 삽입 + 힌트
+          "Backslash": cm => {
+            cm.replaceSelection("\\");
+            cm.showHint({ hint: CodeMirror.hint.stex, completeSingle: false });
+          },
+          "Ctrl-Space": "autocomplete",
+          "Tab": cm => {
+            if (cm.somethingSelected()) cm.indentSelection("add");
+            else cm.replaceSelection("  ", "end");
+          }
+        }
+      });
 
-      // 포커스 시 currentEditor 갱신
+      // focus 트래킹
       editor.on("focus", () => currentEditor = editor);
 
-      // 미리보기 연결 (MathJax)
+      // 4) 미리보기 업데이트 함수
       const preview = document.getElementById(name + "_preview");
-      const updatePreview = () => {
+      const update = () => {
         preview.innerHTML = editor.getValue();
-        if (window.MathJax) {
-          MathJax.typesetPromise([preview]);
-        }
+        if (window.MathJax) MathJax.typesetPromise([preview]);
       };
-      editor.on("change", updatePreview);
-      updatePreview();
+
+      // change 이벤트에 바인딩
+      editor.on("change", update);
+      // 초기 렌더
+      update();
+
+      // 전역 저장
+      window.latexEditors = window.latexEditors || {};
+      window.latexEditors[name] = editor;
     });
   });
-
-
 </script>

@@ -8,6 +8,8 @@ from django.contrib import messages  # 넌필드 오류를 반환하기 위한 �
 from .forms import QuestionForm, AnswerForm,CommentForm
 from .models import * #모델을 불러온다.
 from django.db.models import Q, Count  # 검색을 위함. filter에서 OR조건으로 조회하기 위한 함수.(장고제공)
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 def list_hidden(request):
     question_list = Question.objects.all()  # 일단 객체 목록을 받아온다.(전부 다~)
@@ -144,9 +146,23 @@ def create(request):
             return redirect('item_pool:list')  #작성이 끝나면 목록화면으로 보낸다.
     else:  #포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = QuestionForm()
-    context = {'form': form}  #폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
+    context = {'form': form}  #폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.+그림 오더 몇번까지 할지 지정.
     #없으면 그냥 form 작성을 위한 객체를 넘긴다.
     return render(request, 'item_pool/create.html', context)
+
+@require_POST
+def image_upload(request, question_id, order):
+    image_file = request.FILES.get(f'image_file_{order}')
+    if not image_file:
+        return JsonResponse({'success': False, 'error': '파일이 없습니다.'})
+
+    # 실제 저장 로직
+    question = get_object_or_404(Question, pk=question_id)
+    image_model, _ = ImageInQuestion.objects.get_or_create(base_question=question, order=order)
+    image_model.image = image_file
+    image_model.save()
+
+    return JsonResponse({'success': True, 'url': image_model.image.url})
 
 @login_required()
 def modify(request, question_id):#이름을 update로 해도 괜찮았을 듯하다.
@@ -165,7 +181,18 @@ def modify(request, question_id):#이름을 update로 해도 괜찮았을 듯하
             return redirect('item_pool:detail', question_id=question.id)
     else:#GET으로 요청된 경우.
         form = QuestionForm(instance=question)#해당 모델의 내용을 가져온다!
-    context = {'form': form}
+    # order 순서대로 미리 로드
+    ImageSlot = [['1',0],['2',0],['3',0]]
+    for slot in ImageSlot:
+        try:
+            img = ImageInQuestion.objects.get(
+                base_question=question,
+                order=slot[0]
+            ).image.url
+        except ImageInQuestion.DoesNotExist:
+            img = None
+        slot[1] = img
+    context = {'form': form, 'ImageSlot': ImageSlot, 'question': question}
     return render(request, 'item_pool/create.html', context)
 
 @login_required()

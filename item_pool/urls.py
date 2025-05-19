@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.list, name='list'),
     path('question/detail/<int:question_id>', views.detail, name='detail'),
     path('question/create/', views.create, name='create'),
+    path('question/image_upload/<int:question_id>/<int:order>/', views.image_upload, name='image_upload'),
     path('question/modify/<int:question_id>/', views.modify, name='modify'),
     path('question/delete/<int:question_id>/', views.delete, name='delete'),
 

@@ -9,10 +9,3 @@ class Task(models.Model):
     completion_status = models.BooleanField(default=False)
     error_message = models.TextField(null=True, blank=True)
 
-
-class UploadedImage(models.Model):
-    image = models.ImageField(upload_to='uploaded_images/')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Image {self.id} - {self.image.name}"

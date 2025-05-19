@@ -1,6 +1,8 @@
 #from django.contrib.auth.models import User
 from django.conf import settings
 from django.db import models
+from datetime import datetime
+import os
 
 class School(models.Model):
     name = models.CharField(max_length=10, unique=True)
@@ -59,12 +61,38 @@ class Question(models.Model):
     def __str__(self):
         return self.subject
 
-class UploadedImage(models.Model):
-    image = models.ImageField(upload_to='uploaded_images/')
+from school_report.models_school import compress_image
+def Image_upload_path(instance, filename):
+    '''파일 저장 경로 지정.'''
+    today = datetime.today()
+    return f"item_pool/image_in_question/{today.year}/{today.month:02d}/{today.day:02d}/{filename}"
+class ImageInQuestion(models.Model):
+    '''ajax와 연동왼 업로드.'''
+    base_question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    order = models.IntegerField(blank=True, null=True)  # 문제의 몇 번째 그림인지.
+    image = models.ImageField(upload_to=Image_upload_path, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
         return f"Image {self.id} - {self.image.name}"
+    def delete(self, *args, **kwargs):
+        # 삭제 전 파일을 삭제하는 로직
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+        super().delete(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        # 새 이미지 올릴 때 이전 이미지 지우기.
+        try:
+            this = ImageInQuestion.objects.get(id=self.id)
+            if this.image and this.image != self.image:
+                if os.path.isfile(this.image.path):
+                    os.remove(this.image.path)
+        except ImageInQuestion.DoesNotExist:
+            pass  # 새 객체이므로 이전 이미지 없음
+        # 이미지 압축처리.
+        if self.image:
+            self.image = compress_image(self.image)
+        super().save(*args, **kwargs)
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

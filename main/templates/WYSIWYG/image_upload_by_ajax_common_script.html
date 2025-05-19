@@ -1,0 +1,52 @@
+<script>
+  // CSRF 유틸
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    return parts.length === 2 ? parts.pop().split(';').shift() : null;
+  }
+
+  // 공통 업로드 함수
+  function handleUpload(inputEl, previewEl, uploadUrl) {
+    const file = inputEl.files[0];
+    if (!file) {
+      alert('업로드할 파일을 선택하세요.');
+      return;
+    }
+    const formData = new FormData();
+    formData.append(inputEl.name, file);
+
+    fetch(uploadUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      credentials: 'same-origin',
+      body: formData,
+    })
+    .then(resp => {
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return resp.json();
+    })
+    .then(data => {
+      if (!data.success) throw new Error(data.error);
+      previewEl.innerHTML = `<img src="${data.url}" style="max-width:200px">`;
+    })
+    .catch(err => {
+      console.error(err);
+      alert('업로드 실패: ' + err.message);
+    });
+  }
+
+  // 페이지 로드 후, 모든 위젯에 한 번씩만 이벤트 걸기
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.ajax-image-submit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const inputId   = btn.getAttribute('data-input-id');
+        const uploadUrl = btn.previousElementSibling.getAttribute('data-upload-url');
+        const inputEl   = document.getElementById(inputId);
+        const previewId = inputEl.getAttribute('data-preview-id');
+        const previewEl = document.getElementById(previewId);
+        handleUpload(inputEl, previewEl, uploadUrl);
+      });
+    });
+  });
+</script>

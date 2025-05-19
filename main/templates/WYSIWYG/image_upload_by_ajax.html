@@ -1,54 +1,26 @@
-{# image_upload_by_ajax.html #}
-{# Required context vars:
-  input_id: (e.g. 'post_image')
-  upload_url: URL to send image to (e.g. '/upload-image/')
-  csrf_token: CSRF token string
-  Optional:
-    input_name: defaults to input_id
-    preview_id: defaults to input_id + '_preview'
-    insert_js_callback: JavaScript function to call with image URL
-#}
+<div class="mb-3">
 
-
-<div class="image-upload-container">
+  <div id="{{ preview_id|default:input_id|add:'_preview' }}">
+    {% if slot.1 %}
+      <img src={{slot.1}}
+           style="max-width:200px;"
+           alt="이미지 {{ slot.0 }}">
+    {% endif %}
+  </div>
   <input type="file"
          id="{{ input_id }}"
          name="{{ input_name|default:input_id }}"
-         accept="image/*">
-  <div id="{{ preview_id|default:input_id|add:'_preview' }}"></div>
+         accept="image/*"
+         class="btn btn-outline-dark ajax-image-input"
+         data-preview-id="{{ preview_id|default:input_id|add:'_preview' }}"
+         data-upload-url="{{ upload_url }}">
+
+  <button type="button"
+          id="{{ input_id }}_submit"
+          class="btn btn-outline-success ajax-image-submit"
+          data-input-id="{{ input_id }}">
+    업로드
+  </button>
+
+
 </div>
-
-<script>
-  const inputEl = document.getElementById('{{ input_id }}');
-  const previewEl = document.getElementById('{{ preview_id|default:input_id|add:"_preview" }}');
-
-  inputEl.addEventListener('change', function () {
-    const file = this.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('{{ input_name|default:input_id }}', file);
-
-    fetch('{{ upload_url }}', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}',
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        const url = data.url;
-        {% if insert_js_callback %}
-        {{ insert_js_callback }}(url);
-        {% else %}
-        previewEl.innerHTML = `<img src="${url}" alt="업로드 이미지">`;
-        {% endif %}
-      } else {
-        alert('업로드 실패: ' + data.error);
-      }
-    })
-    .catch(err => alert('오류 발생: ' + err));
-  });
-</script>
