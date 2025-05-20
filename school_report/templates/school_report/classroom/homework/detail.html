@@ -158,16 +158,16 @@ $(document).ready(function(){
     </thead>
     <tbody>
     {% if private_submits %}
-    {% for private_submit in private_submits%}
+    {% for private_submit in private_submits %}
     <tr>
         <td>{{private_submit.to_profile}}</td>
-        {% if private_submit.check %}
-        <td>제출{% if private_submit.state%}<h6 style="color: red;">({{private_submit.state}})</h6>{%endif%}</td>
-        <td>{{private_submit.submit_date|date:'m.d H:i'}}</td>
+        {% if private_submit.is_checked %}
+            <td>제출{% if private_submit.state%}<h6 style="color: red;">({{private_submit.state}})</h6>{%endif%}</td>
+            <td>{{private_submit.submit_date|date:'m.d H:i'}}</td>
         {% elif private_submit.read %}
-        <td class="table-secondary" colspan="2">읽음</td>
+            <td class="table-secondary" colspan="2">읽음</td>
         {% else %}
-        <td class="table-danger" colspan="2">미열람</td>
+            <td class="table-danger" colspan="2">미열람</td>
         {% endif %}
         <td>
             {% if survey %}

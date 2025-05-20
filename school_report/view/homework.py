@@ -32,8 +32,11 @@ def create(request, homework_box_id):
     context = {}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         homework_box = get_object_or_404(models.HomeworkBox, pk=homework_box_id)
-        create_base(request, homework_box)
-        return homework_box.redirect_to_upper()
+        form = create_base(request, homework_box)
+        if form:  # form.is_valid를 통과하지 못하면 아래로 그대로 이어지게.
+            pass
+        else:
+            return homework_box.redirect_to_upper()
     else:  # 포스트 요청이 아니라면.. form으로 넘겨 내용을 작성하게 한다.
         form = HomeworkForm()
     context['form'] = form  # 폼에서 오류가 있으면 오류의 내용을 담아 create.html로 넘긴다.
@@ -56,7 +59,8 @@ def create_base(request, homework_box):
         else:
             profiles = homework_box.get_profiles()
             distribute_homework(profiles=profiles, base_homework=homework)
-
+    else:
+        return form
 
 @login_required()
 def modify(request, posting_id):
@@ -374,6 +378,7 @@ def survey_submit(request, submit_id):
         result = survey_submit_base(request, submit_id, final=True)
         submit.check = True
         submit.submit_date =datetime.now()
+        submit.is_checked = True
         submit.save()
         messages.success(request, "제출되었습니다.")
         return result
