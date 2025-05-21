@@ -687,14 +687,20 @@ def lost_item_board_report_item(request, board_id, is_report=False):
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
         form = SchoolLostItemForm(request.POST, request.FILES)  # 폼을 불러와 내용입력을 받는다.
         school = board.school
-        profile = check.Teacher(user=request.user, school=school).in_school()
+        Teacher = check.Teacher(user=request.user, school=school).in_school()
+        Student = check.Student(user=request.user, school=school).in_school()
+        if Teacher:
+            profile = Teacher
+        elif Student:
+            profile = Student
         if not profile:
+            messages.error(request, '학교에 속한 인원이 아닙니다.')
             return redirect('school_report:lost_item_board', school_id=school.id)
         if form.is_valid():  # 문제가 없으면 다음으로 진행.
             item = form.save(commit=False)  # commit=False는 저장을 잠시 미루기 위함.(입력받는 값이 아닌, view에서 다른 값을 지정하기 위해)
             item.board = board
             item.author = profile
-            if is_report:
+            if is_report and Teacher:
                 item.is_report = True
             item.save()
             return redirect('school_report:lost_item_board', school_id=school.id)
