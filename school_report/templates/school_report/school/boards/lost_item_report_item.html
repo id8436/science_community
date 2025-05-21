@@ -21,12 +21,12 @@
             </div>
 
         <!-- 발견 장소 입력 필드 -->
-            <label for="where" class="d-block mt-4 mb-2">발견 장소</label>
+            <label for="where" class="d-block mt-4 mb-2">발견/분실 장소</label>
             <input type="text" class="form-control" name="where" id="where"
-                   value="{{ form.where.value|default_if_none:'' }}" placeholder="어디서 발견하였나요?">
+                   value="{{ form.where.value|default_if_none:'' }}" placeholder="어디서 발견/분실하였나요?">
 
             <!-- 발견 시간 입력 필드 -->
-            <label for="when" class="d-block mt-4 mb-2">발견 시간</label>
+            <label for="when" class="d-block mt-4 mb-2">발견/분실 시간</label>
             <input type="datetime-local" name="when" id="when" class="form-control"
                    value="{{ form.when.value|date:'Y-m-d\TH:i' }}">
 
