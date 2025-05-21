@@ -1,0 +1,82 @@
+{% extends 'utility/common.html' %}
+
+{% block content %}
+<h3>고속 푸리에 분석</h3>
+
+
+<div class="card my-4">
+  <div class="card-header bg-primary text-white">
+    <h4>고속 푸리에 변환 (FFT) 기능 안내</h4>
+  </div>
+  <div class="card-body">
+    <p>
+      본 분석 도구는 <strong>Fast Fourier Transform (FFT)</strong>를 활용하여 시간 영역(Time Domain)의 데이터를
+      <em>주파수 영역(Frequency Domain)</em>으로 변환합니다. 이를 통해 신호에 포함된 주기성 성분을 파악할 수 있습니다.
+    </p>
+    <p>
+      예를 들어, 진동 데이터나 센서 출력 신호에 포함된 특정 주파수 성분을 식별할 수 있으며, 이는
+      <mark>기계 이상 진단, 오디오 분석, 센서 데이터 해석</mark> 등 다양한 분야에서 유용하게 활용됩니다.
+    </p>
+    <h5>사용 방법</h5>
+    <ol>
+      <li>분석할 데이터셋에서 <strong>X축(시간 또는 인덱스)</strong>과 <strong>Y축(분석 대상 값)</strong>을 선택하세요.</li>
+      <li>샘플링 간격(Sampling Interval, T)을 입력하거나 생략하면 자동 계산됩니다.</li>
+      <li><code>그리기</code> 버튼을 클릭하면 FFT 결과가 시각화됩니다.</li>
+    </ol>
+    <h5>출력 내용</h5>
+    <ul>
+      <li><strong>Frequency Index:</strong> 상대적인 주파수 또는 인덱스 기반 주파수</li>
+      <li><strong>Magnitude:</strong> 해당 주파수 성분의 크기</li>
+    </ul>
+    <p class="text-muted">
+      FFT 결과는 실측 데이터의 패턴을 분석하거나 이상 주파수를 찾아내는 데 유용합니다.
+    </p>
+  </div>
+</div>
+
+<div class="card my-3">
+    <div class="card-body">
+
+    <table class="table table-hover" id="table">
+    <thead>
+    <tr class="thead-dark">
+        <th>할 수 있는 것</th>
+        <th>코멘트</th>
+    </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>변수 선택</td>
+            <td>
+<form action="{% url 'utility:data_analysis_fft_analysis' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+    <span>X축: </span>{{X}}
+        <select name="X" required>
+            {%for col in data_column_list %}
+            <option value={{col}} {%if col == X %}selected {%endif%}>{{col}}</option>
+            {%endfor%}
+        </select>
+    <span>, Y축: </span>
+        <select name="Y" required>
+            {%for col in data_column_list %}
+            <option value={{col}} {%if col == Y %}selected {%endif%}>{{col}}</option>
+            {%endfor%}
+        </select>
+    </br>
+    <span><label for="sampling_interval">Sampling Interval (T):</label>
+<input type="number" step="any" name="sampling_interval" id="sampling_interval" placeholder="없으면 임의값"
+value="{{T|default:''}}">
+<span>단위: 초(x축이 시간이 아닌 경우, 인덱스 간격)</span></span>
+        <input type="submit" value="그리기">
+</form>
+            </td>
+    </tbody>
+    </table>
+    </div>
+</div>
+
+{% autoescape off %}
+    {{ plot_div }}
+{% endautoescape %}
+
+{% endblock content%}

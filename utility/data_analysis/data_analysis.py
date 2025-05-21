@@ -159,40 +159,32 @@ def fft_analysis(request):
     context = {}
     data_object = DataObject.objects.get(user=request.user)  # 기초데이터.
     df = pd.read_json(data_object.contents)
+
     if request.method == "POST":
-        # x축 처리.
+        # 데이터 모으기.
         x = request.POST.get('X')
-        x_vals = df[x].values  # x 컬럼(시간 또는 인덱스)
-        T = request.POST.get('T', 1.0)  # 기본값 1.0초. 들어오는 게 굳이 시간은 아니어도 됨.
-        T = float(T)  # 숫자만 받아들일 수 있다.
-
+        print(x)
         y = request.POST.get('Y')
-        # option = request.POST.get('option')
-        # 푸리에 변환 로직 시작!
-        if not y:  # y축 데이터 선택 안 했으면 에러 처리 또는 기본값 설정 필요
-            # 에러 메시지나 리다이렉트 처리 로직 추가
-            pass  # 여기서는 일단 y가 선택되었다고 가정
+        T = request.POST.get('sampling_interval')  # 기본값 1.0초. 들어오는 게 굳이 시간은 아니어도 됨.
 
+
+        # 데이터 처리.
+        x_vals = df[x].values  # x 컬럼(시간 또는 인덱스)
         signal_data = df[y].values  # 선택된 y 컬럼의 데이터 (numpy 배열)
+        try:
+            T = float(T)  # 숫자만 받아들일 수 있다.
+        except:  # 입력값이 없는 경우.
+            # 자동으로 간격 계산 (균등하다고 가정)
+            x_diff = np.diff(x_vals)
+            if np.allclose(x_diff, x_diff[0]):  # 거의 동일한 간격이면
+                T = x_diff[0]
+            else:
+                T = np.mean(x_diff)
         N = len(signal_data)  # 데이터 포인트 개수
 
         # 푸리에 변환 계산
         fft_result = np.fft.fft(signal_data)
-
-        # 주파수 축 계산
-        # 샘플링 주기를 알아야 정확한 주파수(Hz)를 알 수 있지만,
-        # 여기서는 샘플링 주기를 1로 가정하고 상대적인 주파수를 계산
-        # 실제 구현 시에는 엑셀 데이터의 시간 간격 등을 분석하여 샘플링 주기를 얻어야 함
-        # 만약 x 컬럼이 시간 데이터이고 균등하다면 간격을 계산할 수 있음
-        # 예: T = (df[x].iloc[1] - df[x].iloc[0]) (단위 확인 필요)
-        # freqs = np.fft.fftfreq(N, d=T) # 실제 샘플링 주기를 아는 경우
-
-        freqs = np.fft.fftfreq(N)  # 샘플링 주기 1로 가정하고 계산. 결과는 [-0.5, 0.5] 범위의 상대 주파수.
-        # 실제 주파수를 보려면 freqs = np.fft.fftfreq(N, d=1/fs) 형태로 써야 함.
-        # 여기서는 간단하게 주파수 인덱스 또는 상대 주파수 개념으로 표시.
-
-        # 결과 준비 (절반만 사용 - 긍정 주파수 부분)
-        # np.abs()로 크기(magnitude)만 사용
+        freqs = np.fft.fftfreq(N, d=T)
         fft_freqs = freqs[:N // 2]
         fft_magnitude = np.abs(fft_result[:N // 2])
 
@@ -200,8 +192,9 @@ def fft_analysis(request):
         fft_df = pd.DataFrame({'Frequency_Index': fft_freqs, 'Magnitude': fft_magnitude})  # 'Frequency_Index'로 이름 변경
 
         # 그래프 생성 (plotly line plot)
+        plot_title = f'{y} 컬럼 푸리에 변환 결과 (샘플링 주기: {T:.4f})' if T > 0 else f'{y} 컬럼 푸리에 변환 결과'
         fig = px.line(fft_df, x='Frequency_Index', y='Magnitude',
-                      title=f'{y} 컬럼 푸리에 변환 결과 (샘플링 주기 1 가정)',
+                      title=plot_title,
                       labels={'Frequency_Index': 'Frequency (Relative or Index)', 'Magnitude': 'Magnitude'})
 
         # 그래프 레이아웃 조정 (선택 사항)
@@ -211,6 +204,10 @@ def fft_analysis(request):
         # 그래프를 HTML div로 변환
         plot_div = plot(fig, output_type='div')
         context['plot_div'] = plot_div
+        # 데이터 되돌려주기.
+        context['X'] = x
+        context['Y'] = y
+        context['T'] = T
     # get으로. 처음 변수 정하는 화면 랜더.
     context['data_column_list'] = df.columns
     return render(request, 'utility/data_analysis/fft_analysis.html', context)

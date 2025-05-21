@@ -681,7 +681,7 @@ def lost_item_board_teachers_message(request, school_id):
 
 @login_required
 def lost_item_board_report_item(request, board_id, is_report=False):
-    '''들어온 분실물 안내.'''
+    '''들어온 분실물 안내. is_report 여부로 학생이 올리는 것인지, 들어온 분실물 등록인지 구분한다.'''
     board = models.LostItemBoard.objects.get(pk=board_id)
     context = {}
     if request.method == 'POST':  # 포스트로 요청이 들어온다면... 글을 올리는 기능.
